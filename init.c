@@ -5,52 +5,63 @@
 
 #include <base/roc_api.h>
 
-vlib_log_class_t cnxk_logtype_base;
-vlib_log_class_t cnxk_logtype_cpt;
-vlib_log_class_t cnxk_logtype_mbox;
-vlib_log_class_t cnxk_logtype_npa;
-vlib_log_class_t cnxk_logtype_nix;
-vlib_log_class_t cnxk_logtype_sso;
-vlib_log_class_t cnxk_logtype_npc;
-vlib_log_class_t cnxk_logtype_tm;
-vlib_log_class_t cnxk_logtype_tim;
-vlib_log_class_t cnxk_logtype_pci;
-vlib_log_class_t cnxk_logtype_ep;
-vlib_log_class_t cnxk_logtype_bphy;
-vlib_log_class_t cnxk_logtype_iomem;
-vlib_log_class_t cnxk_logtype_ml;
+oct_plt_init_param_t g_param;
+
+oct_log_class_t oct_logtype_base;
+oct_log_class_t oct_logtype_cpt;
+oct_log_class_t oct_logtype_mbox;
+oct_log_class_t oct_logtype_npa;
+oct_log_class_t oct_logtype_nix;
+oct_log_class_t oct_logtype_sso;
+oct_log_class_t oct_logtype_npc;
+oct_log_class_t oct_logtype_tm;
+oct_log_class_t oct_logtype_tim;
+oct_log_class_t oct_logtype_pci;
+oct_log_class_t oct_logtype_ep;
+oct_log_class_t oct_logtype_bphy;
+oct_log_class_t oct_logtype_iomem;
+oct_log_class_t oct_logtype_ml;
 
 int
-cnxk_plt_init (void)
+oct_plt_init (const oct_plt_init_param_t *param)
 {
+  if (!param->log_reg_class || !param->oct_log || !param->oct_plt_free ||
+	!param->oct_plt_zmalloc || !param->oct_plt_memzone_free ||
+       	!param->oct_plt_memzone_lookup || !param->oct_get_thread_index ||
+       	!param->oct_plt_memzone_reserve_aligned || !param->oct_spinlock_init ||
+        !param->oct_spinlock_lock || !param->oct_spinlock_unlock ||
+        !param->oct_spinlock_trylock || !param->oct_get_thread_index)
+	  return -1;
 
-  cnxk_logtype_base = vlib_log_register_class ("onp", "roc");
+  g_param = *param;
 
-  cnxk_logtype_cpt = vlib_log_register_class ("onp", "roc_cpt");
+  oct_logtype_base = param->log_reg_class ("oct", "roc");
 
-  cnxk_logtype_mbox = vlib_log_register_class ("onp", "roc_mbox");
+  oct_logtype_cpt = param->log_reg_class ("oct", "roc_cpt");
 
-  cnxk_logtype_npa = vlib_log_register_class ("onp", "roc_npa");
+  oct_logtype_mbox = param->log_reg_class ("oct", "roc_mbox");
 
-  cnxk_logtype_nix = vlib_log_register_class ("onp", "roc_nix");
+  oct_logtype_npa = param->log_reg_class ("oct", "roc_npa");
 
-  cnxk_logtype_sso = vlib_log_register_class ("onp", "roc_sso");
+  oct_logtype_nix = param->log_reg_class ("oct", "roc_nix");
 
-  cnxk_logtype_npc = vlib_log_register_class ("onp", "roc_npc");
+  oct_logtype_sso = param->log_reg_class ("oct", "roc_sso");
 
-  cnxk_logtype_tm = vlib_log_register_class ("onp", "roc_tm");
+  oct_logtype_npc = param->log_reg_class ("oct", "roc_npc");
 
-  cnxk_logtype_tim = vlib_log_register_class ("onp", "roc_tim");
+  oct_logtype_tm = param->log_reg_class ("oct", "roc_tm");
 
-  cnxk_logtype_pci = vlib_log_register_class ("onp", "roc_pci");
+  oct_logtype_tim = param->log_reg_class ("oct", "roc_tim");
 
-  cnxk_logtype_ep = vlib_log_register_class ("onp", "roc_ep");
+  oct_logtype_pci = param->log_reg_class ("oct", "roc_pci");
 
-  cnxk_logtype_bphy = vlib_log_register_class ("onp", "roc_bphy");
+  oct_logtype_ep = param->log_reg_class ("oct", "roc_ep");
 
-  cnxk_logtype_iomem = vlib_log_register_class ("onp", "roc_iomem");
+  oct_logtype_bphy = param->log_reg_class ("oct", "roc_bphy");
 
-  cnxk_logtype_ml = vlib_log_register_class ("onp", "roc_ml");
+  oct_logtype_iomem = param->log_reg_class ("oct", "roc_iomem");
+
+  oct_logtype_ml = param->log_reg_class ("oct", "roc_ml");
 
   return 0;
 }

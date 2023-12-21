@@ -710,7 +710,7 @@ roc_nix_rq_init(struct roc_nix *roc_nix, struct roc_nix_rq *rq, bool ena)
 
 	nix->rqs[rq->qid] = rq;
 
-#ifdef ONP_ROC_USE_TELEMETRY
+#ifdef OCT_ROC_USE_TELEMETRY
 	return nix_tel_node_add_rq(rq);
 #else
 	return 0;
@@ -767,7 +767,7 @@ roc_nix_rq_modify(struct roc_nix *roc_nix, struct roc_nix_rq *rq, bool ena)
 			return rc;
 	}
 
-#ifdef ONP_ROC_USE_TELEMETRY
+#ifdef OCT_ROC_USE_TELEMETRY
 	return nix_tel_node_add_rq(rq);
 #else
 	return 0;
@@ -929,7 +929,7 @@ roc_nix_cq_init(struct roc_nix *roc_nix, struct roc_nix_cq *cq)
 	if (rc)
 		goto free_mem;
 
-#ifdef ONP_ROC_USE_TELEMETRY
+#ifdef OCT_ROC_USE_TELEMETRY
 	return nix_tel_node_add_cq(cq);
 #else
 	return 0;
@@ -1437,7 +1437,7 @@ roc_nix_sq_init(struct roc_nix *roc_nix, struct roc_nix_sq *sq)
 					((qid & RVU_CN9K_LMT_SLOT_MASK) << 12));
 	}
 
-#ifdef ONP_ROC_USE_TELEMETRY
+#ifdef OCT_ROC_USE_TELEMETRY
 	rc = nix_tel_node_add_sq(sq);
 #endif
 	return rc;

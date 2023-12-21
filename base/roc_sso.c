@@ -715,7 +715,7 @@ fail:
 static int
 sso_update_msix_vec_count(struct roc_sso *roc_sso, uint16_t sso_vec_cnt)
 {
-#ifdef ONP_ROC_USE_MSIX_INTERRUPTS
+#ifdef OCT_ROC_USE_MSIX_INTERRUPTS
 	struct plt_pci_device *pci_dev = roc_sso->pci_dev;
 	struct sso *sso = roc_sso_to_sso_priv(roc_sso);
 	uint16_t mbox_vec_cnt, npa_vec_cnt;
