@@ -3,119 +3,47 @@
  * Copyright(C) 2023 Marvell.
  */
 
-#ifndef included_onp_roc_memzone_h
-#define included_onp_roc_memzone_h
+#ifndef included_oct_roc_memzone_h
+#define included_oct_roc_memzone_h
 
 #define PLT_MEMZONE_PHYS_CONTIG 0x00000001
 #define PLT_MEMZONE_NAMESIZE	(64)
 
-typedef struct cnxk_plt_memzone
+struct oct_plt_init_param;
+extern struct oct_plt_init_param g_param;
+typedef struct oct_plt_memzone
 {
-  u32 index;
+  uint32_t index;
   union
   {
     void *addr;
-    u64 addr_64;
+    uint64_t addr_64;
     plt_iova_t iova;
   };
-} cnxk_plt_memzone_t;
+} oct_plt_memzone_t;
 
-typedef struct cnxk_plt_memzone_list
+typedef struct oct_plt_memzone_list
 {
-  cnxk_plt_memzone_t *mem_pool;
-  uword *memzone_by_name;
-} cnxk_plt_memzone_list_t;
+  oct_plt_memzone_t *mem_pool;
+  uint64_t *memzone_by_name;
+} oct_plt_memzone_list_t;
 
-static cnxk_plt_memzone_list_t memzone_list;
-
-#define plt_memzone	   cnxk_plt_memzone
-#define plt_memzone_free   cnxk_plt_memzone_free
-#define plt_memzone_lookup cnxk_plt_memzone_lookup
+#define plt_memzone	   oct_plt_memzone
+#define plt_memzone_free   g_param.oct_plt_memzone_free
+#define plt_memzone_lookup g_param.oct_plt_memzone_lookup
 
 #define plt_memzone_reserve_aligned(name, sz, flags, align)                   \
-  cnxk_plt_memzone_reserve_aligned (name, sz, 0, flags, align)
+  g_param.oct_plt_memzone_reserve_aligned (name, sz, 0, flags, align)
 
 #define plt_memzone_reserve_cache_align(name, sz)                             \
-  cnxk_plt_memzone_reserve_aligned (name, sz, 0, 0, CLIB_CACHE_LINE_BYTES)
+  g_param.oct_plt_memzone_reserve_aligned (name, sz, 0, 0, 128)
 
-static_always_inline void
-cnxk_plt_free (void *addr)
+inline void *
+oct_plt_realloc (void *addr, uint32_t size, uint32_t align)
 {
-  vlib_main_t *vm = vlib_get_main ();
-
-  cnxk_drv_physmem_free (vm, addr);
-}
-
-static_always_inline void *
-cnxk_plt_realloc (void *addr, u32 size, u32 align)
-{
-  ALWAYS_ASSERT (0);
+  assert (0);
 
   return 0;
-}
-
-static_always_inline void *
-cnxk_plt_zmalloc (u32 size, u32 align)
-{
-  vlib_main_t *vm = vlib_get_main ();
-
-  return cnxk_drv_physmem_alloc (vm, size, align);
-}
-
-static_always_inline cnxk_plt_memzone_t *
-memzone_get (u32 index)
-{
-  if (index == ((u32) ~0))
-    return 0;
-
-  return pool_elt_at_index (memzone_list.mem_pool, index);
-}
-
-static_always_inline int
-cnxk_plt_memzone_free (const cnxk_plt_memzone_t *name)
-{
-  uword *p;
-  p = hash_get_mem (memzone_list.memzone_by_name, name);
-
-  if (p[0] == ((u32) ~0))
-    return -EINVAL;
-
-  hash_unset_mem (memzone_list.memzone_by_name, name);
-
-  pool_put_index (memzone_list.mem_pool, p[0]);
-
-  return 0;
-}
-
-static_always_inline cnxk_plt_memzone_t *
-cnxk_plt_memzone_lookup (const char *name)
-{
-  uword *p;
-  p = hash_get_mem (memzone_list.memzone_by_name, name);
-  if (p)
-    return memzone_get (p[0]);
-
-  return 0;
-}
-
-static_always_inline cnxk_plt_memzone_t *
-cnxk_plt_memzone_reserve_aligned (const char *name, u64 len, u8 socket,
-				  u32 flags, u32 align)
-{
-  cnxk_plt_memzone_t *mem_pool;
-  void *p = NULL;
-
-  pool_get_zero (memzone_list.mem_pool, mem_pool);
-
-  p = cnxk_plt_zmalloc (len, align);
-  if (!p)
-    return NULL;
-
-  mem_pool->addr = p;
-  mem_pool->index = mem_pool - memzone_list.mem_pool;
-  hash_set_mem (memzone_list.memzone_by_name, name, mem_pool->index);
-
-  return mem_pool;
 }
 
 static inline const void *
@@ -125,7 +53,7 @@ plt_lmt_region_reserve_aligned (const char *name, size_t len, uint32_t align)
 				      align);
 }
 
-#endif /* included_onp_roc_memzone_h */
+#endif /* included_oct_roc_memzone_h */
 
 /*
  * fd.io coding-style-patch-verification: ON

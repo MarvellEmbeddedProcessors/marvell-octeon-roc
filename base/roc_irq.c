@@ -5,7 +5,7 @@
 #include "roc_api.h"
 #include "roc_priv.h"
 
-#if defined(__linux__) && defined(ONP_ROC_USE_MSIX_INTERRUPTS)
+#if defined(__linux__) && defined(OCT_ROC_USE_MSIX_INTERRUPTS)
 
 #include <inttypes.h>
 #include <linux/vfio.h>
@@ -272,4 +272,4 @@ dev_irqs_disable(struct plt_intr_handle *intr_handle)
 	return 0;
 }
 
-#endif /* __linux__  && ONP_ROC_USE_MSIX_INTERRUPTS */
+#endif /* __linux__  && OCT_ROC_USE_MSIX_INTERRUPTS */

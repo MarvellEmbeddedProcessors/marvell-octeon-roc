@@ -227,7 +227,7 @@ roc_nix_lf_alloc(struct roc_nix *roc_nix, uint32_t nb_rxq, uint32_t nb_txq,
 		goto fail;
 	}
 
-#ifdef ONP_ROC_USE_TELEMETRY
+#ifdef OCT_ROC_USE_TELEMETRY
 	nix_tel_node_add(roc_nix);
 #endif
 fail:
@@ -500,7 +500,7 @@ lf_detach:
 dev_fini:
 	rc |= dev_fini(dev, pci_dev);
 fail:
-#ifdef ONP_ROC_USE_TELEMETRY
+#ifdef OCT_ROC_USE_TELEMETRY
 	nix_tel_node_del(roc_nix);
 #endif
 	return rc;

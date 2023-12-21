@@ -302,7 +302,7 @@ roc_npc_init(struct roc_npc *roc_npc)
 	npc_mem = mem;
 
 	TAILQ_INIT(&npc->ipsec_list);
-#ifdef ONP_ROC_USE_NPC_AGE
+#ifdef OCT_ROC_USE_NPC_AGE
 	TAILQ_INIT(&npc->age_flow_list);
 #endif
 	for (idx = 0; idx < npc->flow_max_priority; idx++) {
@@ -333,7 +333,7 @@ roc_npc_init(struct roc_npc *roc_npc)
 	 */
 	plt_bitmap_set(npc->rss_grp_entries, 0);
 
-#ifdef ONP_ROC_USE_NPC_AGE
+#ifdef OCT_ROC_USE_NPC_AGE
 	rc = npc_aged_flows_bitmap_alloc(roc_npc);
 	if (rc != 0)
 		goto done;
@@ -620,7 +620,7 @@ npc_parse_actions(struct roc_npc *roc_npc, const struct roc_npc_attr *attr,
 			flow->mtr_id = act_mtr->mtr_id;
 			req_act |= ROC_NPC_ACTION_TYPE_METER;
 			break;
-#ifdef ONP_ROC_USE_NPC_AGE
+#ifdef OCT_ROC_USE_NPC_AGE
 		case ROC_NPC_ACTION_TYPE_AGE:
 			if (flow->is_validate == true)
 				break;
@@ -1526,7 +1526,7 @@ roc_npc_flow_create(struct roc_npc *roc_npc, const struct roc_npc_attr *attr,
 	}
 	TAILQ_INSERT_TAIL(list, flow, next);
 
-#ifdef ONP_ROC_USE_NPC_AGE
+#ifdef OCT_ROC_USE_NPC_AGE
 	npc_age_flow_list_entry_add(roc_npc, flow);
 #endif
 
@@ -1628,7 +1628,7 @@ roc_npc_flow_destroy(struct roc_npc *roc_npc, struct roc_npc_flow *flow)
 
 	npc_delete_prio_list_entry(npc, flow);
 
-#ifdef ONP_ROC_USE_NPC_AGE
+#ifdef OCT_ROC_USE_NPC_AGE
 	npc_age_flow_list_entry_delete(roc_npc, flow);
 	if (roc_npc->flow_age.age_flow_refcnt == 0 &&
 	    roc_npc->flow_age.aged_flows_poll_thread)
