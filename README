@@ -1,11 +1,11 @@
-Library files for VPP ONP Plugin
-================================
+Library files for VPP OCTEON Device Plugin
+==========================================
 
 This repository contains library sources for Marvell OCTEON SoCs for use with
-VPP's ONP Plugin (OCTEON NATIVE PLUGIN).
+VPP's OCTEON Device Plugin.
 
 Provided "AS IS" and WITHOUT SUPPORT. This repository is intended for use in
-conjuction with VPP only. No support is provided for any changes made to this
-or for standalone compliation or use of these sources.
+conjunction with VPP only. No support is provided for any changes made to this
+or use of these sources.
 
 Please contact your assigned Marvell FAE or contact point for more information.
