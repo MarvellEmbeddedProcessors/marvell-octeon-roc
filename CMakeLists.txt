@@ -65,6 +65,11 @@ set(OCT_ROC_SRCS
 )
 
 set(OCT_ROC_HEADERS
+  bitmap.h
+  common.h
+  memzone.h
+  platform.h
+  util.h
   base/roc_ae.h
   base/roc_ae_fpm_tables.h
   base/roc_aes.h
@@ -135,3 +140,9 @@ set(OCT_ROC_HEADERS
 )
 
 ADD_LIBRARY(octeon-roc ${OCT_ROC_SRCS})
+install(TARGETS octeon-roc)
+
+foreach(file ${OCT_ROC_HEADERS})
+  get_filename_component(dir ${file} DIRECTORY)
+  install(FILES ${file} DESTINATION include/octeon-roc/${dir})
+endforeach()
