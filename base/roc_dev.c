@@ -56,7 +56,7 @@ mbox_mem_unmap(void *va, size_t size)
 		munmap(va, size);
 }
 
-#ifdef ONP_ROC_USE_MBOX_THREAD
+#ifdef OCT_ROC_USE_MBOX_THREAD
 static int
 pf_af_sync_msg(struct dev *dev, struct mbox_msghdr **rsp)
 {
@@ -548,7 +548,7 @@ static int
 mbox_up_handler_mcs_intr_notify(struct dev *dev, struct mcs_intr_info *info,
 				struct msg_rsp *rsp)
 {
-#ifdef ONP_ROC_USE_MCS
+#ifdef OCT_ROC_USE_MCS
   struct roc_mcs_event_desc desc = { 0 };
   struct roc_mcs *mcs;
 
@@ -970,7 +970,7 @@ mbox_unregister_irq(struct plt_pci_device *pci_dev, struct dev *dev)
 		mbox_unregister_pf_irq(pci_dev, dev);
 }
 
-#ifdef ONP_ROC_USE_MBOX_THREAD
+#ifdef OCT_ROC_USE_MBOX_THREAD
 static int
 vf_flr_send_msg(struct dev *dev, uint16_t vf)
 {
@@ -1089,7 +1089,7 @@ dev_vf_flr_register_irqs(struct plt_pci_device *pci_dev, struct dev *dev)
 	return 0;
 }
 
-#ifdef ONP_ROC_USE_MBOX_THREAD
+#ifdef OCT_ROC_USE_MBOX_THREAD
 static void
 vf_flr_handle_msg(void *param, dev_intr_t *flr)
 {
@@ -1501,7 +1501,7 @@ dev_init(struct dev *dev, struct plt_pci_device *pci_dev)
 		if (rc)
 			goto iounmap;
 
-#ifdef ONP_ROC_USE_MBOX_THREAD
+#ifdef OCT_ROC_USE_MBOX_THREAD
 		/* Create a thread for handling msgs from VFs */
 		pthread_cond_init(&dev->sync.pfvf_msg_cond, NULL);
 		pthread_mutex_init(&dev->sync.mutex, NULL);
@@ -1543,7 +1543,7 @@ stop_msg_thrd:
 		pthread_cond_signal(&dev->sync.pfvf_msg_cond);
 		pthread_join(dev->sync.pfvf_msg_thread, NULL);
 	}
-#ifdef ONP_ROC_USE_MBOX_THREAD
+#ifdef OCT_ROC_USE_MBOX_THREAD
 thread_fail:
 	pthread_mutex_destroy(&dev->sync.mutex);
 	pthread_cond_destroy(&dev->sync.pfvf_msg_cond);

@@ -3,20 +3,15 @@
  * Copyright(C) 2023 Marvell.
  */
 
-#ifndef included_onp_roc_platform_h
-#define included_onp_roc_platform_h
+#ifndef included_oct_roc_platform_h
+#define included_oct_roc_platform_h
 
 #include <inttypes.h>
+#include <assert.h>
 
-#include <vlib/vlib.h>
-#include <vlib/pci/pci.h>
-#include <vlib/linux/vfio.h>
-#include <onp/drv/inc/physmem.h>
-
-#define CNXK_UNIMPLEMENTED()                                                  \
+#define OCT_UNIMPLEMENTED()                                                  \
   ({                                                                          \
-    clib_warning ("%s not implemented ...", __FUNCTION__);                    \
-    ASSERT (0);                                                               \
+    assert (0);                                                               \
   })
 
 #include <util.h>
@@ -32,7 +27,7 @@
 #define __io volatile
 #endif
 
-#endif /* included_onp_roc_platform_h */
+#endif /* included_oct_roc_platform_h */
 
 /*
  * fd.io coding-style-patch-verification: ON

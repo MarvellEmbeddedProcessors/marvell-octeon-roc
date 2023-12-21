@@ -69,7 +69,7 @@ roc_mcs_to_mcs_cb_list(struct roc_mcs *roc_mcs)
 	return (void *)((uintptr_t)roc_mcs->reserved + sizeof(struct mcs_priv));
 }
 
-#ifdef ONP_ROC_USE_MCS
+#ifdef OCT_ROC_USE_MCS
 int mcs_event_cb_process(struct roc_mcs *mcs, struct roc_mcs_event_desc *desc);
 #endif
 

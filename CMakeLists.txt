@@ -2,7 +2,15 @@
 # Copyright(C) 2023 Marvell.
 #
 
-set(ONP_ROC_SRCS
+cmake_minimum_required(VERSION 3.16.3)
+
+PROJECT(octeon-roc)
+
+INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR})
+
+SET(CMAKE_C_FLAGS "-fPIC -g -O3 -Wall -Wno-address-of-packed-member -fstack-protector -fno-common ${CMAKE_C_FLAGS}")
+
+set(OCT_ROC_SRCS
   base/roc_ae.c
   base/roc_ae_fpm_tables.c
   base/roc_aes.c
@@ -56,7 +64,7 @@ set(ONP_ROC_SRCS
   init.c
 )
 
-set(ONP_ROC_HEADERS
+set(OCT_ROC_HEADERS
   base/roc_ae.h
   base/roc_ae_fpm_tables.h
   base/roc_aes.h
@@ -126,7 +134,4 @@ set(ONP_ROC_HEADERS
   base/hw/tim.h
 )
 
-add_vpp_library(onp-roc
-  SOURCES ${ONP_ROC_SRCS}
-  INSTALL_HEADERS ${ONP_ROC_HEADERS}
-)
+ADD_LIBRARY(octeon-roc ${OCT_ROC_SRCS})
