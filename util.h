@@ -91,7 +91,12 @@ extern __attribute__((const)) int __plt_log2_NaN(void);
 	 (n) & (BIT_ULL(0))  ? 0 :                                                                 \
 				     __plt_log2_NaN())
 
+#ifdef ROC_PLATFORM_O9
 #define PLT_CACHE_LINE_SIZE	 128
+#else
+#define PLT_CACHE_LINE_SIZE	 64
+#endif
+
 #define PLT_CACHE_LINE_SIZE_LOG2 PLT_LOG2_CONST(128)
 /** Cache line mask. */
 #define PLT_CACHE_LINE_MASK (PLT_CACHE_LINE_SIZE - 1)
