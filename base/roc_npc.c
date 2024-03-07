@@ -1591,7 +1591,6 @@ roc_npc_flow_destroy(struct roc_npc *roc_npc, struct roc_npc_flow *flow)
 		goto done;
 	}
 
-
 	rc = npc_rss_group_free(npc, flow);
 	if (rc != 0) {
 		plt_err("Failed to free rss action rc = %d", rc);
