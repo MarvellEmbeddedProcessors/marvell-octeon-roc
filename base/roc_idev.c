@@ -195,7 +195,7 @@ roc_idev_mcs_get(uint8_t mcs_idx)
 	struct roc_mcs *mcs = NULL;
 
 	if (idev != NULL) {
-		TAILQ_FOREACH (mcs, &idev->mcs_list, next) {
+		TAILQ_FOREACH(mcs, &idev->mcs_list, next) {
 			if (mcs->idx == mcs_idx)
 				return mcs;
 		}
@@ -211,7 +211,7 @@ roc_idev_mcs_set(struct roc_mcs *mcs)
 	struct roc_mcs *mcs_iter = NULL;
 
 	if (idev != NULL) {
-		TAILQ_FOREACH (mcs_iter, &idev->mcs_list, next) {
+		TAILQ_FOREACH(mcs_iter, &idev->mcs_list, next) {
 			if (mcs_iter->idx == mcs->idx)
 				return;
 		}
@@ -226,7 +226,7 @@ roc_idev_mcs_free(struct roc_mcs *mcs)
 	struct roc_mcs *mcs_iter = NULL;
 
 	if (idev != NULL) {
-		TAILQ_FOREACH (mcs_iter, &idev->mcs_list, next) {
+		TAILQ_FOREACH(mcs_iter, &idev->mcs_list, next) {
 			if (mcs_iter->idx == mcs->idx)
 				TAILQ_REMOVE(&idev->mcs_list, mcs, next);
 		}

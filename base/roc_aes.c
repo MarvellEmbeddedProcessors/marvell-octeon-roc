@@ -4,10 +4,10 @@
 
 #include "roc_api.h"
 
-#define KEY128_ROUNDS	     10		    /* (Nr+1)*Nb */
-#define KEY256_ROUNDS	     14		    /* (Nr+1)*Nb */
-#define KEY_SCHEDULE_LEN(nr) ((nr + 1) * 4) /* (Nr+1)*Nb words */
-#define AES_HASH_KEY_LEN     16
+#define KEY128_ROUNDS		10		/* (Nr+1)*Nb */
+#define KEY256_ROUNDS		14		/* (Nr+1)*Nb */
+#define KEY_SCHEDULE_LEN(nr)	((nr + 1) * 4)	/* (Nr+1)*Nb words */
+#define AES_HASH_KEY_LEN	16
 
 /*
  * AES 128 implementation based on NIST FIPS 197 suitable for LittleEndian
@@ -101,9 +101,8 @@ aes_key_expand(const uint8_t *key, uint32_t len, uint32_t *ks)
 	unsigned int i = len_words;
 	uint32_t temp;
 
-	schedule_len = (len == ROC_CPT_AES128_KEY_LEN) ?
-			       KEY_SCHEDULE_LEN(KEY128_ROUNDS) :
-			       KEY_SCHEDULE_LEN(KEY256_ROUNDS);
+	schedule_len = (len == ROC_CPT_AES128_KEY_LEN) ? KEY_SCHEDULE_LEN(KEY128_ROUNDS) :
+							 KEY_SCHEDULE_LEN(KEY256_ROUNDS);
 	/* Skip key in ks */
 	memcpy(ks, key, len);
 
@@ -155,8 +154,7 @@ mix_columns(uint8_t *sRc)
 }
 
 static void
-cipher(uint8_t *in, uint8_t *out, uint32_t *ks, uint32_t key_rounds,
-       uint8_t in_len)
+cipher(uint8_t *in, uint8_t *out, uint32_t *ks, uint32_t key_rounds, uint8_t in_len)
 {
 	uint8_t data_word_len = in_len / sizeof(uint32_t);
 	uint32_t state[data_word_len];

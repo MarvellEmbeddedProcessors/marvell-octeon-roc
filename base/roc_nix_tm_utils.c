@@ -583,8 +583,8 @@ nix_tm_topology_reg_prep(struct nix *nix, struct nix_tm_node *node,
 		/* Configure TL4 to send to SDP channel instead of CGX/LBK */
 		if (nix->sdp_link) {
 			relchan = nix->tx_chan_base & 0xff;
-			plt_tm_dbg("relchan=%u schq=%u tx_chan_cnt=%u\n",
-				   relchan, schq, nix->tx_chan_cnt);
+			plt_tm_dbg("relchan=%u schq=%u tx_chan_cnt=%u\n", relchan, schq,
+				   nix->tx_chan_cnt);
 			reg[k] = NIX_AF_TL4X_SDP_LINK_CFG(schq);
 			regval[k] = BIT_ULL(12);
 			regval[k] |= BIT_ULL(13);
@@ -658,8 +658,8 @@ nix_tm_default_rr_weight(struct nix *nix)
 }
 
 uint8_t
-nix_tm_sched_reg_prep(struct nix *nix, struct nix_tm_node *node,
-		      volatile uint64_t *reg, volatile uint64_t *regval)
+nix_tm_sched_reg_prep(struct nix *nix, struct nix_tm_node *node, volatile uint64_t *reg,
+		      volatile uint64_t *regval)
 {
 	uint64_t strict_prio = node->priority;
 	uint32_t hw_lvl = node->hw_lvl;
@@ -685,8 +685,8 @@ nix_tm_sched_reg_prep(struct nix *nix, struct nix_tm_node *node,
 
 	plt_tm_dbg("Schedule config node %s(%u) lvl %u id %u, "
 		   "prio 0x%" PRIx64 ", rr_quantum/rr_wt 0x%" PRIx64 " (%p)",
-		   nix_tm_hwlvl2str(node->hw_lvl), schq, node->lvl, node->id,
-		   strict_prio, rr_quantum, node);
+		   nix_tm_hwlvl2str(node->hw_lvl), schq, node->lvl, node->id, strict_prio,
+		   rr_quantum, node);
 
 	switch (hw_lvl) {
 	case NIX_TXSCH_LVL_SMQ:
@@ -1267,9 +1267,8 @@ roc_nix_tm_shaper_default_red_algo(struct roc_nix_tm_node *node,
 	tm_node->red_algo = roc_prof->red_algo;
 
 	/* C0 doesn't support STALL when both PIR & CIR are enabled */
-	if (roc_model_is_cn96_cx() || roc_model_is_cnf95xxn_a0() ||
-	    roc_model_is_cnf95xxo_a0() || roc_model_is_cnf95xxn_a1() ||
-	    roc_model_is_cnf95xxn_b0()) {
+	if (roc_model_is_cn96_cx() || roc_model_is_cnf95xxn_a0() || roc_model_is_cnf95xxo_a0() ||
+	    roc_model_is_cnf95xxn_a1() || roc_model_is_cnf95xxn_b0()) {
 		nix_tm_shaper_conf_get(profile, &cir, &pir);
 
 		if (pir.rate && cir.rate)

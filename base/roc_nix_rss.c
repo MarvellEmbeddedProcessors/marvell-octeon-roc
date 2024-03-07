@@ -70,7 +70,7 @@ nix_cn9k_rss_reta_set(struct nix *nix, uint8_t group,
 				goto exit;
 			req = mbox_alloc_msg_nix_aq_enq(mbox);
 			if (!req) {
-				rc = NIX_ERR_NO_MEM;
+				rc =  NIX_ERR_NO_MEM;
 				goto exit;
 			}
 		}
@@ -93,7 +93,7 @@ nix_cn9k_rss_reta_set(struct nix *nix, uint8_t group,
 				goto exit;
 			req = mbox_alloc_msg_nix_aq_enq(mbox);
 			if (!req) {
-				rc = NIX_ERR_NO_MEM;
+				rc =  NIX_ERR_NO_MEM;
 				goto exit;
 			}
 		}
@@ -134,7 +134,7 @@ nix_rss_reta_set(struct nix *nix, uint8_t group,
 				goto exit;
 			req = mbox_alloc_msg_nix_cn10k_aq_enq(mbox);
 			if (!req) {
-				rc = NIX_ERR_NO_MEM;
+				rc =  NIX_ERR_NO_MEM;
 				goto exit;
 			}
 		}
@@ -157,7 +157,7 @@ nix_rss_reta_set(struct nix *nix, uint8_t group,
 				goto exit;
 			req = mbox_alloc_msg_nix_cn10k_aq_enq(mbox);
 			if (!req) {
-				rc = NIX_ERR_NO_MEM;
+				rc =  NIX_ERR_NO_MEM;
 				goto exit;
 			}
 		}

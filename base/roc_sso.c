@@ -329,8 +329,8 @@ roc_sso_hws_stats_get(struct roc_sso *roc_sso, uint8_t hws,
 	int rc;
 
 	mbox = mbox_get(dev->mbox);
-	req_rsp =
-		(struct sso_hws_stats *)mbox_alloc_msg_sso_hws_get_stats(mbox);
+	req_rsp = (struct sso_hws_stats *)mbox_alloc_msg_sso_hws_get_stats(
+		mbox);
 	if (req_rsp == NULL) {
 		rc = mbox_process(mbox);
 		if (rc) {
@@ -368,8 +368,8 @@ roc_sso_hwgrp_stats_get(struct roc_sso *roc_sso, uint8_t hwgrp,
 	int rc;
 
 	mbox = mbox_get(dev->mbox);
-	req_rsp =
-		(struct sso_grp_stats *)mbox_alloc_msg_sso_grp_get_stats(mbox);
+	req_rsp = (struct sso_grp_stats *)mbox_alloc_msg_sso_grp_get_stats(
+		mbox);
 	if (req_rsp == NULL) {
 		rc = mbox_process(mbox);
 		if (rc) {
@@ -415,8 +415,7 @@ roc_sso_hwgrp_hws_link_status(struct roc_sso *roc_sso, uint8_t hws,
 }
 
 int
-roc_sso_hwgrp_qos_config(struct roc_sso *roc_sso, struct roc_sso_hwgrp_qos *qos,
-			 uint16_t nb_qos)
+roc_sso_hwgrp_qos_config(struct roc_sso *roc_sso, struct roc_sso_hwgrp_qos *qos, uint16_t nb_qos)
 {
 	struct sso *sso = roc_sso_to_sso_priv(roc_sso);
 	struct dev *dev = &sso->dev;
@@ -651,7 +650,7 @@ sso_hwgrp_release_xaq(struct dev *dev, uint16_t hwgrps)
 
 	req = mbox_alloc_msg_sso_hw_release_xaq_aura(mbox);
 	if (req == NULL) {
-		rc = -EINVAL;
+		rc =  -EINVAL;
 		goto exit;
 	}
 	req->hwgrps = hwgrps;
@@ -732,16 +731,13 @@ sso_update_msix_vec_count(struct roc_sso *roc_sso, uint16_t sso_vec_cnt)
 	/* Allocating vectors for the first time */
 	if (plt_intr_max_intr_get(pci_dev->intr_handle) == 0) {
 		npa_vec_cnt = idev->npa_refcnt ? 0 : NPA_LF_INT_VEC_POISON + 1;
-		return dev_irq_reconfigure(pci_dev->intr_handle,
-					   mbox_vec_cnt + npa_vec_cnt);
+		return dev_irq_reconfigure(pci_dev->intr_handle, mbox_vec_cnt + npa_vec_cnt);
 	}
 
-	npa_vec_cnt =
-		(dev->npa.pci_dev == pci_dev) ? NPA_LF_INT_VEC_POISON + 1 : 0;
+	npa_vec_cnt = (dev->npa.pci_dev == pci_dev) ? NPA_LF_INT_VEC_POISON + 1 : 0;
 
 	/* Re-configure to include SSO vectors */
-	rc = dev_irq_reconfigure(pci_dev->intr_handle,
-				 mbox_vec_cnt + npa_vec_cnt + sso_vec_cnt);
+	rc = dev_irq_reconfigure(pci_dev->intr_handle, mbox_vec_cnt + npa_vec_cnt + sso_vec_cnt);
 	if (rc)
 		return rc;
 
@@ -765,8 +761,8 @@ sso_update_msix_vec_count(struct roc_sso *roc_sso, uint16_t sso_vec_cnt)
 }
 
 int
-roc_sso_hwgrp_stash_config(struct roc_sso *roc_sso,
-			   struct roc_sso_hwgrp_stash *stash, uint16_t nb_stash)
+roc_sso_hwgrp_stash_config(struct roc_sso *roc_sso, struct roc_sso_hwgrp_stash *stash,
+			   uint16_t nb_stash)
 {
 	struct sso *sso = roc_sso_to_sso_priv(roc_sso);
 	struct sso_grp_stash_cfg *req;
@@ -808,8 +804,7 @@ fail:
 }
 
 int
-roc_sso_rsrc_init(struct roc_sso *roc_sso, uint8_t nb_hws, uint16_t nb_hwgrp,
-		  uint16_t nb_tim_lfs)
+roc_sso_rsrc_init(struct roc_sso *roc_sso, uint8_t nb_hws, uint16_t nb_hwgrp, uint16_t nb_tim_lfs)
 {
 	struct sso *sso = roc_sso_to_sso_priv(roc_sso);
 	struct sso_lf_alloc_rsp *rsp_hwgrp;
@@ -868,8 +863,7 @@ roc_sso_rsrc_init(struct roc_sso *roc_sso, uint8_t nb_hws, uint16_t nb_hwgrp,
 			goto sso_msix_fail;
 		}
 
-		nb_tim_lfs = nb_tim_lfs ? PLT_MIN(nb_tim_lfs, free_tim_lfs) :
-					  free_tim_lfs;
+		nb_tim_lfs = nb_tim_lfs ? PLT_MIN(nb_tim_lfs, free_tim_lfs) : free_tim_lfs;
 	}
 
 	/* 2 error interrupt per TIM LF */

@@ -124,7 +124,7 @@ roc_nix_vlan_mcam_entry_ena_dis(struct roc_nix *roc_nix, uint32_t index,
 	}
 
 	req->entry = index;
-	rc = mbox_process_msg(mbox, NULL);
+	rc =  mbox_process_msg(mbox, NULL);
 exit:
 	mbox_put(mbox);
 	return rc;

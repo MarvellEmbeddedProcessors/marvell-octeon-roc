@@ -243,88 +243,64 @@ npc_get_kex_capability(struct npc *npc)
 	memset(&kex_cap, 0, sizeof(kex_cap));
 
 	/* Ethtype: Offset 12B, len 2B */
-	kex_cap.bit.ethtype_0 = npc_is_kex_enabled(
-		npc, NPC_LID_LA, NPC_LT_LA_ETHER, 12 * 8, 2 * 8);
+	kex_cap.bit.ethtype_0 = npc_is_kex_enabled(npc, NPC_LID_LA, NPC_LT_LA_ETHER, 12 * 8, 2 * 8);
 	/* QINQ VLAN Ethtype: offset 8B, len 2B */
-	kex_cap.bit.ethtype_x = npc_is_kex_enabled(
-		npc, NPC_LID_LB, NPC_LT_LB_STAG_QINQ, 8 * 8, 2 * 8);
+	kex_cap.bit.ethtype_x =
+		npc_is_kex_enabled(npc, NPC_LID_LB, NPC_LT_LB_STAG_QINQ, 8 * 8, 2 * 8);
 	/* VLAN ID0 : Outer VLAN: Offset 2B, len 2B */
-	kex_cap.bit.vlan_id_0 = npc_is_kex_enabled(
-		npc, NPC_LID_LB, NPC_LT_LB_CTAG, 2 * 8, 2 * 8);
+	kex_cap.bit.vlan_id_0 = npc_is_kex_enabled(npc, NPC_LID_LB, NPC_LT_LB_CTAG, 2 * 8, 2 * 8);
 	/* VLAN PCP0 : Outer VLAN: Offset 2B, len 1B */
-	kex_cap.bit.vlan_pcp_0 = npc_is_kex_enabled(
-		npc, NPC_LID_LB, NPC_LT_LB_CTAG, 2 * 8, 2 * 1);
+	kex_cap.bit.vlan_pcp_0 = npc_is_kex_enabled(npc, NPC_LID_LB, NPC_LT_LB_CTAG, 2 * 8, 2 * 1);
 	/* VLAN IDX : Inner VLAN: offset 6B, len 2B */
-	kex_cap.bit.vlan_id_x = npc_is_kex_enabled(
-		npc, NPC_LID_LB, NPC_LT_LB_STAG_QINQ, 6 * 8, 2 * 8);
+	kex_cap.bit.vlan_id_x =
+		npc_is_kex_enabled(npc, NPC_LID_LB, NPC_LT_LB_STAG_QINQ, 6 * 8, 2 * 8);
 	/* DMCA: offset 0B, len 6B */
-	kex_cap.bit.dmac = npc_is_kex_enabled(npc, NPC_LID_LA, NPC_LT_LA_ETHER,
-					      0 * 8, 6 * 8);
+	kex_cap.bit.dmac = npc_is_kex_enabled(npc, NPC_LID_LA, NPC_LT_LA_ETHER, 0 * 8, 6 * 8);
 	/* IP proto: offset 9B, len 1B */
-	kex_cap.bit.ip_proto =
-		npc_is_kex_enabled(npc, NPC_LID_LC, NPC_LT_LC_IP, 9 * 8, 1 * 8);
+	kex_cap.bit.ip_proto = npc_is_kex_enabled(npc, NPC_LID_LC, NPC_LT_LC_IP, 9 * 8, 1 * 8);
 	/* IPv4 dscp: offset 1B, len 1B, IPv6 dscp: offset 0B, len 2B */
-	kex_cap.bit.ip_dscp =
-		npc_is_kex_enabled(npc, NPC_LID_LC, NPC_LT_LC_IP, 1 * 8,
-				   1 * 8) &&
-		npc_is_kex_enabled(npc, NPC_LID_LC, NPC_LT_LC_IP6, 0, 2 * 8);
+	kex_cap.bit.ip_dscp = npc_is_kex_enabled(npc, NPC_LID_LC, NPC_LT_LC_IP, 1 * 8, 1 * 8) &&
+			      npc_is_kex_enabled(npc, NPC_LID_LC, NPC_LT_LC_IP6, 0, 2 * 8);
 	/* UDP dport: offset 2B, len 2B */
-	kex_cap.bit.udp_dport = npc_is_kex_enabled(npc, NPC_LID_LD,
-						   NPC_LT_LD_UDP, 2 * 8, 2 * 8);
+	kex_cap.bit.udp_dport = npc_is_kex_enabled(npc, NPC_LID_LD, NPC_LT_LD_UDP, 2 * 8, 2 * 8);
 	/* UDP sport: offset 0B, len 2B */
-	kex_cap.bit.udp_sport = npc_is_kex_enabled(npc, NPC_LID_LD,
-						   NPC_LT_LD_UDP, 0 * 8, 2 * 8);
+	kex_cap.bit.udp_sport = npc_is_kex_enabled(npc, NPC_LID_LD, NPC_LT_LD_UDP, 0 * 8, 2 * 8);
 	/* TCP dport: offset 2B, len 2B */
-	kex_cap.bit.tcp_dport = npc_is_kex_enabled(npc, NPC_LID_LD,
-						   NPC_LT_LD_TCP, 2 * 8, 2 * 8);
+	kex_cap.bit.tcp_dport = npc_is_kex_enabled(npc, NPC_LID_LD, NPC_LT_LD_TCP, 2 * 8, 2 * 8);
 	/* TCP sport: offset 0B, len 2B */
-	kex_cap.bit.tcp_sport = npc_is_kex_enabled(npc, NPC_LID_LD,
-						   NPC_LT_LD_TCP, 0 * 8, 2 * 8);
+	kex_cap.bit.tcp_sport = npc_is_kex_enabled(npc, NPC_LID_LD, NPC_LT_LD_TCP, 0 * 8, 2 * 8);
 	/* IP SIP: offset 12B, len 4B */
-	kex_cap.bit.sip_addr = npc_is_kex_enabled(npc, NPC_LID_LC, NPC_LT_LC_IP,
-						  12 * 8, 4 * 8);
+	kex_cap.bit.sip_addr = npc_is_kex_enabled(npc, NPC_LID_LC, NPC_LT_LC_IP, 12 * 8, 4 * 8);
 	/* IP DIP: offset 14B, len 4B */
-	kex_cap.bit.dip_addr = npc_is_kex_enabled(npc, NPC_LID_LC, NPC_LT_LC_IP,
-						  14 * 8, 4 * 8);
+	kex_cap.bit.dip_addr = npc_is_kex_enabled(npc, NPC_LID_LC, NPC_LT_LC_IP, 14 * 8, 4 * 8);
 	/* IP6 SIP: offset 8B, len 16B */
-	kex_cap.bit.sip6_addr = npc_is_kex_enabled(
-		npc, NPC_LID_LC, NPC_LT_LC_IP6, 8 * 8, 16 * 8);
+	kex_cap.bit.sip6_addr = npc_is_kex_enabled(npc, NPC_LID_LC, NPC_LT_LC_IP6, 8 * 8, 16 * 8);
 	/* IP6 DIP: offset 24B, len 16B */
-	kex_cap.bit.dip6_addr = npc_is_kex_enabled(
-		npc, NPC_LID_LC, NPC_LT_LC_IP6, 24 * 8, 16 * 8);
+	kex_cap.bit.dip6_addr = npc_is_kex_enabled(npc, NPC_LID_LC, NPC_LT_LC_IP6, 24 * 8, 16 * 8);
 	/* ESP SPI: offset 0B, len 4B */
-	kex_cap.bit.ipsec_spi = npc_is_kex_enabled(npc, NPC_LID_LE,
-						   NPC_LT_LE_ESP, 0 * 8, 4 * 8);
+	kex_cap.bit.ipsec_spi = npc_is_kex_enabled(npc, NPC_LID_LE, NPC_LT_LE_ESP, 0 * 8, 4 * 8);
 	/* VXLAN VNI: offset 4B, len 3B */
-	kex_cap.bit.ld_vni = npc_is_kex_enabled(npc, NPC_LID_LE,
-						NPC_LT_LE_VXLAN, 0 * 8, 3 * 8);
+	kex_cap.bit.ld_vni = npc_is_kex_enabled(npc, NPC_LID_LE, NPC_LT_LE_VXLAN, 0 * 8, 3 * 8);
 
 	/* Custom L3 frame: varied offset and lengths */
-	kex_cap.bit.custom_l3 =
-		npc_is_kex_enabled(npc, NPC_LID_LC, NPC_LT_LC_CUSTOM0, 0, 0);
-	kex_cap.bit.custom_l3 |= (uint64_t)npc_is_kex_enabled(
-		npc, NPC_LID_LC, NPC_LT_LC_CUSTOM1, 0, 0);
+	kex_cap.bit.custom_l3 = npc_is_kex_enabled(npc, NPC_LID_LC, NPC_LT_LC_CUSTOM0, 0, 0);
+	kex_cap.bit.custom_l3 |=
+		(uint64_t)npc_is_kex_enabled(npc, NPC_LID_LC, NPC_LT_LC_CUSTOM1, 0, 0);
 	/* SCTP sport : offset 0B, len 2B */
-	kex_cap.bit.sctp_sport = npc_is_kex_enabled(
-		npc, NPC_LID_LD, NPC_LT_LD_SCTP, 0 * 8, 2 * 8);
+	kex_cap.bit.sctp_sport = npc_is_kex_enabled(npc, NPC_LID_LD, NPC_LT_LD_SCTP, 0 * 8, 2 * 8);
 	/* SCTP dport : offset 2B, len 2B */
-	kex_cap.bit.sctp_dport = npc_is_kex_enabled(
-		npc, NPC_LID_LD, NPC_LT_LD_SCTP, 2 * 8, 2 * 8);
+	kex_cap.bit.sctp_dport = npc_is_kex_enabled(npc, NPC_LID_LD, NPC_LT_LD_SCTP, 2 * 8, 2 * 8);
 	/* ICMP type : offset 0B, len 1B */
-	kex_cap.bit.icmp_type = npc_is_kex_enabled(
-		npc, NPC_LID_LD, NPC_LT_LD_ICMP, 0 * 8, 1 * 8);
+	kex_cap.bit.icmp_type = npc_is_kex_enabled(npc, NPC_LID_LD, NPC_LT_LD_ICMP, 0 * 8, 1 * 8);
 	/* ICMP code : offset 1B, len 1B */
-	kex_cap.bit.icmp_code = npc_is_kex_enabled(
-		npc, NPC_LID_LD, NPC_LT_LD_ICMP, 1 * 8, 1 * 8);
+	kex_cap.bit.icmp_code = npc_is_kex_enabled(npc, NPC_LID_LD, NPC_LT_LD_ICMP, 1 * 8, 1 * 8);
 	/* ICMP id : offset 4B, len 2B */
-	kex_cap.bit.icmp_id = npc_is_kex_enabled(npc, NPC_LID_LD,
-						 NPC_LT_LD_ICMP, 4 * 8, 2 * 8);
+	kex_cap.bit.icmp_id = npc_is_kex_enabled(npc, NPC_LID_LD, NPC_LT_LD_ICMP, 4 * 8, 2 * 8);
 	/* IGMP grp_addr : offset 4B, len 4B */
-	kex_cap.bit.igmp_grp_addr = npc_is_kex_enabled(
-		npc, NPC_LID_LD, NPC_LT_LD_IGMP, 4 * 8, 4 * 8);
+	kex_cap.bit.igmp_grp_addr =
+		npc_is_kex_enabled(npc, NPC_LID_LD, NPC_LT_LD_IGMP, 4 * 8, 4 * 8);
 	/* GTPU teid : offset 4B, len 4B */
-	kex_cap.bit.gtpv1_teid = npc_is_kex_enabled(
-		npc, NPC_LID_LE, NPC_LT_LE_GTPU, 4 * 8, 4 * 8);
+	kex_cap.bit.gtpv1_teid = npc_is_kex_enabled(npc, NPC_LID_LE, NPC_LT_LE_GTPU, 4 * 8, 4 * 8);
 	return kex_cap.all_bits;
 }
 
@@ -342,8 +318,8 @@ npc_update_kex_info(struct npc_xtract_info *xtract_info, uint64_t val)
 }
 
 int
-npc_mcam_alloc_entries(struct mbox *mbox, int ref_mcam, int *alloc_entry,
-		       int req_count, int prio, int *resp_count, bool is_conti)
+npc_mcam_alloc_entries(struct mbox *mbox, int ref_mcam, int *alloc_entry, int req_count, int prio,
+		       int *resp_count, bool is_conti)
 {
 	struct npc_mcam_alloc_entry_req *req;
 	struct npc_mcam_alloc_entry_rsp *rsp;
@@ -613,8 +589,7 @@ npc_mcam_set_channel(struct roc_npc_flow *flow,
 }
 
 static int
-npc_mcam_set_pf_func(struct npc *npc, struct roc_npc_flow *flow,
-		     uint16_t pf_func)
+npc_mcam_set_pf_func(struct npc *npc, struct roc_npc_flow *flow, uint16_t pf_func)
 {
 #define NPC_PF_FUNC_WIDTH    2
 #define NPC_KEX_PF_FUNC_MASK 0xFFFF
@@ -628,8 +603,7 @@ npc_mcam_set_pf_func(struct npc *npc, struct roc_npc_flow *flow,
 	flow_mcam_data = (uint8_t *)flow->mcam_data;
 	flow_mcam_mask = (uint8_t *)flow->mcam_mask;
 
-	xinfo = &npc->prx_dxcfg[NIX_INTF_TX][NPC_LID_LA]
-			       [NPC_LT_LA_IH_NIX_ETHER];
+	xinfo = &npc->prx_dxcfg[NIX_INTF_TX][NPC_LID_LA][NPC_LT_LA_IH_NIX_ETHER];
 
 	for (i = 0; i < NPC_MAX_LD; i++) {
 		nr_bytes = xinfo->xtract[i].len;
@@ -642,10 +616,10 @@ npc_mcam_set_pf_func(struct npc *npc, struct roc_npc_flow *flow,
 			pffunc_found = true;
 
 		pf_func_offset = key_offset + nr_bytes - NPC_PF_FUNC_WIDTH;
-		memcpy((void *)&flow_mcam_data[pf_func_offset],
-		       (uint8_t *)&pf_func, NPC_PF_FUNC_WIDTH);
-		memcpy((void *)&flow_mcam_mask[pf_func_offset],
-		       (uint8_t *)&mask, NPC_PF_FUNC_WIDTH);
+		memcpy((void *)&flow_mcam_data[pf_func_offset], (uint8_t *)&pf_func,
+		       NPC_PF_FUNC_WIDTH);
+		memcpy((void *)&flow_mcam_mask[pf_func_offset], (uint8_t *)&mask,
+		       NPC_PF_FUNC_WIDTH);
 	}
 	if (!pffunc_found)
 		return -EINVAL;
@@ -654,8 +628,7 @@ npc_mcam_set_pf_func(struct npc *npc, struct roc_npc_flow *flow,
 }
 
 int
-npc_mcam_alloc_and_write(struct npc *npc, struct roc_npc_flow *flow,
-			 struct npc_parse_state *pst)
+npc_mcam_alloc_and_write(struct npc *npc, struct roc_npc_flow *flow, struct npc_parse_state *pst)
 {
 	struct npc_mcam_write_entry_req *req;
 	struct nix_inl_dev *inl_dev = NULL;
@@ -758,27 +731,22 @@ npc_mcam_alloc_and_write(struct npc *npc, struct roc_npc_flow *flow,
 			flow->npc_action &= ~(GENMASK(19, 4));
 			flow->npc_action |= (uint64_t)pf_func << 4;
 
-			npc_mcam_set_channel(flow, req, inl_dev->channel,
-					     inl_dev->chan_mask, false);
+			npc_mcam_set_channel(flow, req, inl_dev->channel, inl_dev->chan_mask,
+					     false);
 		} else if (npc->is_sdp_link) {
-			npc_mcam_set_channel(flow, req, npc->sdp_channel,
-					     npc->sdp_channel_mask,
+			npc_mcam_set_channel(flow, req, npc->sdp_channel, npc->sdp_channel_mask,
 					     pst->is_second_pass_rule);
 		} else {
-			npc_mcam_set_channel(flow, req, npc->channel,
-					     (BIT_ULL(12) - 1),
+			npc_mcam_set_channel(flow, req, npc->channel, (BIT_ULL(12) - 1),
 					     pst->is_second_pass_rule);
 		}
 		/*
 		 * For second pass rule, set LA LTYPE to CPT_HDR.
-		 * For all other rules, set LA LTYPE to match both 1st pass and
-		 * 2nd pass ltypes.
+		 * For all other rules, set LA LTYPE to match both 1st pass and 2nd pass ltypes.
 		 */
-		if (pst->is_second_pass_rule ||
-		    (!pst->is_second_pass_rule && pst->has_eth_type)) {
-			la_offset = __builtin_popcount(
-				npc->keyx_supp_nmask[flow->nix_intf] &
-				((1ULL << 9 /* LA offset */) - 1));
+		if (pst->is_second_pass_rule || (!pst->is_second_pass_rule && pst->has_eth_type)) {
+			la_offset = __builtin_popcount(npc->keyx_supp_nmask[flow->nix_intf] &
+						       ((1ULL << 9 /* LA offset */) - 1));
 			la_offset *= 4;
 
 			mask = ~((0xfULL << la_offset));
@@ -787,20 +755,14 @@ npc_mcam_alloc_and_write(struct npc *npc, struct roc_npc_flow *flow,
 			flow->mcam_data[0] &= mask;
 			flow->mcam_mask[0] &= mask;
 			if (pst->is_second_pass_rule) {
-				req->entry_data.kw[0] |=
-					((uint64_t)NPC_LT_LA_CPT_HDR)
-					<< la_offset;
-				req->entry_data.kw_mask[0] |=
-					(0xFULL << la_offset);
-				flow->mcam_data[0] |=
-					((uint64_t)NPC_LT_LA_CPT_HDR)
-					<< la_offset;
+				req->entry_data.kw[0] |= ((uint64_t)NPC_LT_LA_CPT_HDR) << la_offset;
+				req->entry_data.kw_mask[0] |= (0xFULL << la_offset);
+				flow->mcam_data[0] |= ((uint64_t)NPC_LT_LA_CPT_HDR) << la_offset;
 				flow->mcam_mask[0] |= (0xFULL << la_offset);
 			} else {
 				/* Mask ltype ETHER (0x2) and CPT_HDR (0xa)  */
 				req->entry_data.kw[0] |= (0x2ULL << la_offset);
-				req->entry_data.kw_mask[0] |=
-					(0x7ULL << la_offset);
+				req->entry_data.kw_mask[0] |= (0x7ULL << la_offset);
 				flow->mcam_data[0] |= (0x2ULL << la_offset);
 				flow->mcam_mask[0] |= (0x7ULL << la_offset);
 			}
@@ -872,11 +834,9 @@ npc_set_ipv6ext_ltype_mask(struct npc_parse_state *pst)
 	 * because for AH and ESP, LC LFLAG is zero and we don't want to match
 	 * zero in LFLAG.
 	 */
-	if (pst->npc->keyx_supp_nmask[pst->nix_intf] &
-	    (1ULL << NPC_LFLAG_LC_OFFSET)) {
-		lcflag_offset = __builtin_popcount(
-			pst->npc->keyx_supp_nmask[pst->nix_intf] &
-			((1ULL << NPC_LFLAG_LC_OFFSET) - 1));
+	if (pst->npc->keyx_supp_nmask[pst->nix_intf] & (1ULL << NPC_LFLAG_LC_OFFSET)) {
+		lcflag_offset = __builtin_popcount(pst->npc->keyx_supp_nmask[pst->nix_intf] &
+						   ((1ULL << NPC_LFLAG_LC_OFFSET) - 1));
 		lcflag_offset *= 4;
 
 		mask = (0xfULL << lcflag_offset);
@@ -974,8 +934,7 @@ npc_program_mcam(struct npc *npc, struct npc_parse_state *pst, bool mcam_alloc)
 	    (pst->flow->npc_action & NIX_RX_ACTIONOP_UCAST_IPSEC))
 		skip_base_rule = true;
 
-	if (pst->is_vf && pst->flow->nix_intf == NIX_INTF_RX &&
-	    !skip_base_rule) {
+	if (pst->is_vf && pst->flow->nix_intf == NIX_INTF_RX && !skip_base_rule) {
 		mbox = mbox_get(npc->mbox);
 		(void)mbox_alloc_msg_npc_read_base_steer_rule(mbox);
 		rc = mbox_process_msg(mbox, (void *)&base_rule_rsp);
@@ -1033,7 +992,7 @@ npc_flow_enable_all_entries(struct npc *npc, bool enable)
 	inl_dev = idev->nix_inl_dev;
 
 	if (inl_dev) {
-		TAILQ_FOREACH (flow, list, next) {
+		TAILQ_FOREACH(flow, list, next) {
 			flow->enable = enable;
 			rc = npc_mcam_write_entry(inl_dev->dev.mbox, flow);
 			if (rc)
@@ -1057,10 +1016,8 @@ npc_flow_free_all_resources(struct npc *npc)
 		while ((flow = TAILQ_FIRST(&npc->flow_list[idx])) != NULL) {
 			npc_rss_group_free(npc, flow);
 			if (flow->ctr_id != NPC_COUNTER_NONE) {
-				rc |= npc_mcam_clear_counter(npc->mbox,
-							     flow->ctr_id);
-				rc |= npc_mcam_free_counter(npc->mbox,
-							    flow->ctr_id);
+				rc |= npc_mcam_clear_counter(npc->mbox, flow->ctr_id);
+				rc |= npc_mcam_free_counter(npc->mbox, flow->ctr_id);
 			}
 
 			npc_delete_prio_list_entry(npc, flow);

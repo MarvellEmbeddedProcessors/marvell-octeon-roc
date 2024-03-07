@@ -34,6 +34,7 @@ struct npa_lf {
 	uint8_t aura_sz;
 	uint32_t qints;
 	uintptr_t base;
+
 };
 
 struct npa_qint {

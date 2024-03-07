@@ -58,8 +58,7 @@ npc_set_hw_mask(struct npc_parse_item_info *info, struct npc_xtract_info *xinfo,
 }
 
 static void
-npc_ipv6_hash_mask_get(struct npc_xtract_info *xinfo,
-		       struct npc_parse_item_info *info)
+npc_ipv6_hash_mask_get(struct npc_xtract_info *xinfo, struct npc_parse_item_info *info)
 {
 	int offset = 0;
 	uint8_t *hw_mask = info->hw_mask;
@@ -69,8 +68,7 @@ npc_ipv6_hash_mask_get(struct npc_xtract_info *xinfo,
 }
 
 void
-npc_get_hw_supp_mask(struct npc_parse_state *pst,
-		     struct npc_parse_item_info *info, int lid, int lt)
+npc_get_hw_supp_mask(struct npc_parse_state *pst, struct npc_parse_item_info *info, int lid, int lt)
 {
 	struct npc_xtract_info *xinfo, *lfinfo;
 	char *hw_mask = info->hw_mask;
@@ -240,12 +238,9 @@ npc_field_hash_secret_get(struct npc *npc, struct npc_hash_cfg *hash_cfg)
 		goto done;
 	}
 
-	mbox_memcpy(hash_cfg->secret_key, rsp->secret_key,
-		    sizeof(rsp->secret_key));
-	mbox_memcpy(hash_cfg->hash_mask, rsp->hash_mask,
-		    sizeof(rsp->hash_mask));
-	mbox_memcpy(hash_cfg->hash_ctrl, rsp->hash_ctrl,
-		    sizeof(rsp->hash_ctrl));
+	mbox_memcpy(hash_cfg->secret_key, rsp->secret_key, sizeof(rsp->secret_key));
+	mbox_memcpy(hash_cfg->hash_mask, rsp->hash_mask, sizeof(rsp->hash_mask));
+	mbox_memcpy(hash_cfg->hash_ctrl, rsp->hash_ctrl, sizeof(rsp->hash_ctrl));
 
 done:
 	mbox_put(mbox);
@@ -301,8 +296,7 @@ npc_lshift_key(uint64_t *key, size_t key_bit_len)
 }
 
 static uint32_t
-npc_toeplitz_hash(const uint64_t *data, uint64_t *key, size_t data_bit_len,
-		  size_t key_bit_len)
+npc_toeplitz_hash(const uint64_t *data, uint64_t *key, size_t data_bit_len, size_t key_bit_len)
 {
 	uint32_t hash_out = 0;
 	uint64_t temp_data = 0;
@@ -313,8 +307,7 @@ npc_toeplitz_hash(const uint64_t *data, uint64_t *key, size_t data_bit_len,
 		temp_data = temp_data >> (i % 64);
 		temp_data &= 0x1;
 		if (temp_data)
-			hash_out ^= (uint32_t)(
-				npc_wide_extract(key, key_bit_len - 32, 32));
+			hash_out ^= (uint32_t)(npc_wide_extract(key, key_bit_len - 32, 32));
 
 		npc_lshift_key(key, key_bit_len);
 	}
@@ -323,8 +316,7 @@ npc_toeplitz_hash(const uint64_t *data, uint64_t *key, size_t data_bit_len,
 }
 
 static uint32_t
-npc_field_hash_calc(uint64_t *ldata, struct npc_hash_cfg *hash_cfg,
-		    uint8_t intf, uint8_t hash_idx)
+npc_field_hash_calc(uint64_t *ldata, struct npc_hash_cfg *hash_cfg, uint8_t intf, uint8_t hash_idx)
 {
 	uint64_t hash_key[3];
 	uint64_t data_padded[2];
@@ -346,8 +338,8 @@ npc_field_hash_calc(uint64_t *ldata, struct npc_hash_cfg *hash_cfg,
 }
 
 static int
-npc_ipv6_field_hash_get(struct npc *npc, const uint32_t *ip6addr, uint8_t intf,
-			int hash_idx, uint32_t *hash)
+npc_ipv6_field_hash_get(struct npc *npc, const uint32_t *ip6addr, uint8_t intf, int hash_idx,
+			uint32_t *hash)
 {
 #define IPV6_WORDS 4
 	uint32_t ipv6_addr[IPV6_WORDS];
@@ -368,10 +360,8 @@ npc_ipv6_field_hash_get(struct npc *npc, const uint32_t *ip6addr, uint8_t intf,
 }
 
 static int
-npc_hash_field_get(struct npc_xtract_info *xinfo,
-		   const struct roc_npc_flow_item_ipv6 *ipv6_spec,
-		   const struct roc_npc_flow_item_ipv6 *ipv6_mask,
-		   uint8_t *hash_field)
+npc_hash_field_get(struct npc_xtract_info *xinfo, const struct roc_npc_flow_item_ipv6 *ipv6_spec,
+		   const struct roc_npc_flow_item_ipv6 *ipv6_mask, uint8_t *hash_field)
 {
 	const uint8_t *ipv6_hdr_spec, *ipv6_hdr_mask;
 	struct roc_ipv6_hdr ipv6_buf;
@@ -414,13 +404,12 @@ npc_process_ipv6_field_hash(const struct roc_npc_flow_item_ipv6 *ipv6_spec,
 		if (!xinfo->use_hash)
 			continue;
 
-		rc = npc_hash_field_get(xinfo, ipv6_spec, ipv6_mask,
-					hash_field);
+		rc = npc_hash_field_get(xinfo, ipv6_spec, ipv6_mask, hash_field);
 		if (rc == 0)
 			continue;
 
-		rc = npc_ipv6_field_hash_get(
-			pst->npc, (const uint32_t *)hash_field, intf, i, &hash);
+		rc = npc_ipv6_field_hash_get(pst->npc, (const uint32_t *)hash_field, intf, i,
+					     &hash);
 		if (rc)
 			return rc;
 
@@ -433,9 +422,8 @@ npc_process_ipv6_field_hash(const struct roc_npc_flow_item_ipv6 *ipv6_spec,
 }
 
 int
-npc_update_parse_state(struct npc_parse_state *pst,
-		       struct npc_parse_item_info *info, int lid, int lt,
-		       uint8_t flags)
+npc_update_parse_state(struct npc_parse_state *pst, struct npc_parse_item_info *info, int lid,
+		       int lt, uint8_t flags)
 {
 	struct npc_lid_lt_xtract_info *xinfo;
 	struct roc_npc_flow_dump_data *dump;

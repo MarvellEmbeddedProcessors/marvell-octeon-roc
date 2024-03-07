@@ -24,10 +24,9 @@
 #define ROC_NIX_INTF_TYPE_CPT  3
 #define ROC_NIX_INTF_TYPE_RSVD 4
 
-/* Application based types for BPID allocation, start from end (255 unused rsvd)
- */
+/* Application based types for BPID allocation, start from end (255 unused rsvd) */
 #define ROC_NIX_INTF_TYPE_CPT_NIX 254
-#define ROC_NIX_INTF_TYPE_SSO	  253
+#define ROC_NIX_INTF_TYPE_SSO     253
 
 enum roc_nix_rss_reta_sz {
 	ROC_NIX_RSS_RETA_SZ_64 = 64,
@@ -708,14 +707,12 @@ int __roc_api roc_nix_tm_node_stats_get(struct roc_nix *roc_nix,
 /*
  * TM ratelimit tree API.
  */
-int __roc_api roc_nix_tm_rlimit_sq(struct roc_nix *roc_nix, uint16_t qid,
-				   uint64_t rate);
+int __roc_api roc_nix_tm_rlimit_sq(struct roc_nix *roc_nix, uint16_t qid, uint64_t rate);
 
 /*
  * TM PFC tree ratelimit API.
  */
-int __roc_api roc_nix_tm_pfc_rlimit_sq(struct roc_nix *roc_nix, uint16_t qid,
-				       uint64_t rate);
+int __roc_api roc_nix_tm_pfc_rlimit_sq(struct roc_nix *roc_nix, uint16_t qid, uint64_t rate);
 
 /*
  * TM hierarchy enable/disable API.
@@ -724,8 +721,8 @@ int __roc_api roc_nix_tm_hierarchy_disable(struct roc_nix *roc_nix);
 int __roc_api roc_nix_tm_hierarchy_enable(struct roc_nix *roc_nix,
 					  enum roc_nix_tm_tree tree,
 					  bool xmit_enable);
-int __roc_api roc_nix_tm_hierarchy_xmit_enable(struct roc_nix *roc_nix,
-					       enum roc_nix_tm_tree tree);
+int __roc_api roc_nix_tm_hierarchy_xmit_enable(struct roc_nix *roc_nix, enum roc_nix_tm_tree tree);
+
 
 /*
  * TM utilities API.
@@ -840,8 +837,7 @@ void __roc_api roc_nix_mac_link_cb_unregister(struct roc_nix *roc_nix);
 int __roc_api roc_nix_mac_link_info_get_cb_register(
 	struct roc_nix *roc_nix, link_info_get_t link_info_get);
 void __roc_api roc_nix_mac_link_info_get_cb_unregister(struct roc_nix *roc_nix);
-int __roc_api roc_nix_q_err_cb_register(struct roc_nix *roc_nix,
-					q_err_get_t sq_err_handle);
+int __roc_api roc_nix_q_err_cb_register(struct roc_nix *roc_nix, q_err_get_t sq_err_handle);
 void __roc_api roc_nix_q_err_cb_unregister(struct roc_nix *roc_nix);
 
 /* Ops */
@@ -881,9 +877,8 @@ uint16_t __roc_api roc_nix_chan_count_get(struct roc_nix *roc_nix);
 
 enum roc_nix_fc_mode __roc_api roc_nix_fc_mode_get(struct roc_nix *roc_nix);
 
-void __roc_api roc_nix_fc_npa_bp_cfg(struct roc_nix *roc_nix, uint64_t pool_id,
-				     uint8_t ena, uint8_t force, uint8_t tc,
-				     uint64_t drop_percent);
+void __roc_api roc_nix_fc_npa_bp_cfg(struct roc_nix *roc_nix, uint64_t pool_id, uint8_t ena,
+				     uint8_t force, uint8_t tc, uint64_t drop_percent);
 int __roc_api roc_nix_bpids_alloc(struct roc_nix *roc_nix, uint8_t type,
 				  uint8_t bp_cnt, uint16_t *bpids);
 int __roc_api roc_nix_bpids_free(struct roc_nix *roc_nix, uint8_t bp_cnt,
@@ -945,8 +940,7 @@ int __roc_api roc_nix_rq_init(struct roc_nix *roc_nix, struct roc_nix_rq *rq,
 			      bool ena);
 int __roc_api roc_nix_rq_modify(struct roc_nix *roc_nix, struct roc_nix_rq *rq,
 				bool ena);
-int __roc_api roc_nix_rq_cman_config(struct roc_nix *roc_nix,
-				     struct roc_nix_rq *rq);
+int __roc_api roc_nix_rq_cman_config(struct roc_nix *roc_nix, struct roc_nix_rq *rq);
 int __roc_api roc_nix_rq_ena_dis(struct roc_nix_rq *rq, bool enable);
 int __roc_api roc_nix_rq_is_sso_enable(struct roc_nix *roc_nix, uint32_t qid);
 int __roc_api roc_nix_rq_fini(struct roc_nix_rq *rq);

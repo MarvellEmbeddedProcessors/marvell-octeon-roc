@@ -15,8 +15,7 @@
 	 ROC_NIX_LF_RX_CFG_IP6_UDP_OPT | ROC_NIX_LF_RX_CFG_DIS_APAD |          \
 	 ROC_NIX_LF_RX_CFG_LEN_IL3 | ROC_NIX_LF_RX_CFG_LEN_OL3)
 
-#define INL_NIX_RX_STATS(val)                                                  \
-	plt_read64(inl_dev->nix_base + NIX_LF_RX_STATX(val))
+#define INL_NIX_RX_STATS(val) plt_read64(inl_dev->nix_base + NIX_LF_RX_STATX(val))
 
 extern uint32_t soft_exp_consumer_cnt;
 static bool soft_exp_poll_thread_exit = true;
@@ -194,8 +193,8 @@ nix_inl_cpt_setup(struct nix_inl_dev *inl_dev, bool inl_dev_sso)
 		ctx_ilen_valid = true;
 	}
 
-	rc = cpt_lfs_alloc(dev, eng_grpmask, RVU_BLOCK_ADDR_CPT0, inl_dev_sso,
-			   ctx_ilen_valid, ctx_ilen);
+	rc = cpt_lfs_alloc(dev, eng_grpmask, RVU_BLOCK_ADDR_CPT0, inl_dev_sso, ctx_ilen_valid,
+			   ctx_ilen);
 	if (rc) {
 		plt_err("Failed to alloc CPT LF resources, rc=%d", rc);
 		return rc;
@@ -280,8 +279,7 @@ nix_inl_sso_setup(struct nix_inl_dev *inl_dev)
 	}
 
 	/* Setup xaq for hwgrps */
-	rc = sso_hwgrp_alloc_xaq(
-		dev, roc_npa_aura_handle_to_aura(inl_dev->xaq.aura_handle), 1);
+	rc = sso_hwgrp_alloc_xaq(dev, roc_npa_aura_handle_to_aura(inl_dev->xaq.aura_handle), 1);
 	if (rc) {
 		plt_err("Failed to setup hwgrp xaq aura, rc=%d", rc);
 		goto destroy_pool;
@@ -423,8 +421,8 @@ nix_inl_nix_setup(struct nix_inl_dev *inl_dev)
 	/* Alloc contiguous memory for Inbound SA's */
 	inl_dev->inb_sa_sz = inb_sa_sz;
 	inl_dev->inb_spi_mask = max_sa - 1;
-	inl_dev->inb_sa_base =
-		plt_zmalloc(inb_sa_sz * max_sa, ROC_NIX_INL_SA_BASE_ALIGN);
+	inl_dev->inb_sa_base = plt_zmalloc(inb_sa_sz * max_sa,
+					   ROC_NIX_INL_SA_BASE_ALIGN);
 	if (!inl_dev->inb_sa_base) {
 		plt_err("Failed to allocate memory for Inbound SA");
 		rc = -ENOMEM;
@@ -877,10 +875,8 @@ roc_nix_inl_dev_stats_get(struct roc_nix_stats *stats)
 	stats->rx_err = INL_NIX_RX_STATS(NIX_STAT_LF_RX_RX_ERR);
 	stats->rx_drop_bcast = INL_NIX_RX_STATS(NIX_STAT_LF_RX_RX_DRP_BCAST);
 	stats->rx_drop_mcast = INL_NIX_RX_STATS(NIX_STAT_LF_RX_RX_DRP_MCAST);
-	stats->rx_drop_l3_bcast =
-		INL_NIX_RX_STATS(NIX_STAT_LF_RX_RX_DRP_L3BCAST);
-	stats->rx_drop_l3_mcast =
-		INL_NIX_RX_STATS(NIX_STAT_LF_RX_RX_DRP_L3MCAST);
+	stats->rx_drop_l3_bcast = INL_NIX_RX_STATS(NIX_STAT_LF_RX_RX_DRP_L3BCAST);
+	stats->rx_drop_l3_mcast = INL_NIX_RX_STATS(NIX_STAT_LF_RX_RX_DRP_L3MCAST);
 
 	return 0;
 }
@@ -980,16 +976,14 @@ roc_nix_inl_dev_init(struct roc_nix_inl_dev *roc_inl_dev)
 
 	if (inl_dev->max_ipsec_rules && roc_inl_dev->is_multi_channel) {
 		inl_dev->ipsec_index =
-			plt_zmalloc(sizeof(int) * inl_dev->max_ipsec_rules,
-				    PLT_CACHE_LINE_SIZE);
+			plt_zmalloc(sizeof(int) * inl_dev->max_ipsec_rules, PLT_CACHE_LINE_SIZE);
 		if (inl_dev->ipsec_index == NULL) {
 			rc = NPC_ERR_NO_MEM;
 			goto cpt_release;
 		}
-		rc = npc_mcam_alloc_entries(
-			inl_dev->dev.mbox, inl_dev->max_ipsec_rules,
-			inl_dev->ipsec_index, inl_dev->max_ipsec_rules,
-			NPC_MCAM_HIGHER_PRIO, &resp_count, 1);
+		rc = npc_mcam_alloc_entries(inl_dev->dev.mbox, inl_dev->max_ipsec_rules,
+					    inl_dev->ipsec_index, inl_dev->max_ipsec_rules,
+					    NPC_MCAM_HIGHER_PRIO, &resp_count, 1);
 		if (rc) {
 			plt_free(inl_dev->ipsec_index);
 			goto cpt_release;
@@ -1041,10 +1035,8 @@ roc_nix_inl_dev_fini(struct roc_nix_inl_dev *roc_inl_dev)
 	pci_dev = inl_dev->pci_dev;
 
 	if (inl_dev->ipsec_index && roc_inl_dev->is_multi_channel) {
-		for (i = inl_dev->curr_ipsec_idx;
-		     i < inl_dev->alloc_ipsec_rules; i++)
-			npc_mcam_free_entry(inl_dev->dev.mbox,
-					    inl_dev->ipsec_index[i]);
+		for (i = inl_dev->curr_ipsec_idx; i < inl_dev->alloc_ipsec_rules; i++)
+			npc_mcam_free_entry(inl_dev->dev.mbox, inl_dev->ipsec_index[i]);
 		plt_free(inl_dev->ipsec_index);
 	}
 

@@ -72,8 +72,7 @@ static const char *const ltype_str[NPC_MAX_LID][NPC_MAX_LT] = {
 	[NPC_LID_LA][NPC_LT_LA_CUSTOM_L2_90B_ETHER] = "LA_CUSTOM_L2_90B_ETHER",
 	[NPC_LID_LA][NPC_LT_LA_CPT_HDR] = "LA_CPT_HDR",
 	[NPC_LID_LA][NPC_LT_LA_CUSTOM_L2_24B_ETHER] = "LA_CUSTOM_L2_24B_ETHER",
-	[NPC_LID_LA][NPC_LT_LA_CUSTOM_PRE_L2_ETHER] =
-		"NPC_LT_LA_CUSTOM_PRE_L2_ETHER",
+	[NPC_LID_LA][NPC_LT_LA_CUSTOM_PRE_L2_ETHER] = "NPC_LT_LA_CUSTOM_PRE_L2_ETHER",
 	[NPC_LID_LA][NPC_LT_LA_CUSTOM0] = "NPC_LT_LA_CUSTOM0",
 	[NPC_LID_LA][NPC_LT_LA_CUSTOM1] = "NPC_LT_LA_CUSTOM1",
 	[NPC_LID_LB][0] = "NONE",
@@ -366,8 +365,7 @@ npc_flow_print_item(FILE *file, struct npc *npc, struct npc_xtract_info *xinfo,
 			if (!lflags_info->enable)
 				continue;
 
-			npc_flow_print_xtractinfo(file, lflags_info, flow, lid,
-						  lt);
+			npc_flow_print_xtractinfo(file, lflags_info, flow, lid, lt);
 		}
 	}
 }
@@ -642,8 +640,7 @@ npc_flow_dump_vtag_action(FILE *file, uint64_t vtag_action, bool is_rx)
 }
 
 static void
-npc_flow_hw_mcam_entry_dump(FILE *file, struct npc *npc,
-			    struct roc_npc_flow *flow)
+npc_flow_hw_mcam_entry_dump(FILE *file, struct npc *npc, struct roc_npc_flow *flow)
 {
 	uint64_t mcam_data[ROC_NPC_MAX_MCAM_WIDTH_DWORDS];
 	uint64_t mcam_mask[ROC_NPC_MAX_MCAM_WIDTH_DWORDS];
@@ -679,8 +676,7 @@ npc_flow_hw_mcam_entry_dump(FILE *file, struct npc *npc,
 	}
 
 	mbox_memcpy(mcam_data, mcam_read_rsp->entry_data.kw, sizeof(mcam_data));
-	mbox_memcpy(mcam_mask, mcam_read_rsp->entry_data.kw_mask,
-		    sizeof(mcam_data));
+	mbox_memcpy(mcam_mask, mcam_read_rsp->entry_data.kw_mask, sizeof(mcam_data));
 
 	fprintf(file, "HW MCAM Data :\n");
 
@@ -694,8 +690,7 @@ npc_flow_hw_mcam_entry_dump(FILE *file, struct npc *npc,
 }
 
 void
-roc_npc_flow_mcam_dump(FILE *file, struct roc_npc *roc_npc,
-		       struct roc_npc_flow *flow)
+roc_npc_flow_mcam_dump(FILE *file, struct roc_npc *roc_npc, struct roc_npc_flow *flow)
 {
 	struct npc *npc = roc_npc_to_npc_priv(roc_npc);
 	uint64_t count = 0;
@@ -705,19 +700,16 @@ roc_npc_flow_mcam_dump(FILE *file, struct roc_npc *roc_npc,
 	fprintf(file, "MCAM Index:%d\n", flow->mcam_id);
 	if (flow->ctr_id != NPC_COUNTER_NONE && flow->use_ctr) {
 		if (flow->use_pre_alloc)
-			rc = roc_npc_inl_mcam_read_counter(flow->ctr_id,
-							   &count);
+			rc = roc_npc_inl_mcam_read_counter(flow->ctr_id, &count);
 		else
-			rc = roc_npc_mcam_read_counter(roc_npc, flow->ctr_id,
-						       &count);
+			rc = roc_npc_mcam_read_counter(roc_npc, flow->ctr_id, &count);
 
 		if (rc)
 			return;
 		fprintf(file, "Hit count: %" PRIu64 "\n", count);
 	}
 
-	fprintf(file, "Interface :%s (%d)\n", intf_str[flow->nix_intf],
-		flow->nix_intf);
+	fprintf(file, "Interface :%s (%d)\n", intf_str[flow->nix_intf], flow->nix_intf);
 	fprintf(file, "Priority  :%d\n", flow->priority);
 
 	if (flow->nix_intf == NIX_INTF_RX)

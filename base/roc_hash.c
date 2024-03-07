@@ -37,32 +37,32 @@
  * Rotation is separate from addition to prevent recomputation.
  */
 
-#define FF(a, b, c, d, x, s, ac)                                               \
-	{                                                                      \
-		(a) += F((b), (c), (d)) + (x) + (uint32_t)(ac);                \
-		(a) = ROTATE_LEFT((a), (s));                                   \
-		(a) += (b);                                                    \
+#define FF(a, b, c, d, x, s, ac)                                                                   \
+	{                                                                                          \
+		(a) += F((b), (c), (d)) + (x) + (uint32_t)(ac);                                    \
+		(a) = ROTATE_LEFT((a), (s));                                                       \
+		(a) += (b);                                                                        \
 	}
 
-#define GG(a, b, c, d, x, s, ac)                                               \
-	{                                                                      \
-		(a) += G((b), (c), (d)) + (x) + (uint32_t)(ac);                \
-		(a) = ROTATE_LEFT((a), (s));                                   \
-		(a) += (b);                                                    \
+#define GG(a, b, c, d, x, s, ac)                                                                   \
+	{                                                                                          \
+		(a) += G((b), (c), (d)) + (x) + (uint32_t)(ac);                                    \
+		(a) = ROTATE_LEFT((a), (s));                                                       \
+		(a) += (b);                                                                        \
 	}
 
-#define HH(a, b, c, d, x, s, ac)                                               \
-	{                                                                      \
-		(a) += H((b), (c), (d)) + (x) + (uint32_t)(ac);                \
-		(a) = ROTATE_LEFT((a), (s));                                   \
-		(a) += (b);                                                    \
+#define HH(a, b, c, d, x, s, ac)                                                                   \
+	{                                                                                          \
+		(a) += H((b), (c), (d)) + (x) + (uint32_t)(ac);                                    \
+		(a) = ROTATE_LEFT((a), (s));                                                       \
+		(a) += (b);                                                                        \
 	}
 
-#define II(a, b, c, d, x, s, ac)                                               \
-	{                                                                      \
-		(a) += I((b), (c), (d)) + (x) + (uint32_t)(ac);                \
-		(a) = ROTATE_LEFT((a), (s));                                   \
-		(a) += (b);                                                    \
+#define II(a, b, c, d, x, s, ac)                                                                   \
+	{                                                                                          \
+		(a) += I((b), (c), (d)) + (x) + (uint32_t)(ac);                                    \
+		(a) = ROTATE_LEFT((a), (s));                                                       \
+		(a) += (b);                                                                        \
 	}
 
 /*
@@ -250,14 +250,12 @@ roc_hash_sha256_gen(uint8_t *msg, uint32_t *hash, int hash_size)
 		0x682e6ff3, 0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208,
 		0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2};
 
-	const uint32_t _H224[] = {
-		/* Initial Hash constants defined in SHA-224 */
-		0xc1059ed8, 0x367cd507, 0x3070dd17, 0xf70e5939,
-		0xffc00b31, 0x68581511, 0x64f98fa7, 0xbefa4fa4};
-	const uint32_t _H256[] = {
-		/* Initial Hash constants defined in SHA-256 */
-		0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
-		0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19};
+	const uint32_t _H224[] = {/* Initial Hash constants defined in SHA-224 */
+				  0xc1059ed8, 0x367cd507, 0x3070dd17, 0xf70e5939,
+				  0xffc00b31, 0x68581511, 0x64f98fa7, 0xbefa4fa4};
+	const uint32_t _H256[] = {/* Initial Hash constants defined in SHA-256 */
+				  0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
+				  0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19};
 	int i;
 	uint32_t temp[4], S0, S1;	 /* Temporary word value */
 	uint32_t W[64];			 /* Word sequence */

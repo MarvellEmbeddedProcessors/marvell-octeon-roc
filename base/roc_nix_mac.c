@@ -283,7 +283,7 @@ roc_nix_mac_link_info_set(struct roc_nix *roc_nix,
 
 	req = mbox_alloc_msg_cgx_set_link_mode(mbox);
 	if (req == NULL) {
-		rc = -ENOSPC;
+		rc =  -ENOSPC;
 		goto exit;
 	}
 	req->args.speed = link_info->speed;
@@ -294,6 +294,7 @@ roc_nix_mac_link_info_set(struct roc_nix *roc_nix,
 exit:
 	mbox_put(mbox);
 	return rc;
+
 }
 
 int

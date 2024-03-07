@@ -56,8 +56,7 @@ struct roc_model {
 	 ROC_MODEL_CNF95xxN_A0 | ROC_MODEL_CNF95xxN_A1 |                       \
 	 ROC_MODEL_CNF95xxN_B0)
 
-#define ROC_MODEL_CN106xx                                                      \
-	(ROC_MODEL_CN106xx_A0 | ROC_MODEL_CN106xx_A1 | ROC_MODEL_CN106xx_B0)
+#define ROC_MODEL_CN106xx   (ROC_MODEL_CN106xx_A0 | ROC_MODEL_CN106xx_A1 | ROC_MODEL_CN106xx_B0)
 #define ROC_MODEL_CNF105xx  (ROC_MODEL_CNF105xx_A0 | ROC_MODEL_CNF105xx_A1)
 #define ROC_MODEL_CNF105xxN (ROC_MODEL_CNF105xxN_A0 | ROC_MODEL_CNF105xxN_B0)
 #define ROC_MODEL_CN103xx   (ROC_MODEL_CN103xx_A0)

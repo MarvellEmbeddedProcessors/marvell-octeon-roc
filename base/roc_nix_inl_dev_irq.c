@@ -202,8 +202,8 @@ nix_inl_nix_q_irq(void *param)
 	for (q = 0; q < inl_dev->nb_rqs; q++) {
 		/* Get and clear RQ interrupts */
 		wdata = (uint64_t)q << 44;
-		reg = roc_atomic64_add_nosync(
-			wdata, (int64_t *)(nix_base + NIX_LF_RQ_OP_INT));
+		reg = roc_atomic64_add_nosync(wdata,
+					      (int64_t *)(nix_base + NIX_LF_RQ_OP_INT));
 		if (reg & BIT_ULL(42) /* OP_ERR */) {
 			plt_err("Failed to get rq_int");
 			return;

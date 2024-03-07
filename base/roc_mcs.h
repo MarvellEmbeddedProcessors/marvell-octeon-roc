@@ -8,7 +8,7 @@
 #define MCS_AES_GCM_256_KEYLEN 32
 
 #define ROC_MCS_MAX_AR_WINSZ BIT_ULL(31)
-#define ROC_MCS_MAX_MTU	     (BIT_ULL(16) - 1)
+#define ROC_MCS_MAX_MTU      (BIT_ULL(16) - 1)
 
 struct roc_mcs_alloc_rsrc_req {
 	uint8_t rsrc_type;
@@ -148,8 +148,7 @@ struct roc_mcs_intr_info {
 };
 
 struct roc_mcs_set_lmac_mode {
-	uint8_t mode; /* '1' for internal bypass mode (passthrough), '0' for MCS
-			 processing */
+	uint8_t mode; /* '1' for internal bypass mode (passthrough), '0' for MCS processing */
 	uint8_t lmac_id;
 	uint64_t rsvd;
 };
@@ -207,18 +206,16 @@ struct roc_mcs_ctrl_pkt_rule_write_req {
 };
 
 struct roc_mcs_port_cfg_set_req {
-	/* Index of custom tag (= cstm_indx[x] in roc_mcs_custom_tag_cfg_get_rsp
-	 * struct) to use when TX SECY_PLCY_MEMX[SECTAG_INSERT_MODE] = 0
-	 * (relative offset mode)
+	/* Index of custom tag (= cstm_indx[x] in roc_mcs_custom_tag_cfg_get_rsp struct) to use
+	 * when TX SECY_PLCY_MEMX[SECTAG_INSERT_MODE] = 0 (relative offset mode)
 	 */
 	uint8_t cstm_tag_rel_mode_sel;
-	/* In ingress path, custom_hdr_enb = 1 when the port is expected to
-	 * receive pkts that have 8B custom header before DMAC
+	/* In ingress path, custom_hdr_enb = 1 when the port is expected to receive pkts
+	 * that have 8B custom header before DMAC
 	 */
 	uint8_t custom_hdr_enb;
 	/* Valid fifo skid values are 14,28,56 for 25G,50G,100G respectively
-	 * FIFOs need to be configured based on the port_mode, valid only for
-	 * 105N
+	 * FIFOs need to be configured based on the port_mode, valid only for 105N
 	 */
 	uint8_t fifo_skid;
 	uint8_t port_mode; /* 2'b00 - 25G or less, 2'b01 - 50G, 2'b10 - 100G */
@@ -247,8 +244,7 @@ struct roc_mcs_custom_tag_cfg_get_req {
 
 struct roc_mcs_custom_tag_cfg_get_rsp {
 	uint16_t cstm_etype[8]; /* EthType/TPID */
-	uint8_t cstm_indx[8];	/* Custom tag index used to identify the VLAN
-				   etype */
+	uint8_t cstm_indx[8];	/* Custom tag index used to identify the VLAN etype */
 	uint8_t cstm_etype_en;	/* bitmap of enabled custom tags */
 	uint8_t dir;
 	uint64_t rsvd;
@@ -373,8 +369,7 @@ enum roc_mcs_event_type {
 
 	/* Notifies CPM_RX_SECTAG_X validation error interrupt */
 	ROC_MCS_EVENT_SECTAG_VAL_ERR,
-	/* Notifies CPM_RX_PACKET_XPN_EQ0 (SecTag.PN == 0 in ingress) interrupt
-	 */
+	/* Notifies CPM_RX_PACKET_XPN_EQ0 (SecTag.PN == 0 in ingress) interrupt */
 	ROC_MCS_EVENT_RX_SA_PN_HARD_EXP,
 	/* Notifies CPM_RX_PN_THRESH_REACHED interrupt */
 	ROC_MCS_EVENT_RX_SA_PN_SOFT_EXP,
@@ -401,37 +396,30 @@ union roc_mcs_event_data {
 	/* Valid for below event
 	 * - ROC_MCS_EVENT_FIFO_OVERFLOW
 	 *
-	 * Upon fatal error notification on a MCS port, ROC driver resets below
-	 * attributes of active flow entities(sc & sa) and than resets the port.
+	 * Upon fatal error notification on a MCS port, ROC driver resets below attributes of active
+	 * flow entities(sc & sa) and than resets the port.
 	 * - Reset NEXT_PN of active SAs to 1.
-	 * - Reset TX active SA for each SC, TX_SA_ACTIVE = 0, SA_INDEX0_VLD
-	 * = 1.
+	 * - Reset TX active SA for each SC, TX_SA_ACTIVE = 0, SA_INDEX0_VLD = 1.
 	 * - Clear SA_IN_USE for active ANs in RX_SA_MAP_MEM.
 	 * - Clear all stats mapping to this port.
 	 * - Reactivate SA_IN_USE for active ANs in RX_SA_MAP_MEM.
 	 *
-	 *  ROC driver notifies the following flow entity(sc & sa) details in
-	 * application callback, application is expected to exchange the Tx/Rx
-	 * NEXT_PN, TX_SA_ACTIVE, active RX SC AN details with peer device so
-	 * that peer device can resets it's MACsec flow states and than resume
-	 * packet transfers.
+	 *  ROC driver notifies the following flow entity(sc & sa) details in application callback,
+	 *  application is expected to exchange the Tx/Rx NEXT_PN, TX_SA_ACTIVE, active RX SC AN
+	 *  details with peer device so that peer device can resets it's MACsec flow states and than
+	 *  resume packet transfers.
 	 */
 	struct {
-		uint16_t *tx_sa_array; /* Tx SAs whose PN memories were reset
-					  (NEXT_PN=1) */
-		uint16_t *rx_sa_array; /* Rx SAs whose PN memories were reset
-					  (NEXT_PN=1) */
-		uint16_t *tx_sc_array; /* Tx SCs whose active SAs were reset
-					  (TX_SA_ACTIVE=0) */
+		uint16_t *tx_sa_array; /* Tx SAs whose PN memories were reset (NEXT_PN=1) */
+		uint16_t *rx_sa_array; /* Rx SAs whose PN memories were reset (NEXT_PN=1) */
+		uint16_t *tx_sc_array; /* Tx SCs whose active SAs were reset (TX_SA_ACTIVE=0) */
 		uint16_t *rx_sc_array; /* Rx SCs whose state was reset */
-		uint8_t *sc_an_array; /* AN of Rx SCs(in rx_sc_array) which were
-					 reactivated */
-		uint8_t num_tx_sa;    /* num entries in tx_sa_array */
-		uint8_t num_rx_sa;    /* num entries in rx_sa_array */
-		uint8_t num_tx_sc;    /* num entries in tx_sc_array */
-		uint8_t num_rx_sc;    /* num entries in rx_sc_array */
-		uint8_t lmac_id; /* lmac_id/port which was recovered from fatal
-				    error */
+		uint8_t *sc_an_array;  /* AN of Rx SCs(in rx_sc_array) which were reactivated */
+		uint8_t num_tx_sa;     /* num entries in tx_sa_array */
+		uint8_t num_rx_sa;     /* num entries in rx_sa_array */
+		uint8_t num_tx_sc;     /* num entries in tx_sc_array */
+		uint8_t num_rx_sc;     /* num entries in rx_sc_array */
+		uint8_t lmac_id;       /* lmac_id/port which was recovered from fatal error */
 	};
 };
 
@@ -491,10 +479,8 @@ struct roc_mcs_fips_result_rsp {
 	uint8_t result_pass;
 };
 
-/** User application callback to be registered for any notifications from
- * driver. */
-typedef int (*roc_mcs_dev_cb_fn)(void *userdata,
-				 struct roc_mcs_event_desc *desc, void *cb_arg);
+/** User application callback to be registered for any notifications from driver. */
+typedef int (*roc_mcs_dev_cb_fn)(void *userdata, struct roc_mcs_event_desc *desc, void *cb_arg);
 
 struct roc_mcs {
 	TAILQ_ENTRY(roc_mcs) next;
@@ -518,170 +504,124 @@ __roc_api struct roc_mcs *roc_mcs_dev_get(uint8_t mcs_idx);
 /* HW info get */
 __roc_api int roc_mcs_hw_info_get(struct roc_mcs_hw_info *hw_info);
 /* Active lmac bmap set */
-__roc_api int roc_mcs_active_lmac_set(struct roc_mcs *mcs,
-				      struct roc_mcs_set_active_lmac *lmac);
+__roc_api int roc_mcs_active_lmac_set(struct roc_mcs *mcs, struct roc_mcs_set_active_lmac *lmac);
 /* Port bypass mode set */
-__roc_api int roc_mcs_lmac_mode_set(struct roc_mcs *mcs,
-				    struct roc_mcs_set_lmac_mode *port);
+__roc_api int roc_mcs_lmac_mode_set(struct roc_mcs *mcs, struct roc_mcs_set_lmac_mode *port);
 /* (X)PN threshold set */
-__roc_api int roc_mcs_pn_threshold_set(struct roc_mcs *mcs,
-				       struct roc_mcs_set_pn_threshold *pn);
+__roc_api int roc_mcs_pn_threshold_set(struct roc_mcs *mcs, struct roc_mcs_set_pn_threshold *pn);
 /* Reset port */
-__roc_api int roc_mcs_port_reset(struct roc_mcs *mcs,
-				 struct roc_mcs_port_reset_req *port);
+__roc_api int roc_mcs_port_reset(struct roc_mcs *mcs, struct roc_mcs_port_reset_req *port);
 /* Get port config */
-__roc_api int roc_mcs_port_cfg_set(struct roc_mcs *mcs,
-				   struct roc_mcs_port_cfg_set_req *req);
+__roc_api int roc_mcs_port_cfg_set(struct roc_mcs *mcs, struct roc_mcs_port_cfg_set_req *req);
 /* Set port config */
-__roc_api int roc_mcs_port_cfg_get(struct roc_mcs *mcs,
-				   struct roc_mcs_port_cfg_get_req *req,
+__roc_api int roc_mcs_port_cfg_get(struct roc_mcs *mcs, struct roc_mcs_port_cfg_get_req *req,
 				   struct roc_mcs_port_cfg_get_rsp *rsp);
 /* Get custom tag config */
-__roc_api int
-roc_mcs_custom_tag_cfg_get(struct roc_mcs *mcs,
-			   struct roc_mcs_custom_tag_cfg_get_req *req,
-			   struct roc_mcs_custom_tag_cfg_get_rsp *rsp);
+__roc_api int roc_mcs_custom_tag_cfg_get(struct roc_mcs *mcs,
+					 struct roc_mcs_custom_tag_cfg_get_req *req,
+					 struct roc_mcs_custom_tag_cfg_get_rsp *rsp);
 
 /* Resource allocation and free */
-__roc_api int roc_mcs_rsrc_alloc(struct roc_mcs *mcs,
-				 struct roc_mcs_alloc_rsrc_req *req,
+__roc_api int roc_mcs_rsrc_alloc(struct roc_mcs *mcs, struct roc_mcs_alloc_rsrc_req *req,
 				 struct roc_mcs_alloc_rsrc_rsp *rsp);
-__roc_api int roc_mcs_rsrc_free(struct roc_mcs *mcs,
-				struct roc_mcs_free_rsrc_req *req);
+__roc_api int roc_mcs_rsrc_free(struct roc_mcs *mcs, struct roc_mcs_free_rsrc_req *req);
 /* SA policy read and write */
-__roc_api int
-roc_mcs_sa_policy_write(struct roc_mcs *mcs,
-			struct roc_mcs_sa_plcy_write_req *sa_plcy);
+__roc_api int roc_mcs_sa_policy_write(struct roc_mcs *mcs,
+				      struct roc_mcs_sa_plcy_write_req *sa_plcy);
 __roc_api int roc_mcs_sa_policy_read(struct roc_mcs *mcs,
 				     struct roc_mcs_sa_plcy_write_req *sa_plcy);
 
 /* PN Table read and write */
-__roc_api int
-roc_mcs_pn_table_write(struct roc_mcs *mcs,
-		       struct roc_mcs_pn_table_write_req *pn_table);
-__roc_api int
-roc_mcs_pn_table_read(struct roc_mcs *mcs,
-		      struct roc_mcs_pn_table_write_req *pn_table);
+__roc_api int roc_mcs_pn_table_write(struct roc_mcs *mcs,
+				     struct roc_mcs_pn_table_write_req *pn_table);
+__roc_api int roc_mcs_pn_table_read(struct roc_mcs *mcs,
+				    struct roc_mcs_pn_table_write_req *pn_table);
 
 /* RX SC read, write and enable */
-__roc_api int
-roc_mcs_rx_sc_cam_write(struct roc_mcs *mcs,
-			struct roc_mcs_rx_sc_cam_write_req *rx_sc_cam);
-__roc_api int
-roc_mcs_rx_sc_cam_read(struct roc_mcs *mcs,
-		       struct roc_mcs_rx_sc_cam_write_req *rx_sc_cam);
-__roc_api int
-roc_mcs_rx_sc_cam_enable(struct roc_mcs *mcs,
-			 struct roc_mcs_rx_sc_cam_write_req *rx_sc_cam);
+__roc_api int roc_mcs_rx_sc_cam_write(struct roc_mcs *mcs,
+				      struct roc_mcs_rx_sc_cam_write_req *rx_sc_cam);
+__roc_api int roc_mcs_rx_sc_cam_read(struct roc_mcs *mcs,
+				     struct roc_mcs_rx_sc_cam_write_req *rx_sc_cam);
+__roc_api int roc_mcs_rx_sc_cam_enable(struct roc_mcs *mcs,
+				       struct roc_mcs_rx_sc_cam_write_req *rx_sc_cam);
 /* SECY policy read and write */
-__roc_api int
-roc_mcs_secy_policy_write(struct roc_mcs *mcs,
-			  struct roc_mcs_secy_plcy_write_req *secy_plcy);
-__roc_api int
-roc_mcs_secy_policy_read(struct roc_mcs *mcs,
-			 struct roc_mcs_rx_sc_cam_write_req *rx_sc_cam);
+__roc_api int roc_mcs_secy_policy_write(struct roc_mcs *mcs,
+					struct roc_mcs_secy_plcy_write_req *secy_plcy);
+__roc_api int roc_mcs_secy_policy_read(struct roc_mcs *mcs,
+				       struct roc_mcs_rx_sc_cam_write_req *rx_sc_cam);
 /* RX SC-SA MAP read and write */
-__roc_api int
-roc_mcs_rx_sc_sa_map_write(struct roc_mcs *mcs,
-			   struct roc_mcs_rx_sc_sa_map *rx_sc_sa_map);
-__roc_api int
-roc_mcs_rx_sc_sa_map_read(struct roc_mcs *mcs,
-			  struct roc_mcs_rx_sc_sa_map *rx_sc_sa_map);
+__roc_api int roc_mcs_rx_sc_sa_map_write(struct roc_mcs *mcs,
+					 struct roc_mcs_rx_sc_sa_map *rx_sc_sa_map);
+__roc_api int roc_mcs_rx_sc_sa_map_read(struct roc_mcs *mcs,
+					struct roc_mcs_rx_sc_sa_map *rx_sc_sa_map);
 /* TX SC-SA MAP read and write */
-__roc_api int
-roc_mcs_tx_sc_sa_map_write(struct roc_mcs *mcs,
-			   struct roc_mcs_tx_sc_sa_map *tx_sc_sa_map);
-__roc_api int
-roc_mcs_tx_sc_sa_map_read(struct roc_mcs *mcs,
-			  struct roc_mcs_tx_sc_sa_map *tx_sc_sa_map);
+__roc_api int roc_mcs_tx_sc_sa_map_write(struct roc_mcs *mcs,
+					 struct roc_mcs_tx_sc_sa_map *tx_sc_sa_map);
+__roc_api int roc_mcs_tx_sc_sa_map_read(struct roc_mcs *mcs,
+					struct roc_mcs_tx_sc_sa_map *tx_sc_sa_map);
 
 /* Flow entry read, write and enable */
-__roc_api int
-roc_mcs_flowid_entry_write(struct roc_mcs *mcs,
-			   struct roc_mcs_flowid_entry_write_req *flowid_req);
-__roc_api int
-roc_mcs_flowid_entry_read(struct roc_mcs *mcs,
-			  struct roc_mcs_flowid_entry_write_req *flowid_rsp);
-__roc_api int
-roc_mcs_flowid_entry_enable(struct roc_mcs *mcs,
-			    struct roc_mcs_flowid_ena_dis_entry *entry);
+__roc_api int roc_mcs_flowid_entry_write(struct roc_mcs *mcs,
+					 struct roc_mcs_flowid_entry_write_req *flowid_req);
+__roc_api int roc_mcs_flowid_entry_read(struct roc_mcs *mcs,
+					struct roc_mcs_flowid_entry_write_req *flowid_rsp);
+__roc_api int roc_mcs_flowid_entry_enable(struct roc_mcs *mcs,
+					  struct roc_mcs_flowid_ena_dis_entry *entry);
 
 /* Control packet rule alloc, free and write */
-__roc_api int
-roc_mcs_ctrl_pkt_rule_alloc(struct roc_mcs *mcs,
-			    struct roc_mcs_alloc_ctrl_pkt_rule_req *req,
-			    struct roc_mcs_alloc_ctrl_pkt_rule_rsp *rsp);
-__roc_api int
-roc_mcs_ctrl_pkt_rule_free(struct roc_mcs *mcs,
-			   struct roc_mcs_free_ctrl_pkt_rule_req *req);
-__roc_api int
-roc_mcs_ctrl_pkt_rule_write(struct roc_mcs *mcs,
-			    struct roc_mcs_ctrl_pkt_rule_write_req *req);
+__roc_api int roc_mcs_ctrl_pkt_rule_alloc(struct roc_mcs *mcs,
+					  struct roc_mcs_alloc_ctrl_pkt_rule_req *req,
+					  struct roc_mcs_alloc_ctrl_pkt_rule_rsp *rsp);
+__roc_api int roc_mcs_ctrl_pkt_rule_free(struct roc_mcs *mcs,
+					 struct roc_mcs_free_ctrl_pkt_rule_req *req);
+__roc_api int roc_mcs_ctrl_pkt_rule_write(struct roc_mcs *mcs,
+					  struct roc_mcs_ctrl_pkt_rule_write_req *req);
 
 /* Flow id stats get */
-__roc_api int roc_mcs_flowid_stats_get(struct roc_mcs *mcs,
-				       struct roc_mcs_stats_req *mcs_req,
+__roc_api int roc_mcs_flowid_stats_get(struct roc_mcs *mcs, struct roc_mcs_stats_req *mcs_req,
 				       struct roc_mcs_flowid_stats *stats);
 /* Secy stats get */
-__roc_api int roc_mcs_secy_stats_get(struct roc_mcs *mcs,
-				     struct roc_mcs_stats_req *mcs_req,
+__roc_api int roc_mcs_secy_stats_get(struct roc_mcs *mcs, struct roc_mcs_stats_req *mcs_req,
 				     struct roc_mcs_secy_stats *stats);
 /* SC stats get */
-__roc_api int roc_mcs_sc_stats_get(struct roc_mcs *mcs,
-				   struct roc_mcs_stats_req *mcs_req,
+__roc_api int roc_mcs_sc_stats_get(struct roc_mcs *mcs, struct roc_mcs_stats_req *mcs_req,
 				   struct roc_mcs_sc_stats *stats);
 /* Port stats get */
-__roc_api int roc_mcs_port_stats_get(struct roc_mcs *mcs,
-				     struct roc_mcs_stats_req *mcs_req,
+__roc_api int roc_mcs_port_stats_get(struct roc_mcs *mcs, struct roc_mcs_stats_req *mcs_req,
 				     struct roc_mcs_port_stats *stats);
 /* Clear stats */
-__roc_api int roc_mcs_stats_clear(struct roc_mcs *mcs,
-				  struct roc_mcs_clear_stats *mcs_req);
+__roc_api int roc_mcs_stats_clear(struct roc_mcs *mcs, struct roc_mcs_clear_stats *mcs_req);
 
 /* Register user callback routines */
-__roc_api int roc_mcs_event_cb_register(struct roc_mcs *mcs,
-					enum roc_mcs_event_type event,
-					roc_mcs_dev_cb_fn cb_fn, void *cb_arg,
-					void *userdata);
+__roc_api int roc_mcs_event_cb_register(struct roc_mcs *mcs, enum roc_mcs_event_type event,
+					roc_mcs_dev_cb_fn cb_fn, void *cb_arg, void *userdata);
 /* Unregister user callback routines */
-__roc_api int roc_mcs_event_cb_unregister(struct roc_mcs *mcs,
-					  enum roc_mcs_event_type event);
+__roc_api int roc_mcs_event_cb_unregister(struct roc_mcs *mcs, enum roc_mcs_event_type event);
 
 /* Configure interrupts */
-__roc_api int roc_mcs_intr_configure(struct roc_mcs *mcs,
-				     struct roc_mcs_intr_cfg *config);
+__roc_api int roc_mcs_intr_configure(struct roc_mcs *mcs, struct roc_mcs_intr_cfg *config);
 
 /* Port recovery from fatal errors */
-__roc_api int roc_mcs_port_recovery(struct roc_mcs *mcs,
-				    union roc_mcs_event_data *mdata,
+__roc_api int roc_mcs_port_recovery(struct roc_mcs *mcs, union roc_mcs_event_data *mdata,
 				    uint8_t port_id);
 
 /* FIPS reset */
-__roc_api int roc_mcs_fips_reset(struct roc_mcs *mcs,
-				 struct roc_mcs_fips_req *req);
+__roc_api int roc_mcs_fips_reset(struct roc_mcs *mcs, struct roc_mcs_fips_req *req);
 /* FIPS mode set */
-__roc_api int roc_mcs_fips_mode_set(struct roc_mcs *mcs,
-				    struct roc_mcs_fips_mode *req);
+__roc_api int roc_mcs_fips_mode_set(struct roc_mcs *mcs, struct roc_mcs_fips_mode *req);
 /* FIPS ctl set */
-__roc_api int roc_mcs_fips_ctl_set(struct roc_mcs *mcs,
-				   struct roc_mcs_fips_ctl *req);
+__roc_api int roc_mcs_fips_ctl_set(struct roc_mcs *mcs, struct roc_mcs_fips_ctl *req);
 /* FIPS iv set */
-__roc_api int roc_mcs_fips_iv_set(struct roc_mcs *mcs,
-				  struct roc_mcs_fips_iv *req);
+__roc_api int roc_mcs_fips_iv_set(struct roc_mcs *mcs, struct roc_mcs_fips_iv *req);
 /* FIPS ctr set */
-__roc_api int roc_mcs_fips_ctr_set(struct roc_mcs *mcs,
-				   struct roc_mcs_fips_ctr *req);
+__roc_api int roc_mcs_fips_ctr_set(struct roc_mcs *mcs, struct roc_mcs_fips_ctr *req);
 /* FIPS key set */
-__roc_api int roc_mcs_fips_key_set(struct roc_mcs *mcs,
-				   struct roc_mcs_fips_key *req);
+__roc_api int roc_mcs_fips_key_set(struct roc_mcs *mcs, struct roc_mcs_fips_key *req);
 /* FIPS block set */
-__roc_api int roc_mcs_fips_block_set(struct roc_mcs *mcs,
-				     struct roc_mcs_fips_block *req);
+__roc_api int roc_mcs_fips_block_set(struct roc_mcs *mcs, struct roc_mcs_fips_block *req);
 /* FIPS start */
-__roc_api int roc_mcs_fips_start(struct roc_mcs *mcs,
-				 struct roc_mcs_fips_req *req);
+__roc_api int roc_mcs_fips_start(struct roc_mcs *mcs, struct roc_mcs_fips_req *req);
 /* FIPS result */
-__roc_api int roc_mcs_fips_result_get(struct roc_mcs *mcs,
-				      struct roc_mcs_fips_req *req,
+__roc_api int roc_mcs_fips_result_get(struct roc_mcs *mcs, struct roc_mcs_fips_req *req,
 				      struct roc_mcs_fips_result_rsp *rsp);
 #endif /* ROC_MCS_H */

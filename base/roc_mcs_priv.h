@@ -13,11 +13,10 @@ enum mcs_error_status {
 	MCS_ERR_DEVICE_NOT_FOUND = -902,
 };
 
-#define MCS_SUPPORT_CHECK                                                      \
-	do {                                                                   \
-		if (!(roc_feature_bphy_has_macsec() ||                         \
-		      roc_feature_nix_has_macsec()))                           \
-			return MCS_ERR_HW_NOTSUP;                              \
+#define MCS_SUPPORT_CHECK                                                                          \
+	do {                                                                                       \
+		if (!(roc_feature_bphy_has_macsec() || roc_feature_nix_has_macsec()))              \
+			return MCS_ERR_HW_NOTSUP;                                                  \
 	} while (0)
 
 struct mcs_sc_conf {

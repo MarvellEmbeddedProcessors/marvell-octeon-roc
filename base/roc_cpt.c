@@ -311,8 +311,7 @@ exit:
 }
 
 int
-roc_cpt_inline_ipsec_inb_cfg(struct roc_cpt *roc_cpt,
-			     struct roc_cpt_inline_ipsec_inb_cfg *cfg)
+roc_cpt_inline_ipsec_inb_cfg(struct roc_cpt *roc_cpt, struct roc_cpt_inline_ipsec_inb_cfg *cfg)
 {
 	struct cpt *cpt = roc_cpt_to_cpt_priv(roc_cpt);
 	struct cpt_rx_inline_lf_cfg_msg *req;
@@ -427,7 +426,7 @@ cpt_lfs_detach(struct dev *dev)
 
 	req = mbox_alloc_msg_detach_resources(mbox);
 	if (req == NULL) {
-		rc = -ENOSPC;
+		rc =  -ENOSPC;
 		goto exit;
 	}
 
@@ -463,8 +462,8 @@ exit:
 }
 
 int
-cpt_lfs_alloc(struct dev *dev, uint8_t eng_grpmsk, uint8_t blkaddr,
-	      bool inl_dev_sso, bool ctx_ilen_valid, uint8_t ctx_ilen)
+cpt_lfs_alloc(struct dev *dev, uint8_t eng_grpmsk, uint8_t blkaddr, bool inl_dev_sso,
+	      bool ctx_ilen_valid, uint8_t ctx_ilen)
 {
 	struct cpt_lf_alloc_req_msg *req;
 	struct mbox *mbox = mbox_get(dev->mbox);
@@ -628,13 +627,10 @@ roc_cpt_dev_configure(struct roc_cpt *roc_cpt, int nb_lf)
 	if (roc_errata_cpt_has_ctx_fetch_issue()) {
 		ctx_ilen_valid = true;
 		/* Inbound SA size is max context size */
-		ctx_ilen =
-			(PLT_ALIGN(ROC_OT_IPSEC_SA_SZ_MAX, ROC_ALIGN) / 128) -
-			1;
+		ctx_ilen = (PLT_ALIGN(ROC_OT_IPSEC_SA_SZ_MAX, ROC_ALIGN) / 128) - 1;
 	}
 
-	rc = cpt_lfs_alloc(&cpt->dev, eng_grpmsk, blkaddr[blknum], false,
-			   ctx_ilen_valid, ctx_ilen);
+	rc = cpt_lfs_alloc(&cpt->dev, eng_grpmsk, blkaddr[blknum], false, ctx_ilen_valid, ctx_ilen);
 	if (rc)
 		goto lfs_detach;
 

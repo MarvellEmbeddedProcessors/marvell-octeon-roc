@@ -52,8 +52,7 @@ cpt_ciph_aes_key_validate(uint16_t key_len)
 }
 
 static inline int
-cpt_ciph_type_set(roc_se_cipher_type type, struct roc_se_ctx *ctx,
-		  uint16_t key_len)
+cpt_ciph_type_set(roc_se_cipher_type type, struct roc_se_ctx *ctx, uint16_t key_len)
 {
 	bool chained_op = ctx->ciph_then_auth || ctx->auth_then_ciph;
 	int fc_type = 0;
@@ -152,8 +151,8 @@ cpt_ciph_aes_key_type_set(struct roc_se_context *fctx, uint16_t key_len)
 }
 
 static void
-cpt_hmac_opad_ipad_gen(roc_se_auth_type auth_type, const uint8_t *key,
-		       uint16_t length, struct roc_se_hmac_context *hmac)
+cpt_hmac_opad_ipad_gen(roc_se_auth_type auth_type, const uint8_t *key, uint16_t length,
+		       struct roc_se_hmac_context *hmac)
 {
 	uint8_t opad[128] = {[0 ... 127] = 0x5c};
 	uint8_t ipad[128] = {[0 ... 127] = 0x36};
@@ -467,8 +466,7 @@ roc_se_auth_key_set(struct roc_se_ctx *se_ctx, roc_se_auth_type type,
 		return 0;
 	}
 
-	if (!se_ctx->fc_type ||
-	    (type && type != ROC_SE_GMAC_TYPE && !se_ctx->enc_cipher))
+	if (!se_ctx->fc_type || (type && type != ROC_SE_GMAC_TYPE && !se_ctx->enc_cipher))
 		se_ctx->fc_type = ROC_SE_HASH_HMAC;
 
 	if (se_ctx->fc_type == ROC_SE_FC_GEN && key_len > 64) {
@@ -489,9 +487,8 @@ roc_se_auth_key_set(struct roc_se_ctx *se_ctx, roc_se_auth_type type,
 
 	if (key_len) {
 		/*
-		 * Chained operation (FC opcode) requires precomputed ipad and
-		 * opad hashes, but for auth only (HMAC opcode) this is not
-		 * required
+		 * Chained operation (FC opcode) requires precomputed ipad and opad hashes, but for
+		 * auth only (HMAC opcode) this is not required
 		 */
 		if (chained_op) {
 			memset(fctx->hmac.ipad, 0, sizeof(fctx->hmac.ipad));
@@ -513,8 +510,8 @@ roc_se_auth_key_set(struct roc_se_ctx *se_ctx, roc_se_auth_type type,
 }
 
 int
-roc_se_ciph_key_set(struct roc_se_ctx *se_ctx, roc_se_cipher_type type,
-		    const uint8_t *key, uint16_t key_len)
+roc_se_ciph_key_set(struct roc_se_ctx *se_ctx, roc_se_cipher_type type, const uint8_t *key,
+		    uint16_t key_len)
 {
 	bool chained_op = se_ctx->ciph_then_auth || se_ctx->auth_then_ciph;
 	struct roc_se_zuc_snow3g_ctx *zs_ctx = &se_ctx->se_ctx.zs_ctx;
@@ -598,11 +595,9 @@ roc_se_ciph_key_set(struct roc_se_ctx *se_ctx, roc_se_cipher_type type,
 		break;
 	case ROC_SE_AES_DOCSISBPI:
 		/*
-		 * DOCSIS uses the combination of AES-CBC and residual
-		 * termination blocks that are less than 128. Pass it as regular
-		 * AES-CBC cipher to CPT, but keep type in se_ctx as
-		 * AES_DOCSISBPI to skip block size checks in instruction
-		 * preparation.
+		 * DOCSIS uses the combination of AES-CBC and residual termination blocks that are
+		 * less than 128. Pass it as regular AES-CBC cipher to CPT, but keep type in
+		 * se_ctx as AES_DOCSISBPI to skip block size checks in instruction preparation.
 		 */
 		cpt_ciph_aes_key_type_set(fctx, key_len);
 		fctx->enc.enc_cipher = ROC_SE_AES_CBC;
@@ -613,10 +608,9 @@ roc_se_ciph_key_set(struct roc_se_ctx *se_ctx, roc_se_cipher_type type,
 		for (i = 0; i < 3; i++)
 			memcpy(fctx->enc.encr_key + key_len * i, key, key_len);
 		/*
-		 * DOCSIS uses DES-CBC mode with special handling of residual
-		 * termination blocks that are less than 64 bits. Pass it as
-		 * regular DES-CBC, but keep type in se_ctx as DES_DOCSISBPI to
-		 * skip block size checks in instruction preparation.
+		 * DOCSIS uses DES-CBC mode with special handling of residual termination blocks
+		 * that are less than 64 bits. Pass it as regular DES-CBC, but keep type in
+		 * se_ctx as DES_DOCSISBPI to skip block size checks in instruction preparation.
 		 */
 		fctx->enc.enc_cipher = ROC_SE_DES3_CBC;
 		goto success;
@@ -714,12 +708,11 @@ roc_se_ciph_key_set(struct roc_se_ctx *se_ctx, roc_se_cipher_type type,
 success:
 	se_ctx->enc_cipher = type;
 	if (se_ctx->fc_type == ROC_SE_PDCP_CHAIN) {
-		se_ctx->template_w4.s.opcode_minor =
-			se_ctx->ciph_then_auth ? 2 : 3;
+		se_ctx->template_w4.s.opcode_minor = se_ctx->ciph_then_auth ? 2 : 3;
 	} else if (se_ctx->fc_type == ROC_SE_PDCP) {
 		if (roc_model_is_cn9k())
-			opcode_minor = ((1 << 7) | (se_ctx->pdcp_ci_alg << 5) |
-					(se_ctx->zsk_flags & 0x7));
+			opcode_minor =
+				((1 << 7) | (se_ctx->pdcp_ci_alg << 5) | (se_ctx->zsk_flags & 0x7));
 		else
 			opcode_minor = ((1 << 4));
 		se_ctx->template_w4.s.opcode_minor = opcode_minor;

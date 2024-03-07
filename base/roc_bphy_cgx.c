@@ -21,11 +21,11 @@
  *
  * Hence common longer mask may be used.
  */
-#define CGX_CMRX_RX_LMACS		      0x128
-#define CGX_CMRX_RX_LMACS_LMACS		      GENMASK_ULL(3, 0)
-#define CGX_CMRX_SCRATCH0		      0x1050
-#define CGX_CMRX_SCRATCH1		      0x1058
-#define CGX_MTI_MAC100X_COMMAND_CONFIG	      0x8010
+#define CGX_CMRX_RX_LMACS                     0x128
+#define CGX_CMRX_RX_LMACS_LMACS               GENMASK_ULL(3, 0)
+#define CGX_CMRX_SCRATCH0                     0x1050
+#define CGX_CMRX_SCRATCH1                     0x1058
+#define CGX_MTI_MAC100X_COMMAND_CONFIG        0x8010
 #define CGX_MTI_MAC100X_COMMAND_CONFIG_RX_ENA BIT_ULL(1)
 #define CGX_MTI_MAC100X_COMMAND_CONFIG_TX_ENA BIT_ULL(0)
 
@@ -466,7 +466,8 @@ roc_bphy_cgx_cpri_mode_change(struct roc_bphy_cgx *roc_cgx, unsigned int lmac,
 {
 	uint64_t scr1, scr0;
 
-	if (!(roc_model_is_cnf95xxn_a0() || roc_model_is_cnf95xxn_a1() ||
+	if (!(roc_model_is_cnf95xxn_a0() ||
+	      roc_model_is_cnf95xxn_a1() ||
 	      roc_model_is_cnf95xxn_b0()))
 		return -ENOTSUP;
 
@@ -499,7 +500,8 @@ roc_bphy_cgx_cpri_mode_tx_control(struct roc_bphy_cgx *roc_cgx,
 {
 	uint64_t scr1, scr0;
 
-	if (!(roc_model_is_cnf95xxn_a0() || roc_model_is_cnf95xxn_a1() ||
+	if (!(roc_model_is_cnf95xxn_a0() ||
+	      roc_model_is_cnf95xxn_a1() ||
 	      roc_model_is_cnf95xxn_b0()))
 		return -ENOTSUP;
 
@@ -528,7 +530,8 @@ roc_bphy_cgx_cpri_mode_misc(struct roc_bphy_cgx *roc_cgx, unsigned int lmac,
 {
 	uint64_t scr1, scr0;
 
-	if (!(roc_model_is_cnf95xxn_a0() || roc_model_is_cnf95xxn_a1() ||
+	if (!(roc_model_is_cnf95xxn_a0() ||
+	      roc_model_is_cnf95xxn_a1() ||
 	      roc_model_is_cnf95xxn_b0()))
 		return -ENOTSUP;
 
@@ -542,8 +545,10 @@ roc_bphy_cgx_cpri_mode_misc(struct roc_bphy_cgx *roc_cgx, unsigned int lmac,
 		return -EINVAL;
 
 	scr1 = FIELD_PREP(SCR1_ETH_CMD_ID, ETH_CMD_CPRI_MISC) |
-	       FIELD_PREP(SCR1_CPRI_MODE_MISC_ARGS_GSERC_IDX, mode->gserc_idx) |
-	       FIELD_PREP(SCR1_CPRI_MODE_MISC_ARGS_LANE_IDX, mode->lane_idx) |
+	       FIELD_PREP(SCR1_CPRI_MODE_MISC_ARGS_GSERC_IDX,
+			  mode->gserc_idx) |
+	       FIELD_PREP(SCR1_CPRI_MODE_MISC_ARGS_LANE_IDX,
+			  mode->lane_idx) |
 	       FIELD_PREP(SCR1_CPRI_MODE_MISC_ARGS_FLAGS, mode->flags);
 
 	return roc_bphy_cgx_intf_req(roc_cgx, lmac, scr1, &scr0);
