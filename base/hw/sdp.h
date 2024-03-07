@@ -59,35 +59,28 @@
 #define SDP_VF_R_IN_BYTE_CNT_START    (0x10090)
 #define SDP_VF_R_IN_CNTS_ISM_START    (0x10520)
 
-#define SDP_VF_R_IN_CONTROL(ring)                                              \
-	(SDP_VF_R_IN_CONTROL_START + (SDP_VF_RING_OFFSET * (ring)))
+#define SDP_VF_R_IN_CONTROL(ring) (SDP_VF_R_IN_CONTROL_START + (SDP_VF_RING_OFFSET * (ring)))
 
-#define SDP_VF_R_IN_ENABLE(ring)                                               \
-	(SDP_VF_R_IN_ENABLE_START + (SDP_VF_RING_OFFSET * (ring)))
+#define SDP_VF_R_IN_ENABLE(ring) (SDP_VF_R_IN_ENABLE_START + (SDP_VF_RING_OFFSET * (ring)))
 
-#define SDP_VF_R_IN_INSTR_BADDR(ring)                                          \
+#define SDP_VF_R_IN_INSTR_BADDR(ring)                                                              \
 	(SDP_VF_R_IN_INSTR_BADDR_START + (SDP_VF_RING_OFFSET * (ring)))
 
-#define SDP_VF_R_IN_INSTR_RSIZE(ring)                                          \
+#define SDP_VF_R_IN_INSTR_RSIZE(ring)                                                              \
 	(SDP_VF_R_IN_INSTR_RSIZE_START + (SDP_VF_RING_OFFSET * (ring)))
 
-#define SDP_VF_R_IN_INSTR_DBELL(ring)                                          \
+#define SDP_VF_R_IN_INSTR_DBELL(ring)                                                              \
 	(SDP_VF_R_IN_INSTR_DBELL_START + (SDP_VF_RING_OFFSET * (ring)))
 
-#define SDP_VF_R_IN_CNTS(ring)                                                 \
-	(SDP_VF_R_IN_CNTS_START + (SDP_VF_RING_OFFSET * (ring)))
+#define SDP_VF_R_IN_CNTS(ring) (SDP_VF_R_IN_CNTS_START + (SDP_VF_RING_OFFSET * (ring)))
 
-#define SDP_VF_R_IN_INT_LEVELS(ring)                                           \
-	(SDP_VF_R_IN_INT_LEVELS_START + (SDP_VF_RING_OFFSET * (ring)))
+#define SDP_VF_R_IN_INT_LEVELS(ring) (SDP_VF_R_IN_INT_LEVELS_START + (SDP_VF_RING_OFFSET * (ring)))
 
-#define SDP_VF_R_IN_PKT_CNT(ring)                                              \
-	(SDP_VF_R_IN_PKT_CNT_START + (SDP_VF_RING_OFFSET * (ring)))
+#define SDP_VF_R_IN_PKT_CNT(ring) (SDP_VF_R_IN_PKT_CNT_START + (SDP_VF_RING_OFFSET * (ring)))
 
-#define SDP_VF_R_IN_BYTE_CNT(ring)                                             \
-	(SDP_VF_R_IN_BYTE_CNT_START + (SDP_VF_RING_OFFSET * (ring)))
+#define SDP_VF_R_IN_BYTE_CNT(ring) (SDP_VF_R_IN_BYTE_CNT_START + (SDP_VF_RING_OFFSET * (ring)))
 
-#define SDP_VF_R_IN_CNTS_ISM(ring)                                             \
-	(SDP_VF_R_IN_CNTS_ISM_START + (SDP_VF_RING_OFFSET * (ring)))
+#define SDP_VF_R_IN_CNTS_ISM(ring) (SDP_VF_R_IN_CNTS_ISM_START + (SDP_VF_RING_OFFSET * (ring)))
 
 /* SDP VF IQ Masks */
 #define SDP_VF_R_IN_CTL_RPVF_MASK (0xF)
@@ -120,40 +113,34 @@
 #define SDP_VF_R_MBOX_PF_VF_DATA_START (0x10210)
 #define SDP_VF_R_MBOX_VF_PF_DATA_START (0x10230)
 
-#define SDP_VF_R_OUT_CONTROL(ring)                                             \
-	(SDP_VF_R_OUT_CONTROL_START + (SDP_VF_RING_OFFSET * (ring)))
+#define SDP_VF_R_OUT_CONTROL(ring) (SDP_VF_R_OUT_CONTROL_START + (SDP_VF_RING_OFFSET * (ring)))
 
-#define SDP_VF_R_OUT_ENABLE(ring)                                              \
-	(SDP_VF_R_OUT_ENABLE_START + (SDP_VF_RING_OFFSET * (ring)))
+#define SDP_VF_R_OUT_ENABLE(ring) (SDP_VF_R_OUT_ENABLE_START + (SDP_VF_RING_OFFSET * (ring)))
 
-#define SDP_VF_R_OUT_SLIST_BADDR(ring)                                         \
+#define SDP_VF_R_OUT_SLIST_BADDR(ring)                                                             \
 	(SDP_VF_R_OUT_SLIST_BADDR_START + (SDP_VF_RING_OFFSET * (ring)))
 
-#define SDP_VF_R_OUT_SLIST_RSIZE(ring)                                         \
+#define SDP_VF_R_OUT_SLIST_RSIZE(ring)                                                             \
 	(SDP_VF_R_OUT_SLIST_RSIZE_START + (SDP_VF_RING_OFFSET * (ring)))
 
-#define SDP_VF_R_OUT_SLIST_DBELL(ring)                                         \
+#define SDP_VF_R_OUT_SLIST_DBELL(ring)                                                             \
 	(SDP_VF_R_OUT_SLIST_DBELL_START + (SDP_VF_RING_OFFSET * (ring)))
 
-#define SDP_VF_R_OUT_CNTS(ring)                                                \
-	(SDP_VF_R_OUT_CNTS_START + (SDP_VF_RING_OFFSET * (ring)))
+#define SDP_VF_R_OUT_CNTS(ring) (SDP_VF_R_OUT_CNTS_START + (SDP_VF_RING_OFFSET * (ring)))
 
-#define SDP_VF_R_OUT_INT_LEVELS(ring)                                          \
+#define SDP_VF_R_OUT_INT_LEVELS(ring)                                                              \
 	(SDP_VF_R_OUT_INT_LEVELS_START + (SDP_VF_RING_OFFSET * (ring)))
 
-#define SDP_VF_R_OUT_PKT_CNT(ring)                                             \
-	(SDP_VF_R_OUT_PKT_CNT_START + (SDP_VF_RING_OFFSET * (ring)))
+#define SDP_VF_R_OUT_PKT_CNT(ring) (SDP_VF_R_OUT_PKT_CNT_START + (SDP_VF_RING_OFFSET * (ring)))
 
-#define SDP_VF_R_OUT_BYTE_CNT(ring)                                            \
-	(SDP_VF_R_OUT_BYTE_CNT_START + (SDP_VF_RING_OFFSET * (ring)))
+#define SDP_VF_R_OUT_BYTE_CNT(ring) (SDP_VF_R_OUT_BYTE_CNT_START + (SDP_VF_RING_OFFSET * (ring)))
 
-#define SDP_VF_R_OUT_CNTS_ISM(ring)                                            \
-	(SDP_VF_R_OUT_CNTS_ISM_START + (SDP_VF_RING_OFFSET * (ring)))
+#define SDP_VF_R_OUT_CNTS_ISM(ring) (SDP_VF_R_OUT_CNTS_ISM_START + (SDP_VF_RING_OFFSET * (ring)))
 
-#define SDP_VF_R_MBOX_PF_VF_DATA(ring)                                         \
+#define SDP_VF_R_MBOX_PF_VF_DATA(ring)                                                             \
 	(SDP_VF_R_MBOX_PF_VF_DATA_START + ((ring)*SDP_VF_RING_OFFSET))
 
-#define SDP_VF_R_MBOX_VF_PF_DATA(ring)                                         \
+#define SDP_VF_R_MBOX_VF_PF_DATA(ring)                                                             \
 	(SDP_VF_R_MBOX_VF_PF_DATA_START + ((ring)*SDP_VF_RING_OFFSET))
 
 /* SDP VF OQ Masks */

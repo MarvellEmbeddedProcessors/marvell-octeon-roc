@@ -298,80 +298,56 @@ struct mbox_msghdr {
 	M(NIX_FREE_BPIDS, 0x8029, nix_free_bpids, nix_bpids, msg_rsp)          \
 	M(NIX_RX_CHAN_CFG, 0x802a, nix_rx_chan_cfg, nix_rx_chan_cfg,           \
 	  nix_rx_chan_cfg)                                                     \
-	/* MCS mbox IDs (range 0xa000 - 0xbFFF) */                             \
-	M(MCS_ALLOC_RESOURCES, 0xa000, mcs_alloc_resources,                    \
-	  mcs_alloc_rsrc_req, mcs_alloc_rsrc_rsp)                              \
-	M(MCS_FREE_RESOURCES, 0xa001, mcs_free_resources, mcs_free_rsrc_req,   \
-	  msg_rsp)                                                             \
-	M(MCS_FLOWID_ENTRY_WRITE, 0xa002, mcs_flowid_entry_write,              \
-	  mcs_flowid_entry_write_req, msg_rsp)                                 \
-	M(MCS_SECY_PLCY_WRITE, 0xa003, mcs_secy_plcy_write,                    \
-	  mcs_secy_plcy_write_req, msg_rsp)                                    \
-	M(MCS_RX_SC_CAM_WRITE, 0xa004, mcs_rx_sc_cam_write,                    \
-	  mcs_rx_sc_cam_write_req, msg_rsp)                                    \
-	M(MCS_SA_PLCY_WRITE, 0xa005, mcs_sa_plcy_write, mcs_sa_plcy_write_req, \
-	  msg_rsp)                                                             \
-	M(MCS_TX_SC_SA_MAP_WRITE, 0xa006, mcs_tx_sc_sa_map_write,              \
-	  mcs_tx_sc_sa_map, msg_rsp)                                           \
-	M(MCS_RX_SC_SA_MAP_WRITE, 0xa007, mcs_rx_sc_sa_map_write,              \
-	  mcs_rx_sc_sa_map, msg_rsp)                                           \
-	M(MCS_FLOWID_ENA_ENTRY, 0xa008, mcs_flowid_ena_entry,                  \
-	  mcs_flowid_ena_dis_entry, msg_rsp)                                   \
-	M(MCS_PN_TABLE_WRITE, 0xa009, mcs_pn_table_write,                      \
-	  mcs_pn_table_write_req, msg_rsp)                                     \
-	M(MCS_SET_ACTIVE_LMAC, 0xa00a, mcs_set_active_lmac,                    \
-	  mcs_set_active_lmac, msg_rsp)                                        \
-	M(MCS_GET_HW_INFO, 0xa00b, mcs_get_hw_info, msg_req, mcs_hw_info)      \
-	M(MCS_GET_FLOWID_STATS, 0xa00c, mcs_get_flowid_stats, mcs_stats_req,   \
-	  mcs_flowid_stats)                                                    \
-	M(MCS_GET_SECY_STATS, 0xa00d, mcs_get_secy_stats, mcs_stats_req,       \
-	  mcs_secy_stats)                                                      \
-	M(MCS_GET_SC_STATS, 0xa00e, mcs_get_sc_stats, mcs_stats_req,           \
-	  mcs_sc_stats)                                                        \
-	M(MCS_GET_PORT_STATS, 0xa010, mcs_get_port_stats, mcs_stats_req,       \
-	  mcs_port_stats)                                                      \
-	M(MCS_CLEAR_STATS, 0xa011, mcs_clear_stats, mcs_clear_stats, msg_rsp)  \
-	M(MCS_INTR_CFG, 0xa012, mcs_intr_cfg, mcs_intr_cfg, msg_rsp)           \
-	M(MCS_SET_LMAC_MODE, 0xa013, mcs_set_lmac_mode, mcs_set_lmac_mode,     \
-	  msg_rsp)                                                             \
-	M(MCS_SET_PN_THRESHOLD, 0xa014, mcs_set_pn_threshold,                  \
-	  mcs_set_pn_threshold, msg_rsp)                                       \
-	M(MCS_ALLOC_CTRL_PKT_RULE, 0xa015, mcs_alloc_ctrl_pkt_rule,            \
-	  mcs_alloc_ctrl_pkt_rule_req, mcs_alloc_ctrl_pkt_rule_rsp)            \
-	M(MCS_FREE_CTRL_PKT_RULE, 0xa016, mcs_free_ctrl_pkt_rule,              \
-	  mcs_free_ctrl_pkt_rule_req, msg_rsp)                                 \
-	M(MCS_CTRL_PKT_RULE_WRITE, 0xa017, mcs_ctrl_pkt_rule_write,            \
-	  mcs_ctrl_pkt_rule_write_req, msg_rsp)                                \
-	M(MCS_PORT_RESET, 0xa018, mcs_port_reset, mcs_port_reset_req, msg_rsp) \
-	M(MCS_PORT_CFG_SET, 0xa019, mcs_port_cfg_set, mcs_port_cfg_set_req,    \
-	  msg_rsp)                                                             \
-	M(MCS_PORT_CFG_GET, 0xa020, mcs_port_cfg_get, mcs_port_cfg_get_req,    \
-	  mcs_port_cfg_get_rsp)                                                \
-	M(MCS_CUSTOM_TAG_CFG_GET, 0xa021, mcs_custom_tag_cfg_get,              \
-	  mcs_custom_tag_cfg_get_req, mcs_custom_tag_cfg_get_rsp)              \
-	M(MCS_FIPS_RESET, 0xa040, mcs_fips_reset, mcs_fips_req, msg_rsp)       \
-	M(MCS_FIPS_MODE_SET, 0xa041, mcs_fips_mode_set, mcs_fips_mode_req,     \
-	  msg_rsp)                                                             \
-	M(MCS_FIPS_CTL_SET, 0xa042, mcs_fips_ctl_set, mcs_fips_ctl_req,        \
-	  msg_rsp)                                                             \
-	M(MCS_FIPS_IV_SET, 0xa043, mcs_fips_iv_set, mcs_fips_iv_req, msg_rsp)  \
-	M(MCS_FIPS_CTR_SET, 0xa044, mcs_fips_ctr_set, mcs_fips_ctr_req,        \
-	  msg_rsp)                                                             \
-	M(MCS_FIPS_KEY_SET, 0xa045, mcs_fips_key_set, mcs_fips_key_req,        \
-	  msg_rsp)                                                             \
-	M(MCS_FIPS_BLOCK_SET, 0xa046, mcs_fips_block_set, mcs_fips_block_req,  \
-	  msg_rsp)                                                             \
-	M(MCS_FIPS_START, 0xa047, mcs_fips_start, mcs_fips_req, msg_rsp)       \
-	M(MCS_FIPS_RESULT_GET, 0xa048, mcs_fips_result_get, mcs_fips_req,      \
-	  mcs_fips_result_rsp)
+	/* MCS mbox IDs (range 0xa000 - 0xbFFF) */                                                 \
+	M(MCS_ALLOC_RESOURCES, 0xa000, mcs_alloc_resources, mcs_alloc_rsrc_req,                    \
+	  mcs_alloc_rsrc_rsp)                                                                      \
+	M(MCS_FREE_RESOURCES, 0xa001, mcs_free_resources, mcs_free_rsrc_req, msg_rsp)              \
+	M(MCS_FLOWID_ENTRY_WRITE, 0xa002, mcs_flowid_entry_write, mcs_flowid_entry_write_req,      \
+	  msg_rsp)                                                                                 \
+	M(MCS_SECY_PLCY_WRITE, 0xa003, mcs_secy_plcy_write, mcs_secy_plcy_write_req, msg_rsp)      \
+	M(MCS_RX_SC_CAM_WRITE, 0xa004, mcs_rx_sc_cam_write, mcs_rx_sc_cam_write_req, msg_rsp)      \
+	M(MCS_SA_PLCY_WRITE, 0xa005, mcs_sa_plcy_write, mcs_sa_plcy_write_req, msg_rsp)            \
+	M(MCS_TX_SC_SA_MAP_WRITE, 0xa006, mcs_tx_sc_sa_map_write, mcs_tx_sc_sa_map, msg_rsp)       \
+	M(MCS_RX_SC_SA_MAP_WRITE, 0xa007, mcs_rx_sc_sa_map_write, mcs_rx_sc_sa_map, msg_rsp)       \
+	M(MCS_FLOWID_ENA_ENTRY, 0xa008, mcs_flowid_ena_entry, mcs_flowid_ena_dis_entry, msg_rsp)   \
+	M(MCS_PN_TABLE_WRITE, 0xa009, mcs_pn_table_write, mcs_pn_table_write_req, msg_rsp)         \
+	M(MCS_SET_ACTIVE_LMAC, 0xa00a, mcs_set_active_lmac, mcs_set_active_lmac, msg_rsp)          \
+	M(MCS_GET_HW_INFO, 0xa00b, mcs_get_hw_info, msg_req, mcs_hw_info)                          \
+	M(MCS_GET_FLOWID_STATS, 0xa00c, mcs_get_flowid_stats, mcs_stats_req, mcs_flowid_stats)     \
+	M(MCS_GET_SECY_STATS, 0xa00d, mcs_get_secy_stats, mcs_stats_req, mcs_secy_stats)           \
+	M(MCS_GET_SC_STATS, 0xa00e, mcs_get_sc_stats, mcs_stats_req, mcs_sc_stats)                 \
+	M(MCS_GET_PORT_STATS, 0xa010, mcs_get_port_stats, mcs_stats_req, mcs_port_stats)           \
+	M(MCS_CLEAR_STATS, 0xa011, mcs_clear_stats, mcs_clear_stats, msg_rsp)                      \
+	M(MCS_INTR_CFG, 0xa012, mcs_intr_cfg, mcs_intr_cfg, msg_rsp)                               \
+	M(MCS_SET_LMAC_MODE, 0xa013, mcs_set_lmac_mode, mcs_set_lmac_mode, msg_rsp)                \
+	M(MCS_SET_PN_THRESHOLD, 0xa014, mcs_set_pn_threshold, mcs_set_pn_threshold, msg_rsp)       \
+	M(MCS_ALLOC_CTRL_PKT_RULE, 0xa015, mcs_alloc_ctrl_pkt_rule, mcs_alloc_ctrl_pkt_rule_req,   \
+	  mcs_alloc_ctrl_pkt_rule_rsp)                                                             \
+	M(MCS_FREE_CTRL_PKT_RULE, 0xa016, mcs_free_ctrl_pkt_rule, mcs_free_ctrl_pkt_rule_req,      \
+	  msg_rsp)                                                                                 \
+	M(MCS_CTRL_PKT_RULE_WRITE, 0xa017, mcs_ctrl_pkt_rule_write, mcs_ctrl_pkt_rule_write_req,   \
+	  msg_rsp)                                                                                 \
+	M(MCS_PORT_RESET, 0xa018, mcs_port_reset, mcs_port_reset_req, msg_rsp)                     \
+	M(MCS_PORT_CFG_SET, 0xa019, mcs_port_cfg_set, mcs_port_cfg_set_req, msg_rsp)               \
+	M(MCS_PORT_CFG_GET, 0xa020, mcs_port_cfg_get, mcs_port_cfg_get_req, mcs_port_cfg_get_rsp)  \
+	M(MCS_CUSTOM_TAG_CFG_GET, 0xa021, mcs_custom_tag_cfg_get, mcs_custom_tag_cfg_get_req,      \
+	  mcs_custom_tag_cfg_get_rsp)                                                              \
+	M(MCS_FIPS_RESET, 0xa040, mcs_fips_reset, mcs_fips_req, msg_rsp)                           \
+	M(MCS_FIPS_MODE_SET, 0xa041, mcs_fips_mode_set, mcs_fips_mode_req, msg_rsp)                \
+	M(MCS_FIPS_CTL_SET, 0xa042, mcs_fips_ctl_set, mcs_fips_ctl_req, msg_rsp)                   \
+	M(MCS_FIPS_IV_SET, 0xa043, mcs_fips_iv_set, mcs_fips_iv_req, msg_rsp)                      \
+	M(MCS_FIPS_CTR_SET, 0xa044, mcs_fips_ctr_set, mcs_fips_ctr_req, msg_rsp)                   \
+	M(MCS_FIPS_KEY_SET, 0xa045, mcs_fips_key_set, mcs_fips_key_req, msg_rsp)                   \
+	M(MCS_FIPS_BLOCK_SET, 0xa046, mcs_fips_block_set, mcs_fips_block_req, msg_rsp)             \
+	M(MCS_FIPS_START, 0xa047, mcs_fips_start, mcs_fips_req, msg_rsp)                           \
+	M(MCS_FIPS_RESULT_GET, 0xa048, mcs_fips_result_get, mcs_fips_req, mcs_fips_result_rsp)
 
 /* Messages initiated by AF (range 0xC00 - 0xDFF) */
 #define MBOX_UP_CGX_MESSAGES                                                   \
 	M(CGX_LINK_EVENT, 0xC00, cgx_link_event, cgx_link_info_msg, msg_rsp)   \
 	M(CGX_PTP_RX_INFO, 0xC01, cgx_ptp_rx_info, cgx_ptp_rx_info_msg, msg_rsp)
 
-#define MBOX_UP_MCS_MESSAGES                                                   \
-	M(MCS_INTR_NOTIFY, 0xE00, mcs_intr_notify, mcs_intr_info, msg_rsp)
+#define MBOX_UP_MCS_MESSAGES M(MCS_INTR_NOTIFY, 0xE00, mcs_intr_notify, mcs_intr_info, msg_rsp)
 
 enum {
 #define M(_name, _id, _1, _2, _3) MBOX_MSG_##_name = _id,
@@ -966,8 +942,7 @@ struct mcs_intr_info {
 
 struct mcs_set_lmac_mode {
 	struct mbox_msghdr hdr;
-	uint8_t __io mode; /* '1' for internal bypass mode (passthrough), '0'
-			      for MCS processing */
+	uint8_t __io mode; /* '1' for internal bypass mode (passthrough), '0' for MCS processing */
 	uint8_t __io lmac_id;
 	uint8_t __io mcs_id;
 	uint64_t __io rsvd;
@@ -1777,7 +1752,7 @@ struct nix_alloc_bpid_req {
 };
 
 struct nix_bpids {
-#define ROC_NIX_MAX_BPID_CNT 8
+#define ROC_NIX_MAX_BPID_CNT	8
 	struct mbox_msghdr hdr;
 	uint8_t __io bpid_cnt;
 	uint16_t __io bpids[ROC_NIX_MAX_BPID_CNT];
@@ -1789,7 +1764,7 @@ struct nix_rx_chan_cfg {
 	uint8_t __io type; /* Interface type(CGX/CPT/LBK) */
 	uint8_t __io read;
 	uint16_t __io chan; /* RX channel to be configured */
-	uint64_t __io val;  /* NIX_AF_RX_CHAN_CFG value */
+	uint64_t __io val; /* NIX_AF_RX_CHAN_CFG value */
 	uint64_t __io rsvd;
 };
 
@@ -2513,7 +2488,7 @@ struct npc_mcam_get_stats_rsp {
 	uint8_t __io stat_ena; /* enabled */
 };
 
-#define MCAM_ARR_SIZE	 256
+#define MCAM_ARR_SIZE    256
 #define MCAM_ARR_ELEM_SZ 64
 
 struct npc_mcam_get_hit_status_req {

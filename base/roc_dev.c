@@ -405,9 +405,8 @@ roc_vf_pf_mbox_irq(void *param)
 
 	if (signal_thread) {
 		pthread_mutex_lock(&dev->sync.mutex);
-		/* Interrupt state was saved in local variable first, as
-		 * dev->intr.bits is a shared resources between VF msg and
-		 * interrupt thread.
+		/* Interrupt state was saved in local variable first, as dev->intr.bits
+		 * is a shared resources between VF msg and interrupt thread.
 		 */
 		memcpy(dev->intr.bits, intrb.bits, sz);
 		/* MBOX message received from VF */
@@ -470,8 +469,7 @@ process_msgs(struct dev *dev, struct mbox *mbox)
 		case MBOX_MSG_CGX_PROMISC_ENABLE:
 			if (msg->rc) {
 				if (msg->rc == LMAC_AF_ERR_INVALID_PARAM) {
-					plt_mbox_dbg(
-						"Already in same promisc state");
+					plt_mbox_dbg("Already in same promisc state");
 					msg->rc = 0;
 				} else {
 					plt_err("Message (%s) response has err=%d",
@@ -483,16 +481,14 @@ process_msgs(struct dev *dev, struct mbox *mbox)
 		default:
 			if (msg->rc)
 				plt_err("Message (%s) response has err=%d (%s)",
-					mbox_id2name(msg->id), msg->rc,
-					roc_error_msg_get(msg->rc));
+					mbox_id2name(msg->id), msg->rc, roc_error_msg_get(msg->rc));
 			break;
 		}
 		offset = mbox->rx_start + msg->next_msgoff;
 	}
 
 	mbox_reset(mbox, 0);
-	/* Update acked if someone is waiting a message - mbox_wait is waiting
-	 */
+	/* Update acked if someone is waiting a message - mbox_wait is waiting */
 	mdev->msgs_acked = msgs_acked;
 	plt_wmb();
 }
@@ -545,90 +541,85 @@ pf_vf_mbox_send_up_msg(struct dev *dev, void *rec_msg)
 }
 
 static int
-mbox_up_handler_mcs_intr_notify(struct dev *dev, struct mcs_intr_info *info,
-				struct msg_rsp *rsp)
+mbox_up_handler_mcs_intr_notify(struct dev *dev, struct mcs_intr_info *info, struct msg_rsp *rsp)
 {
 #ifdef OCT_ROC_USE_MCS
-  struct roc_mcs_event_desc desc = { 0 };
-  struct roc_mcs *mcs;
+	struct roc_mcs_event_desc desc = {0};
+	struct roc_mcs *mcs;
 
-  plt_base_dbg ("pf:%d/vf:%d msg id 0x%x (%s) from: pf:%d/vf:%d",
-		dev_get_pf (dev->pf_func), dev_get_vf (dev->pf_func),
-		info->hdr.id, mbox_id2name (info->hdr.id),
-		dev_get_pf (info->hdr.pcifunc),
-		dev_get_vf (info->hdr.pcifunc));
+	plt_base_dbg("pf:%d/vf:%d msg id 0x%x (%s) from: pf:%d/vf:%d", dev_get_pf(dev->pf_func),
+		     dev_get_vf(dev->pf_func), info->hdr.id, mbox_id2name(info->hdr.id),
+		     dev_get_pf(info->hdr.pcifunc), dev_get_vf(info->hdr.pcifunc));
 
-  mcs = roc_idev_mcs_get (info->mcs_id);
-  if (!mcs)
-    goto exit;
+	mcs = roc_idev_mcs_get(info->mcs_id);
+	if (!mcs)
+		goto exit;
 
-  if (info->intr_mask)
-    {
-      switch (info->intr_mask)
-	{
-	case MCS_CPM_RX_SECTAG_V_EQ1_INT:
-	  desc.type = ROC_MCS_EVENT_SECTAG_VAL_ERR;
-	  desc.subtype = ROC_MCS_EVENT_RX_SECTAG_V_EQ1;
-	  break;
-	case MCS_CPM_RX_SECTAG_E_EQ0_C_EQ1_INT:
-	  desc.type = ROC_MCS_EVENT_SECTAG_VAL_ERR;
-	  desc.subtype = ROC_MCS_EVENT_RX_SECTAG_E_EQ0_C_EQ1;
-	  break;
-	case MCS_CPM_RX_SECTAG_SL_GTE48_INT:
-	  desc.type = ROC_MCS_EVENT_SECTAG_VAL_ERR;
-	  desc.subtype = ROC_MCS_EVENT_RX_SECTAG_SL_GTE48;
-	  break;
-	case MCS_CPM_RX_SECTAG_ES_EQ1_SC_EQ1_INT:
-	  desc.type = ROC_MCS_EVENT_SECTAG_VAL_ERR;
-	  desc.subtype = ROC_MCS_EVENT_RX_SECTAG_ES_EQ1_SC_EQ1;
-	  break;
-	case MCS_CPM_RX_SECTAG_SC_EQ1_SCB_EQ1_INT:
-	  desc.type = ROC_MCS_EVENT_SECTAG_VAL_ERR;
-	  desc.subtype = ROC_MCS_EVENT_RX_SECTAG_SC_EQ1_SCB_EQ1;
-	  break;
-	case MCS_CPM_RX_PACKET_XPN_EQ0_INT:
-	  desc.type = ROC_MCS_EVENT_RX_SA_PN_HARD_EXP;
-	  desc.metadata.sa_idx = info->sa_id;
-	  break;
-	case MCS_CPM_RX_PN_THRESH_REACHED_INT:
-	  desc.type = ROC_MCS_EVENT_RX_SA_PN_SOFT_EXP;
-	  desc.metadata.sa_idx = info->sa_id;
-	  break;
-	case MCS_CPM_TX_PACKET_XPN_EQ0_INT:
-	  desc.type = ROC_MCS_EVENT_TX_SA_PN_HARD_EXP;
-	  desc.metadata.sa_idx = info->sa_id;
-	  break;
-	case MCS_CPM_TX_PN_THRESH_REACHED_INT:
-	  desc.type = ROC_MCS_EVENT_TX_SA_PN_SOFT_EXP;
-	  desc.metadata.sa_idx = info->sa_id;
-	  break;
-	case MCS_CPM_TX_SA_NOT_VALID_INT:
-	  desc.type = ROC_MCS_EVENT_SA_NOT_VALID;
-	  break;
-	case MCS_BBE_RX_DFIFO_OVERFLOW_INT:
-	case MCS_BBE_TX_DFIFO_OVERFLOW_INT:
-	  desc.type = ROC_MCS_EVENT_FIFO_OVERFLOW;
-	  desc.subtype = ROC_MCS_EVENT_DATA_FIFO_OVERFLOW;
-	  desc.metadata.lmac_id = info->lmac_id;
-	  break;
-	case MCS_BBE_RX_PLFIFO_OVERFLOW_INT:
-	case MCS_BBE_TX_PLFIFO_OVERFLOW_INT:
-	  desc.type = ROC_MCS_EVENT_FIFO_OVERFLOW;
-	  desc.subtype = ROC_MCS_EVENT_POLICY_FIFO_OVERFLOW;
-	  desc.metadata.lmac_id = info->lmac_id;
-	  break;
-	case MCS_PAB_RX_CHAN_OVERFLOW_INT:
-	case MCS_PAB_TX_CHAN_OVERFLOW_INT:
-	  desc.type = ROC_MCS_EVENT_FIFO_OVERFLOW;
-	  desc.subtype = ROC_MCS_EVENT_PKT_ASSM_FIFO_OVERFLOW;
-	  desc.metadata.lmac_id = info->lmac_id;
-	  break;
-	default:
-	  goto exit;
+	if (info->intr_mask) {
+		switch (info->intr_mask) {
+		case MCS_CPM_RX_SECTAG_V_EQ1_INT:
+			desc.type = ROC_MCS_EVENT_SECTAG_VAL_ERR;
+			desc.subtype = ROC_MCS_EVENT_RX_SECTAG_V_EQ1;
+			break;
+		case MCS_CPM_RX_SECTAG_E_EQ0_C_EQ1_INT:
+			desc.type = ROC_MCS_EVENT_SECTAG_VAL_ERR;
+			desc.subtype = ROC_MCS_EVENT_RX_SECTAG_E_EQ0_C_EQ1;
+			break;
+		case MCS_CPM_RX_SECTAG_SL_GTE48_INT:
+			desc.type = ROC_MCS_EVENT_SECTAG_VAL_ERR;
+			desc.subtype = ROC_MCS_EVENT_RX_SECTAG_SL_GTE48;
+			break;
+		case MCS_CPM_RX_SECTAG_ES_EQ1_SC_EQ1_INT:
+			desc.type = ROC_MCS_EVENT_SECTAG_VAL_ERR;
+			desc.subtype = ROC_MCS_EVENT_RX_SECTAG_ES_EQ1_SC_EQ1;
+			break;
+		case MCS_CPM_RX_SECTAG_SC_EQ1_SCB_EQ1_INT:
+			desc.type = ROC_MCS_EVENT_SECTAG_VAL_ERR;
+			desc.subtype = ROC_MCS_EVENT_RX_SECTAG_SC_EQ1_SCB_EQ1;
+			break;
+		case MCS_CPM_RX_PACKET_XPN_EQ0_INT:
+			desc.type = ROC_MCS_EVENT_RX_SA_PN_HARD_EXP;
+			desc.metadata.sa_idx = info->sa_id;
+			break;
+		case MCS_CPM_RX_PN_THRESH_REACHED_INT:
+			desc.type = ROC_MCS_EVENT_RX_SA_PN_SOFT_EXP;
+			desc.metadata.sa_idx = info->sa_id;
+			break;
+		case MCS_CPM_TX_PACKET_XPN_EQ0_INT:
+			desc.type = ROC_MCS_EVENT_TX_SA_PN_HARD_EXP;
+			desc.metadata.sa_idx = info->sa_id;
+			break;
+		case MCS_CPM_TX_PN_THRESH_REACHED_INT:
+			desc.type = ROC_MCS_EVENT_TX_SA_PN_SOFT_EXP;
+			desc.metadata.sa_idx = info->sa_id;
+			break;
+		case MCS_CPM_TX_SA_NOT_VALID_INT:
+			desc.type = ROC_MCS_EVENT_SA_NOT_VALID;
+			break;
+		case MCS_BBE_RX_DFIFO_OVERFLOW_INT:
+		case MCS_BBE_TX_DFIFO_OVERFLOW_INT:
+			desc.type = ROC_MCS_EVENT_FIFO_OVERFLOW;
+			desc.subtype = ROC_MCS_EVENT_DATA_FIFO_OVERFLOW;
+			desc.metadata.lmac_id = info->lmac_id;
+			break;
+		case MCS_BBE_RX_PLFIFO_OVERFLOW_INT:
+		case MCS_BBE_TX_PLFIFO_OVERFLOW_INT:
+			desc.type = ROC_MCS_EVENT_FIFO_OVERFLOW;
+			desc.subtype = ROC_MCS_EVENT_POLICY_FIFO_OVERFLOW;
+			desc.metadata.lmac_id = info->lmac_id;
+			break;
+		case MCS_PAB_RX_CHAN_OVERFLOW_INT:
+		case MCS_PAB_TX_CHAN_OVERFLOW_INT:
+			desc.type = ROC_MCS_EVENT_FIFO_OVERFLOW;
+			desc.subtype = ROC_MCS_EVENT_PKT_ASSM_FIFO_OVERFLOW;
+			desc.metadata.lmac_id = info->lmac_id;
+			break;
+		default:
+			goto exit;
+		}
+
+		mcs_event_cb_process(mcs, &desc);
 	}
-
-      mcs_event_cb_process (mcs, &desc);
-    }
 
 exit:
 	rsp->hdr.rc = 0;
@@ -1017,20 +1008,21 @@ roc_pf_vf_flr_irq(void *param)
 		/* Clear interrupt */
 		plt_write64(intr, bar2 + RVU_PF_VFFLR_INTX(i));
 		/* Disable the interrupt */
-		plt_write64(intr, bar2 + RVU_PF_VFFLR_INT_ENA_W1CX(i));
+		plt_write64(intr,
+			    bar2 + RVU_PF_VFFLR_INT_ENA_W1CX(i));
 
 		/* Save FLR interrupts per VF as bits */
 		flr.bits[i] |= intr;
 		/* Enable interrupt */
-		plt_write64(~0ull, bar2 + RVU_PF_VFFLR_INT_ENA_W1SX(i));
+		plt_write64(~0ull,
+			    bar2 + RVU_PF_VFFLR_INT_ENA_W1SX(i));
 		signal_thread = true;
 	}
 
 	if (signal_thread) {
 		pthread_mutex_lock(&dev->sync.mutex);
-		/* Interrupt state was saved in local variable first, as
-		 * dev->flr.bits is a shared resources between VF msg and
-		 * interrupt thread.
+		/* Interrupt state was saved in local variable first, as dev->flr.bits
+		 * is a shared resources between VF msg and interrupt thread.
 		 */
 		memcpy(dev->flr.bits, flr.bits, sz);
 		/* FLR message received from VF */
@@ -1109,8 +1101,7 @@ vf_flr_handle_msg(void *param, dev_intr_t *flr)
 
 			/* Signal FLR finish */
 			plt_write64(BIT_ULL(vf % max_bits),
-				    dev->bar2 +
-					    RVU_PF_VFTRPENDX(vf / max_bits));
+				    dev->bar2 + RVU_PF_VFTRPENDX(vf / max_bits));
 		}
 	}
 }
@@ -1127,8 +1118,7 @@ pf_vf_mbox_thread_main(void *arg)
 	pthread_mutex_lock(&dev->sync.mutex);
 	while (dev->sync.start_thread) {
 		do {
-			rc = pthread_cond_wait(&dev->sync.pfvf_msg_cond,
-					       &dev->sync.mutex);
+			rc = pthread_cond_wait(&dev->sync.pfvf_msg_cond, &dev->sync.mutex);
 		} while (rc != 0);
 
 		if (!dev->sync.msg_avail) {
@@ -1136,8 +1126,7 @@ pf_vf_mbox_thread_main(void *arg)
 		} else {
 			while (dev->sync.msg_avail) {
 				/* Check which VF msg received */
-				is_mbox =
-					dev->sync.msg_avail & ROC_DEV_MBOX_PEND;
+				is_mbox = dev->sync.msg_avail & ROC_DEV_MBOX_PEND;
 				is_flr = dev->sync.msg_avail & ROC_DEV_FLR_PEND;
 				memcpy(intr.bits, dev->intr.bits, sz);
 				memcpy(flr.bits, dev->flr.bits, sz);
@@ -1153,8 +1142,7 @@ pf_vf_mbox_thread_main(void *arg)
 					roc_vf_pf_mbox_handle_msg(dev, &intr);
 				if (is_flr)
 					vf_flr_handle_msg(dev, &flr);
-				/* Locking as cond wait will unlock before wait
-				 */
+				/* Locking as cond wait will unlock before wait */
 				pthread_mutex_lock(&dev->sync.mutex);
 			}
 		}
@@ -1383,9 +1371,8 @@ dev_cache_line_size_valid(void)
 		}
 	} else if (roc_model_is_cn10k()) {
 		if (PLT_CACHE_LINE_SIZE == 128) {
-			plt_warn(
-				"Cache line size of %d might affect performance",
-				PLT_CACHE_LINE_SIZE);
+			plt_warn("Cache line size of %d might affect performance",
+				 PLT_CACHE_LINE_SIZE);
 		} else if (PLT_CACHE_LINE_SIZE != 64) {
 			plt_err("Cache line size of %d is wrong for CN10K",
 				PLT_CACHE_LINE_SIZE);
@@ -1399,7 +1386,7 @@ dev_cache_line_size_valid(void)
 int
 dev_init(struct dev *dev, struct plt_pci_device *pci_dev)
 {
-	//	char name[MBOX_HANDLER_NAME_MAX_LEN];
+	char name[MBOX_HANDLER_NAME_MAX_LEN];
 	int direction, up_direction, rc;
 	uintptr_t bar2, bar4, mbox;
 	uintptr_t vf_mbase = 0;
@@ -1506,11 +1493,10 @@ dev_init(struct dev *dev, struct plt_pci_device *pci_dev)
 		pthread_cond_init(&dev->sync.pfvf_msg_cond, NULL);
 		pthread_mutex_init(&dev->sync.mutex, NULL);
 
-		snprintf(name, MBOX_HANDLER_NAME_MAX_LEN, "pf%d_vf_msg_hndlr",
-			 dev->pf);
+		snprintf(name, MBOX_HANDLER_NAME_MAX_LEN, "pf%d_vf_msg_hndlr", dev->pf);
 		dev->sync.start_thread = true;
-		rc = plt_ctrl_thread_create(&dev->sync.pfvf_msg_thread, name,
-					    NULL, pf_vf_mbox_thread_main, dev);
+		rc = plt_ctrl_thread_create(&dev->sync.pfvf_msg_thread, name, NULL,
+					    pf_vf_mbox_thread_main, dev);
 		if (rc != 0) {
 			plt_err("Failed to create thread for VF mbox handling\n");
 			goto thread_fail;

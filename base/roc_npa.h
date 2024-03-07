@@ -802,13 +802,11 @@ int __roc_api roc_npa_aura_create(uint64_t *aura_handle, uint32_t block_count,
 				  uint32_t flags);
 int __roc_api roc_npa_aura_destroy(uint64_t aura_handle);
 uint64_t __roc_api roc_npa_zero_aura_handle(void);
-int __roc_api roc_npa_buf_type_update(uint64_t aura_handle,
-				      enum roc_npa_buf_type type, int cnt);
+int __roc_api roc_npa_buf_type_update(uint64_t aura_handle, enum roc_npa_buf_type type, int cnt);
 uint64_t __roc_api roc_npa_buf_type_mask(uint64_t aura_handle);
 uint64_t __roc_api roc_npa_buf_type_limit_get(uint64_t type_mask);
-int __roc_api roc_npa_aura_bp_configure(uint64_t aura_id, uint16_t bpid,
-					uint8_t bp_intf, uint8_t bp_thresh,
-					bool enable);
+int __roc_api roc_npa_aura_bp_configure(uint64_t aura_id, uint16_t bpid, uint8_t bp_intf,
+					uint8_t bp_thresh, bool enable);
 
 /* Init callbacks */
 typedef int (*roc_npa_lf_init_cb_t)(struct plt_pci_device *pci_dev);

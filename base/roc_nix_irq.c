@@ -457,7 +457,8 @@ roc_nix_register_cq_irqs(struct roc_nix *roc_nix)
 		rc = plt_intr_vec_list_alloc(handle, "cnxk",
 					     nix->configured_cints);
 		if (rc) {
-			plt_err("Fail to allocate intr vec list, rc=%d", rc);
+			plt_err("Fail to allocate intr vec list, rc=%d",
+				rc);
 			return rc;
 		}
 		/* VFIO vector zero is reserved for misc interrupt so

@@ -142,10 +142,8 @@ nix_stat_tx_queue_get(struct nix *nix, uint16_t qid,
 	qstats->tx_drop_pkts = qstat_read(nix, qid, NIX_LF_SQ_OP_DROP_PKTS);
 	qstats->tx_drop_octs = qstat_read(nix, qid, NIX_LF_SQ_OP_DROP_OCTS);
 	if (roc_feature_nix_has_age_drop_stats()) {
-		qstats->tx_age_drop_pkts =
-			qstat_read(nix, qid, NIX_LF_SQ_OP_AGE_DROP_PKTS);
-		qstats->tx_age_drop_octs =
-			qstat_read(nix, qid, NIX_LF_SQ_OP_AGE_DROP_OCTS);
+		qstats->tx_age_drop_pkts = qstat_read(nix, qid, NIX_LF_SQ_OP_AGE_DROP_PKTS);
+		qstats->tx_age_drop_octs = qstat_read(nix, qid, NIX_LF_SQ_OP_AGE_DROP_OCTS);
 	}
 }
 
@@ -352,23 +350,22 @@ roc_nix_xstats_get(struct roc_nix *roc_nix, struct roc_nix_xstat *xstats,
 		if (idev->nix_inl_dev) {
 			inl_dev = idev->nix_inl_dev;
 			for (i = 0; i < CNXK_INL_NIX_NUM_RX_XSTATS; i++) {
-				xstats[count].value = INL_NIX_RX_STATS(
-					inl_nix_rx_xstats[i].offset);
+				xstats[count].value =
+					INL_NIX_RX_STATS(inl_nix_rx_xstats[i].offset);
 				xstats[count].id = count;
 				count++;
 			}
 			inl_rq_id = inl_dev->nb_rqs > 1 ? roc_nix->port_id : 0;
 			for (i = 0; i < CNXK_INL_NIX_RQ_XSTATS; i++) {
-				xstats[count].value = inl_qstat_read(
-					inl_dev, inl_rq_id,
-					inl_nix_rq_xstats[i].offset);
+				xstats[count].value =
+					inl_qstat_read(inl_dev, inl_rq_id,
+							inl_nix_rq_xstats[i].offset);
 				xstats[count].id = count;
 				count++;
 			}
 			for (i = 0; i < PLT_DIM(inl_sw_xstats); i++) {
 				if (!inl_sw_xstats[i].offset)
-					xstats[count].value =
-						inl_dev->sso_work_cnt;
+					xstats[count].value = inl_dev->sso_work_cnt;
 				xstats[count].id = count;
 				count++;
 			}
@@ -488,8 +485,7 @@ roc_nix_xstats_names_get(struct roc_nix *roc_nix,
 				count++;
 			}
 			for (i = 0; i < PLT_DIM(inl_sw_xstats); i++) {
-				NIX_XSTATS_NAME_PRINT(xstats_names, count,
-						      inl_sw_xstats, i);
+				NIX_XSTATS_NAME_PRINT(xstats_names, count, inl_sw_xstats, i);
 				count++;
 			}
 		}

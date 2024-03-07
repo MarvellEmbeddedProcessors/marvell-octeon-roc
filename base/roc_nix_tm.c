@@ -115,8 +115,7 @@ nix_tm_txsch_reg_config(struct nix *nix, enum roc_nix_tm_tree tree)
 			 * set per channel only for PF or lbk vf.
 			 */
 			node->bp_capa = 0;
-			if (!nix->sdp_link &&
-			    node->hw_lvl == nix->tm_link_cfg_lvl)
+			if (!nix->sdp_link && node->hw_lvl == nix->tm_link_cfg_lvl)
 				node->bp_capa = 1;
 
 			rc = nix_tm_node_reg_conf(nix, node);
@@ -338,7 +337,7 @@ nix_tm_bp_config_set(struct roc_nix *roc_nix, uint16_t sq, uint16_t tc,
 		return -ENOENT;
 
 	parent_lvl = (nix_tm_have_tl1_access(nix) ? ROC_TM_LVL_SCH2 :
-						    ROC_TM_LVL_SCH1);
+		      ROC_TM_LVL_SCH1);
 
 	parent = sq_node->parent;
 	while (parent) {
@@ -385,9 +384,8 @@ nix_tm_bp_config_set(struct roc_nix *roc_nix, uint16_t sq, uint16_t tc,
 
 		/* Restrict sharing of TL3 across the queues */
 		if (enable && node != parent && node->rel_chan == rel_chan) {
-			plt_warn(
-				"SQ %d: siblng node TL3 %d already has %d(%d) tc value set",
-				sq, node->hw_id, tc, rel_chan);
+			plt_warn("SQ %d: siblng node TL3 %d already has %d(%d) tc value set",
+				 sq, node->hw_id, tc, rel_chan);
 			return -EEXIST;
 		}
 	}
@@ -418,8 +416,8 @@ nix_tm_bp_config_set(struct roc_nix *roc_nix, uint16_t sq, uint16_t tc,
 	}
 
 	rc = 0;
-	plt_tm_dbg("SQ %u: TL3 %d TC %u %s", sq, parent->hw_id, tc,
-		   enable ? "enabled" : "disabled");
+	plt_tm_dbg("SQ %u: TL3 %d TC %u %s",
+		   sq, parent->hw_id, tc, enable ? "enabled" : "disabled");
 	goto exit;
 err:
 	plt_err("Failed to %s bp on link %u, rc=%d(%s)",
@@ -616,8 +614,7 @@ exit:
 }
 
 void
-nix_tm_sq_free_sqe_buffer(uint64_t *sqe, int head_off, int end_off,
-			  int instr_sz)
+nix_tm_sq_free_sqe_buffer(uint64_t *sqe, int head_off, int end_off, int instr_sz)
 {
 	int i, j, inc = (8 * (0x2 >> instr_sz)), segs;
 	struct nix_send_hdr_s *send_hdr;
@@ -635,8 +632,7 @@ nix_tm_sq_free_sqe_buffer(uint64_t *sqe, int head_off, int end_off,
 	for (i = head_off; i < end_off; i++) {
 		ptr = sqe + (i * inc);
 		send_hdr = (struct nix_send_hdr_s *)(ptr);
-		aura_handle = roc_npa_aura_handle_gen(send_hdr->w0.aura,
-						      idev->npa->base);
+		aura_handle = roc_npa_aura_handle_gen(send_hdr->w0.aura, idev->npa->base);
 		ptr += 2;
 		if (((*ptr >> 60) & 0xF) == NIX_SUBDC_EXT)
 			ptr += 2;
@@ -656,8 +652,7 @@ nix_tm_sq_free_sqe_buffer(uint64_t *sqe, int head_off, int end_off,
 				segs = (*ptr >> 48) & 0x3;
 				ptr += 1;
 				for (j = 0; j < segs; j++) {
-					roc_npa_aura_op_free(aura_handle, 0,
-							     *ptr);
+					roc_npa_aura_op_free(aura_handle, 0, *ptr);
 					ptr += 1;
 				}
 				if (segs == 2)
@@ -665,8 +660,7 @@ nix_tm_sq_free_sqe_buffer(uint64_t *sqe, int head_off, int end_off,
 			} else if (((*ptr >> 60) & 0xF) == NIX_SUBDC_SG2) {
 				uint64_t aura = (*ptr >> 16) & 0xFFFFF;
 
-				aura = roc_npa_aura_handle_gen(aura,
-							       idev->npa->base);
+				aura = roc_npa_aura_handle_gen(aura, idev->npa->base);
 				ptr += 1;
 				roc_npa_aura_op_free(aura, 0, *ptr);
 				ptr += 1;
@@ -708,8 +702,7 @@ roc_nix_tm_sq_free_pending_sqe(struct nix *nix, int q)
 	if (roc_model_is_cn9k()) {
 		volatile struct nix_sq_ctx_s *ctx = (struct nix_sq_ctx_s *)dat;
 
-		/* We will cleanup SQE buffers only when we received MNQ
-		 * interrupt */
+		/* We will cleanup SQE buffers only when we received MNQ interrupt */
 		if (!ctx->mnq_dis)
 			return -EFAULT;
 
@@ -719,11 +712,9 @@ roc_nix_tm_sq_free_pending_sqe(struct nix *nix, int q)
 		head_off = ctx->head_offset;
 		tail_off = ctx->tail_offset;
 	} else {
-		volatile struct nix_cn10k_sq_ctx_s *ctx =
-			(struct nix_cn10k_sq_ctx_s *)dat;
+		volatile struct nix_cn10k_sq_ctx_s *ctx = (struct nix_cn10k_sq_ctx_s *)dat;
 
-		/* We will cleanup SQE buffers only when we received MNQ
-		 * interrupt */
+		/* We will cleanup SQE buffers only when we received MNQ interrupt */
 		if (!ctx->mnq_dis)
 			return -EFAULT;
 
@@ -740,15 +731,12 @@ roc_nix_tm_sq_free_pending_sqe(struct nix *nix, int q)
 		void *next_sqb;
 
 		if (sqb_buf == tail_sqb)
-			nix_tm_sq_free_sqe_buffer(sqb_buf, head_off, tail_off,
-						  sq->max_sqe_sz);
+			nix_tm_sq_free_sqe_buffer(sqb_buf, head_off, tail_off, sq->max_sqe_sz);
 		else
-			nix_tm_sq_free_sqe_buffer(sqb_buf, head_off,
-						  (sqes_per_sqb - 1),
+			nix_tm_sq_free_sqe_buffer(sqb_buf, head_off, (sqes_per_sqb - 1),
 						  sq->max_sqe_sz);
 		next_sqb = *(void **)((uint64_t *)sqb_buf +
-				      (uint32_t)((sqes_per_sqb - 1) *
-						 (0x2 >> sq->max_sqe_sz) * 8));
+				      (uint32_t)((sqes_per_sqb - 1) * (0x2 >> sq->max_sqe_sz) * 8));
 		roc_npa_aura_op_free(sq->aura_handle, 1, (uint64_t)sqb_buf);
 		sqb_buf = next_sqb;
 		head_off = 0;
@@ -911,17 +899,14 @@ nix_tm_sq_flush_pre(struct roc_nix_sq *sq)
 			if (nix->sdp_link)
 				rc = nix_tm_sdp_sq_drop_pkts(roc_nix, sq);
 			else
-				rc = roc_nix_tm_sq_free_pending_sqe(nix,
-								    sq->qid);
+				rc = roc_nix_tm_sq_free_pending_sqe(nix, sq->qid);
 			if (rc) {
 				roc_nix_tm_dump(sq->roc_nix, NULL);
 				roc_nix_queues_ctx_dump(sq->roc_nix, NULL);
-				plt_err("Failed to drain sq %u, rc=%d\n",
-					sq->qid, rc);
+				plt_err("Failed to drain sq %u, rc=%d\n", sq->qid, rc);
 				return rc;
 			}
-			/* Freed all pending SQEs for this SQ, so disable this
-			 * node */
+			/* Freed all pending SQEs for this SQ, so disable this node */
 			sibling->flags &= ~NIX_TM_NODE_ENABLED;
 		}
 	}
@@ -1746,9 +1731,9 @@ roc_nix_tm_pfc_prepare_tree(struct roc_nix *roc_nix)
 
 	parent = ROC_NIX_TM_NODE_ID_INVALID;
 	lvl_end = (nix_tm_have_tl1_access(nix) ? ROC_TM_LVL_SCH3 :
-						 ROC_TM_LVL_SCH2);
+		   ROC_TM_LVL_SCH2);
 	leaf_lvl = (nix_tm_have_tl1_access(nix) ? ROC_TM_LVL_QUEUE :
-						  ROC_TM_LVL_SCH4);
+		    ROC_TM_LVL_SCH4);
 
 	/* TL1 node */
 	node = nix_tm_node_alloc();
@@ -1826,7 +1811,7 @@ roc_nix_tm_pfc_prepare_tree(struct roc_nix *roc_nix)
 		}
 
 		lvl = (nix_tm_have_tl1_access(nix) ? ROC_TM_LVL_SCH4 :
-						     ROC_TM_LVL_SCH3);
+		       ROC_TM_LVL_SCH3);
 
 		rc = -ENOMEM;
 		node = nix_tm_node_alloc();
@@ -1894,8 +1879,7 @@ nix_tm_free_resources(struct roc_nix *roc_nix, uint32_t tree_mask, bool hw_only)
 
 		list = nix_tm_node_list(nix, tree);
 		/* Flush and free resources from leaf */
-		for (hw_lvl = NIX_TXSCH_LVL_SMQ; hw_lvl < NIX_TXSCH_LVL_CNT;
-		     hw_lvl++) {
+		for (hw_lvl = NIX_TXSCH_LVL_SMQ; hw_lvl < NIX_TXSCH_LVL_CNT; hw_lvl++) {
 			next_node = TAILQ_FIRST(list);
 			while (next_node) {
 				node = next_node;
@@ -1905,13 +1889,11 @@ nix_tm_free_resources(struct roc_nix *roc_nix, uint32_t tree_mask, bool hw_only)
 
 				if (!nix_tm_is_leaf(nix, node->lvl) &&
 				    node->flags & NIX_TM_NODE_HWRES) {
-					/* Clear xoff in path for flush to
-					 * succeed */
+					/* Clear xoff in path for flush to succeed */
 					rc = nix_tm_clear_path_xoff(nix, node);
 					if (rc)
 						return rc;
-					rc = nix_tm_free_node_resource(nix,
-								       node);
+					rc = nix_tm_free_node_resource(nix, node);
 					if (rc)
 						return rc;
 				}

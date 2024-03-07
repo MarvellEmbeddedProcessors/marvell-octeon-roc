@@ -44,33 +44,25 @@ roc_mcs_rsrc_alloc(struct roc_mcs *mcs, struct roc_mcs_alloc_rsrc_req *req,
 			rsp->flow_ids[i] = rsrc_rsp->flow_ids[i];
 			plt_bitmap_set(priv->dev_rsrc.tcam_bmap,
 				       rsp->flow_ids[i] +
-					       ((req->dir == MCS_TX) ?
-							priv->tcam_entries :
-							0));
+					       ((req->dir == MCS_TX) ? priv->tcam_entries : 0));
 			break;
 		case MCS_RSRC_TYPE_SECY:
 			rsp->secy_ids[i] = rsrc_rsp->secy_ids[i];
 			plt_bitmap_set(priv->dev_rsrc.secy_bmap,
 				       rsp->secy_ids[i] +
-					       ((req->dir == MCS_TX) ?
-							priv->secy_entries :
-							0));
+					       ((req->dir == MCS_TX) ? priv->secy_entries : 0));
 			break;
 		case MCS_RSRC_TYPE_SC:
 			rsp->sc_ids[i] = rsrc_rsp->sc_ids[i];
 			plt_bitmap_set(priv->dev_rsrc.sc_bmap,
 				       rsp->sc_ids[i] +
-					       ((req->dir == MCS_TX) ?
-							priv->sc_entries :
-							0));
+					       ((req->dir == MCS_TX) ? priv->sc_entries : 0));
 			break;
 		case MCS_RSRC_TYPE_SA:
 			rsp->sa_ids[i] = rsrc_rsp->sa_ids[i];
 			plt_bitmap_set(priv->dev_rsrc.sa_bmap,
 				       rsp->sa_ids[i] +
-					       ((req->dir == MCS_TX) ?
-							priv->sa_entries :
-							0));
+					       ((req->dir == MCS_TX) ? priv->sa_entries : 0));
 			break;
 		default:
 			rsp->flow_ids[i] = rsrc_rsp->flow_ids[i];
@@ -79,24 +71,16 @@ roc_mcs_rsrc_alloc(struct roc_mcs *mcs, struct roc_mcs_alloc_rsrc_req *req,
 			rsp->sa_ids[i] = rsrc_rsp->sa_ids[i];
 			plt_bitmap_set(priv->dev_rsrc.tcam_bmap,
 				       rsp->flow_ids[i] +
-					       ((req->dir == MCS_TX) ?
-							priv->tcam_entries :
-							0));
+					       ((req->dir == MCS_TX) ? priv->tcam_entries : 0));
 			plt_bitmap_set(priv->dev_rsrc.secy_bmap,
 				       rsp->secy_ids[i] +
-					       ((req->dir == MCS_TX) ?
-							priv->secy_entries :
-							0));
+					       ((req->dir == MCS_TX) ? priv->secy_entries : 0));
 			plt_bitmap_set(priv->dev_rsrc.sc_bmap,
 				       rsp->sc_ids[i] +
-					       ((req->dir == MCS_TX) ?
-							priv->sc_entries :
-							0));
+					       ((req->dir == MCS_TX) ? priv->sc_entries : 0));
 			plt_bitmap_set(priv->dev_rsrc.sa_bmap,
 				       rsp->sa_ids[i] +
-					       ((req->dir == MCS_TX) ?
-							priv->sa_entries :
-							0));
+					       ((req->dir == MCS_TX) ? priv->sa_entries : 0));
 			break;
 		}
 	}
@@ -138,61 +122,49 @@ roc_mcs_rsrc_free(struct roc_mcs *mcs, struct roc_mcs_free_rsrc_req *free_req)
 
 	switch (free_req->rsrc_type) {
 	case MCS_RSRC_TYPE_FLOWID:
-		pos = free_req->rsrc_id +
-		      ((req->dir == MCS_TX) ? priv->tcam_entries : 0);
+		pos = free_req->rsrc_id + ((req->dir == MCS_TX) ? priv->tcam_entries : 0);
 		plt_bitmap_clear(priv->dev_rsrc.tcam_bmap, pos);
 		for (i = 0; i < MAX_PORTS_PER_MCS; i++) {
-			uint32_t set = plt_bitmap_get(
-				priv->port_rsrc[i].tcam_bmap, pos);
+			uint32_t set = plt_bitmap_get(priv->port_rsrc[i].tcam_bmap, pos);
 
 			if (set) {
-				plt_bitmap_clear(priv->port_rsrc[i].tcam_bmap,
-						 pos);
+				plt_bitmap_clear(priv->port_rsrc[i].tcam_bmap, pos);
 				break;
 			}
 		}
 		break;
 	case MCS_RSRC_TYPE_SECY:
-		pos = free_req->rsrc_id +
-		      ((req->dir == MCS_TX) ? priv->secy_entries : 0);
+		pos = free_req->rsrc_id + ((req->dir == MCS_TX) ? priv->secy_entries : 0);
 		plt_bitmap_clear(priv->dev_rsrc.secy_bmap, pos);
 		for (i = 0; i < MAX_PORTS_PER_MCS; i++) {
-			uint32_t set = plt_bitmap_get(
-				priv->port_rsrc[i].secy_bmap, pos);
+			uint32_t set = plt_bitmap_get(priv->port_rsrc[i].secy_bmap, pos);
 
 			if (set) {
-				plt_bitmap_clear(priv->port_rsrc[i].secy_bmap,
-						 pos);
+				plt_bitmap_clear(priv->port_rsrc[i].secy_bmap, pos);
 				break;
 			}
 		}
 		break;
 	case MCS_RSRC_TYPE_SC:
-		pos = free_req->rsrc_id +
-		      ((req->dir == MCS_TX) ? priv->sc_entries : 0);
+		pos = free_req->rsrc_id + ((req->dir == MCS_TX) ? priv->sc_entries : 0);
 		plt_bitmap_clear(priv->dev_rsrc.sc_bmap, pos);
 		for (i = 0; i < MAX_PORTS_PER_MCS; i++) {
-			uint32_t set =
-				plt_bitmap_get(priv->port_rsrc[i].sc_bmap, pos);
+			uint32_t set = plt_bitmap_get(priv->port_rsrc[i].sc_bmap, pos);
 
 			if (set) {
-				plt_bitmap_clear(priv->port_rsrc[i].sc_bmap,
-						 pos);
+				plt_bitmap_clear(priv->port_rsrc[i].sc_bmap, pos);
 				break;
 			}
 		}
 		break;
 	case MCS_RSRC_TYPE_SA:
-		pos = free_req->rsrc_id +
-		      ((req->dir == MCS_TX) ? priv->sa_entries : 0);
+		pos = free_req->rsrc_id + ((req->dir == MCS_TX) ? priv->sa_entries : 0);
 		plt_bitmap_clear(priv->dev_rsrc.sa_bmap, pos);
 		for (i = 0; i < MAX_PORTS_PER_MCS; i++) {
-			uint32_t set =
-				plt_bitmap_get(priv->port_rsrc[i].sa_bmap, pos);
+			uint32_t set = plt_bitmap_get(priv->port_rsrc[i].sa_bmap, pos);
 
 			if (set) {
-				plt_bitmap_clear(priv->port_rsrc[i].sa_bmap,
-						 pos);
+				plt_bitmap_clear(priv->port_rsrc[i].sa_bmap, pos);
 				break;
 			}
 		}
@@ -205,8 +177,7 @@ roc_mcs_rsrc_free(struct roc_mcs *mcs, struct roc_mcs_free_rsrc_req *free_req)
 }
 
 int
-roc_mcs_sa_policy_write(struct roc_mcs *mcs,
-			struct roc_mcs_sa_plcy_write_req *sa_plcy)
+roc_mcs_sa_policy_write(struct roc_mcs *mcs, struct roc_mcs_sa_plcy_write_req *sa_plcy)
 {
 	struct mcs_sa_plcy_write_req *sa;
 	struct msg_rsp *rsp;
@@ -240,8 +211,7 @@ roc_mcs_sa_policy_read(struct roc_mcs *mcs __plt_unused,
 }
 
 int
-roc_mcs_pn_table_write(struct roc_mcs *mcs,
-		       struct roc_mcs_pn_table_write_req *pn_table)
+roc_mcs_pn_table_write(struct roc_mcs *mcs, struct roc_mcs_pn_table_write_req *pn_table)
 {
 	struct mcs_pn_table_write_req *pn;
 	struct msg_rsp *rsp;
@@ -273,8 +243,7 @@ roc_mcs_pn_table_read(struct roc_mcs *mcs __plt_unused,
 }
 
 int
-roc_mcs_rx_sc_cam_write(struct roc_mcs *mcs,
-			struct roc_mcs_rx_sc_cam_write_req *rx_sc_cam)
+roc_mcs_rx_sc_cam_write(struct roc_mcs *mcs, struct roc_mcs_rx_sc_cam_write_req *rx_sc_cam)
 {
 	struct mcs_priv *priv = roc_mcs_to_mcs_priv(mcs);
 	struct mcs_rx_sc_cam_write_req *rx_sc;
@@ -300,12 +269,10 @@ roc_mcs_rx_sc_cam_write(struct roc_mcs *mcs,
 		return rc;
 
 	for (i = 0; i < MAX_PORTS_PER_MCS; i++) {
-		uint32_t set = plt_bitmap_get(priv->port_rsrc[i].secy_bmap,
-					      rx_sc_cam->secy_id);
+		uint32_t set = plt_bitmap_get(priv->port_rsrc[i].secy_bmap, rx_sc_cam->secy_id);
 
 		if (set) {
-			plt_bitmap_set(priv->port_rsrc[i].sc_bmap,
-				       rx_sc_cam->sc_id);
+			plt_bitmap_set(priv->port_rsrc[i].sc_bmap, rx_sc_cam->sc_id);
 			break;
 		}
 	}
@@ -315,8 +282,7 @@ roc_mcs_rx_sc_cam_write(struct roc_mcs *mcs,
 
 int
 roc_mcs_rx_sc_cam_read(struct roc_mcs *mcs __plt_unused,
-		       struct roc_mcs_rx_sc_cam_write_req *rx_sc_cam
-			       __plt_unused)
+		       struct roc_mcs_rx_sc_cam_write_req *rx_sc_cam __plt_unused)
 {
 	MCS_SUPPORT_CHECK;
 
@@ -325,8 +291,7 @@ roc_mcs_rx_sc_cam_read(struct roc_mcs *mcs __plt_unused,
 
 int
 roc_mcs_rx_sc_cam_enable(struct roc_mcs *mcs __plt_unused,
-			 struct roc_mcs_rx_sc_cam_write_req *rx_sc_cam
-				 __plt_unused)
+			 struct roc_mcs_rx_sc_cam_write_req *rx_sc_cam __plt_unused)
 {
 	MCS_SUPPORT_CHECK;
 
@@ -334,8 +299,7 @@ roc_mcs_rx_sc_cam_enable(struct roc_mcs *mcs __plt_unused,
 }
 
 int
-roc_mcs_secy_policy_write(struct roc_mcs *mcs,
-			  struct roc_mcs_secy_plcy_write_req *secy_plcy)
+roc_mcs_secy_policy_write(struct roc_mcs *mcs, struct roc_mcs_secy_plcy_write_req *secy_plcy)
 {
 	struct mcs_secy_plcy_write_req *secy;
 	struct msg_rsp *rsp;
@@ -359,8 +323,7 @@ roc_mcs_secy_policy_write(struct roc_mcs *mcs,
 
 int
 roc_mcs_secy_policy_read(struct roc_mcs *mcs __plt_unused,
-			 struct roc_mcs_rx_sc_cam_write_req *rx_sc_cam
-				 __plt_unused)
+			 struct roc_mcs_rx_sc_cam_write_req *rx_sc_cam __plt_unused)
 {
 	MCS_SUPPORT_CHECK;
 
@@ -368,8 +331,7 @@ roc_mcs_secy_policy_read(struct roc_mcs *mcs __plt_unused,
 }
 
 int
-roc_mcs_rx_sc_sa_map_write(struct roc_mcs *mcs,
-			   struct roc_mcs_rx_sc_sa_map *rx_sc_sa_map)
+roc_mcs_rx_sc_sa_map_write(struct roc_mcs *mcs, struct roc_mcs_rx_sc_sa_map *rx_sc_sa_map)
 {
 	struct mcs_priv *priv = roc_mcs_to_mcs_priv(mcs);
 	struct mcs_rx_sc_sa_map *sa_map;
@@ -398,16 +360,12 @@ roc_mcs_rx_sc_sa_map_write(struct roc_mcs *mcs,
 		return rc;
 
 	for (i = 0; i < MAX_PORTS_PER_MCS; i++) {
-		uint32_t set =
-			plt_bitmap_get(priv->port_rsrc[i].sc_bmap, sc_id);
+		uint32_t set = plt_bitmap_get(priv->port_rsrc[i].sc_bmap, sc_id);
 
 		if (set) {
-			plt_bitmap_set(priv->port_rsrc[i].sa_bmap,
-				       rx_sc_sa_map->sa_index);
-			priv->port_rsrc[i].sc_conf[sc_id].rx.sa_idx =
-				rx_sc_sa_map->sa_index;
-			priv->port_rsrc[i].sc_conf[sc_id].rx.an =
-				rx_sc_sa_map->an;
+			plt_bitmap_set(priv->port_rsrc[i].sa_bmap, rx_sc_sa_map->sa_index);
+			priv->port_rsrc[i].sc_conf[sc_id].rx.sa_idx = rx_sc_sa_map->sa_index;
+			priv->port_rsrc[i].sc_conf[sc_id].rx.an = rx_sc_sa_map->an;
 			break;
 		}
 	}
@@ -417,8 +375,7 @@ roc_mcs_rx_sc_sa_map_write(struct roc_mcs *mcs,
 
 int
 roc_mcs_rx_sc_sa_map_read(struct roc_mcs *mcs __plt_unused,
-			  struct roc_mcs_rx_sc_sa_map *rx_sc_sa_map
-				  __plt_unused)
+			  struct roc_mcs_rx_sc_sa_map *rx_sc_sa_map __plt_unused)
 {
 	MCS_SUPPORT_CHECK;
 
@@ -426,8 +383,7 @@ roc_mcs_rx_sc_sa_map_read(struct roc_mcs *mcs __plt_unused,
 }
 
 int
-roc_mcs_tx_sc_sa_map_write(struct roc_mcs *mcs,
-			   struct roc_mcs_tx_sc_sa_map *tx_sc_sa_map)
+roc_mcs_tx_sc_sa_map_write(struct roc_mcs *mcs, struct roc_mcs_tx_sc_sa_map *tx_sc_sa_map)
 {
 	struct mcs_priv *priv = roc_mcs_to_mcs_priv(mcs);
 	struct mcs_tx_sc_sa_map *sa_map;
@@ -460,24 +416,18 @@ roc_mcs_tx_sc_sa_map_write(struct roc_mcs *mcs,
 
 	sc_id = tx_sc_sa_map->sc_id;
 	for (i = 0; i < MAX_PORTS_PER_MCS; i++) {
-		uint32_t set = plt_bitmap_get(priv->port_rsrc[i].sc_bmap,
-					      sc_id + priv->sc_entries);
+		uint32_t set = plt_bitmap_get(priv->port_rsrc[i].sc_bmap, sc_id + priv->sc_entries);
 
 		if (set) {
-			uint32_t pos =
-				priv->sa_entries + tx_sc_sa_map->sa_index0;
+			uint32_t pos = priv->sa_entries + tx_sc_sa_map->sa_index0;
 
 			plt_bitmap_set(priv->port_rsrc[i].sa_bmap, pos);
-			priv->port_rsrc[i].sc_conf[sc_id].tx.sa_idx0 =
-				tx_sc_sa_map->sa_index0;
+			priv->port_rsrc[i].sc_conf[sc_id].tx.sa_idx0 = tx_sc_sa_map->sa_index0;
 			pos = priv->sa_entries + tx_sc_sa_map->sa_index1;
 			plt_bitmap_set(priv->port_rsrc[i].sa_bmap, pos);
-			priv->port_rsrc[i].sc_conf[sc_id].tx.sa_idx1 =
-				tx_sc_sa_map->sa_index1;
-			priv->port_rsrc[i].sc_conf[sc_id].tx.sci =
-				tx_sc_sa_map->sectag_sci;
-			priv->port_rsrc[i].sc_conf[sc_id].tx.rekey_enb =
-				tx_sc_sa_map->rekey_ena;
+			priv->port_rsrc[i].sc_conf[sc_id].tx.sa_idx1 = tx_sc_sa_map->sa_index1;
+			priv->port_rsrc[i].sc_conf[sc_id].tx.sci = tx_sc_sa_map->sectag_sci;
+			priv->port_rsrc[i].sc_conf[sc_id].tx.rekey_enb = tx_sc_sa_map->rekey_ena;
 			break;
 		}
 	}
@@ -487,8 +437,7 @@ roc_mcs_tx_sc_sa_map_write(struct roc_mcs *mcs,
 
 int
 roc_mcs_tx_sc_sa_map_read(struct roc_mcs *mcs __plt_unused,
-			  struct roc_mcs_tx_sc_sa_map *tx_sc_sa_map
-				  __plt_unused)
+			  struct roc_mcs_tx_sc_sa_map *tx_sc_sa_map __plt_unused)
 {
 	MCS_SUPPORT_CHECK;
 
@@ -496,8 +445,7 @@ roc_mcs_tx_sc_sa_map_read(struct roc_mcs *mcs __plt_unused,
 }
 
 int
-roc_mcs_flowid_entry_write(struct roc_mcs *mcs,
-			   struct roc_mcs_flowid_entry_write_req *flowid_req)
+roc_mcs_flowid_entry_write(struct roc_mcs *mcs, struct roc_mcs_flowid_entry_write_req *flowid_req)
 {
 	struct mcs_priv *priv = roc_mcs_to_mcs_priv(mcs);
 	struct mcs_flowid_entry_write_req *flow_req;
@@ -535,25 +483,21 @@ roc_mcs_flowid_entry_write(struct roc_mcs *mcs,
 	port = (flow_req->data[3] >> 10) & 0x3;
 
 	plt_bitmap_set(priv->port_rsrc[port].tcam_bmap,
-		       flowid_req->flow_id + ((flowid_req->dir == MCS_TX) ?
-						      priv->tcam_entries :
-						      0));
+		       flowid_req->flow_id +
+			       ((flowid_req->dir == MCS_TX) ? priv->tcam_entries : 0));
 	plt_bitmap_set(priv->port_rsrc[port].secy_bmap,
-		       flowid_req->secy_id + ((flowid_req->dir == MCS_TX) ?
-						      priv->secy_entries :
-						      0));
+		       flowid_req->secy_id +
+			       ((flowid_req->dir == MCS_TX) ? priv->secy_entries : 0));
 
 	if (flowid_req->dir == MCS_TX)
-		plt_bitmap_set(priv->port_rsrc[port].sc_bmap,
-			       priv->sc_entries + flowid_req->sc_id);
+		plt_bitmap_set(priv->port_rsrc[port].sc_bmap, priv->sc_entries + flowid_req->sc_id);
 
 	return 0;
 }
 
 int
 roc_mcs_flowid_entry_read(struct roc_mcs *mcs __plt_unused,
-			  struct roc_mcs_flowid_entry_write_req *flowid_rsp
-				  __plt_unused)
+			  struct roc_mcs_flowid_entry_write_req *flowid_rsp __plt_unused)
 {
 	MCS_SUPPORT_CHECK;
 
@@ -561,8 +505,7 @@ roc_mcs_flowid_entry_read(struct roc_mcs *mcs __plt_unused,
 }
 
 int
-roc_mcs_flowid_entry_enable(struct roc_mcs *mcs,
-			    struct roc_mcs_flowid_ena_dis_entry *entry)
+roc_mcs_flowid_entry_enable(struct roc_mcs *mcs, struct roc_mcs_flowid_ena_dis_entry *entry)
 {
 	struct mcs_flowid_ena_dis_entry *flow_entry;
 	struct msg_rsp *rsp;

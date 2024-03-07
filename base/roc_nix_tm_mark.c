@@ -219,7 +219,7 @@ nix_tm_mark_init(struct nix *nix)
 	/* Null mark format */
 	req = mbox_alloc_msg_nix_mark_format_cfg(mbox);
 	if (req == NULL) {
-		rc = -ENOSPC;
+		rc =  -ENOSPC;
 		goto exit;
 	}
 

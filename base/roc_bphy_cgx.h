@@ -170,18 +170,13 @@ __roc_api int roc_bphy_cgx_ptp_rx_disable(struct roc_bphy_cgx *roc_cgx,
 __roc_api int roc_bphy_cgx_fec_set(struct roc_bphy_cgx *roc_cgx,
 				   unsigned int lmac,
 				   enum roc_bphy_cgx_eth_link_fec fec);
-__roc_api int
-roc_bphy_cgx_fec_supported_get(struct roc_bphy_cgx *roc_cgx, unsigned int lmac,
-			       enum roc_bphy_cgx_eth_link_fec *fec);
-__roc_api int
-roc_bphy_cgx_cpri_mode_change(struct roc_bphy_cgx *roc_cgx, unsigned int lmac,
-			      struct roc_bphy_cgx_cpri_mode_change *mode);
-__roc_api int
-roc_bphy_cgx_cpri_mode_tx_control(struct roc_bphy_cgx *roc_cgx,
-				  unsigned int lmac,
-				  struct roc_bphy_cgx_cpri_mode_tx_ctrl *mode);
-__roc_api int
-roc_bphy_cgx_cpri_mode_misc(struct roc_bphy_cgx *roc_cgx, unsigned int lmac,
-			    struct roc_bphy_cgx_cpri_mode_misc *mode);
+__roc_api int roc_bphy_cgx_fec_supported_get(struct roc_bphy_cgx *roc_cgx, unsigned int lmac,
+					     enum roc_bphy_cgx_eth_link_fec *fec);
+__roc_api int roc_bphy_cgx_cpri_mode_change(struct roc_bphy_cgx *roc_cgx, unsigned int lmac,
+					    struct roc_bphy_cgx_cpri_mode_change *mode);
+__roc_api int roc_bphy_cgx_cpri_mode_tx_control(struct roc_bphy_cgx *roc_cgx, unsigned int lmac,
+						struct roc_bphy_cgx_cpri_mode_tx_ctrl *mode);
+__roc_api int roc_bphy_cgx_cpri_mode_misc(struct roc_bphy_cgx *roc_cgx, unsigned int lmac,
+					  struct roc_bphy_cgx_cpri_mode_misc *mode);
 
 #endif /* _ROC_BPHY_CGX_H_ */

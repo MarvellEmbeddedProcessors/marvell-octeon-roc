@@ -118,13 +118,12 @@ roc_nix_inl_onf_ipsec_outb_sa_sw_rsvd(void *sa)
 typedef void (*roc_nix_inl_sso_work_cb_t)(uint64_t *gw, void *args,
 					  uint32_t soft_exp_event);
 
-typedef int (*roc_nix_inl_meta_pool_cb_t)(uint64_t *aura_handle,
-					  uintptr_t *mpool, uint32_t blk_sz,
-					  uint32_t nb_bufs, bool destroy,
+typedef int (*roc_nix_inl_meta_pool_cb_t)(uint64_t *aura_handle,  uintptr_t *mpool,
+					  uint32_t blk_sz, uint32_t nb_bufs, bool destroy,
 					  const char *mempool_name);
-typedef int (*roc_nix_inl_custom_meta_pool_cb_t)(
-	uintptr_t pmpool, uintptr_t *mpool, const char *mempool_name,
-	uint64_t *aura_handle, uint32_t blk_sz, uint32_t nb_bufs, bool destroy);
+typedef int (*roc_nix_inl_custom_meta_pool_cb_t)(uintptr_t pmpool, uintptr_t *mpool,
+						 const char *mempool_name, uint64_t *aura_handle,
+						 uint32_t blk_sz, uint32_t nb_bufs, bool destroy);
 
 struct roc_nix_inl_dev {
 	/* Input parameters */
@@ -152,8 +151,7 @@ struct roc_nix_inl_dev {
 /* NIX Inline Device API */
 int __roc_api roc_nix_inl_dev_init(struct roc_nix_inl_dev *roc_inl_dev);
 int __roc_api roc_nix_inl_dev_fini(struct roc_nix_inl_dev *roc_inl_dev);
-void __roc_api roc_nix_inl_dev_dump(struct roc_nix_inl_dev *roc_inl_dev,
-				    FILE *file);
+void __roc_api roc_nix_inl_dev_dump(struct roc_nix_inl_dev *roc_inl_dev, FILE *file);
 bool __roc_api roc_nix_inl_dev_is_probed(void);
 void __roc_api roc_nix_inl_dev_lock(void);
 void __roc_api roc_nix_inl_dev_unlock(void);
@@ -189,8 +187,7 @@ int __roc_api roc_nix_reassembly_configure(uint32_t max_wait_time,
 int __roc_api roc_nix_inl_ts_pkind_set(struct roc_nix *roc_nix, bool ts_ena,
 				       bool inb_inl_dev);
 int __roc_api roc_nix_inl_rq_ena_dis(struct roc_nix *roc_nix, bool ena);
-int __roc_api roc_nix_inl_meta_aura_check(struct roc_nix *roc_nix,
-					  struct roc_nix_rq *rq);
+int __roc_api roc_nix_inl_meta_aura_check(struct roc_nix *roc_nix, struct roc_nix_rq *rq);
 
 /* NIX Inline Outbound API */
 int __roc_api roc_nix_inl_outb_init(struct roc_nix *roc_nix);
@@ -207,8 +204,7 @@ int __roc_api roc_nix_inl_outb_soft_exp_poll_switch(struct roc_nix *roc_nix,
 						    bool poll);
 uint64_t *__roc_api roc_nix_inl_outb_ring_base_get(struct roc_nix *roc_nix);
 void __roc_api roc_nix_inl_meta_pool_cb_register(roc_nix_inl_meta_pool_cb_t cb);
-void __roc_api
-roc_nix_inl_custom_meta_pool_cb_register(roc_nix_inl_custom_meta_pool_cb_t cb);
+void __roc_api roc_nix_inl_custom_meta_pool_cb_register(roc_nix_inl_custom_meta_pool_cb_t cb);
 
 /* NIX Inline/Outbound API */
 enum roc_nix_inl_sa_sync_op {
@@ -221,8 +217,7 @@ int __roc_api roc_nix_inl_sa_sync(struct roc_nix *roc_nix, void *sa, bool inb,
 				  enum roc_nix_inl_sa_sync_op op);
 int __roc_api roc_nix_inl_ctx_write(struct roc_nix *roc_nix, void *sa_dptr,
 				    void *sa_cptr, bool inb, uint16_t sa_len);
-void __roc_api roc_nix_inl_outb_cpt_lfs_dump(struct roc_nix *roc_nix,
-					     FILE *file);
+void __roc_api roc_nix_inl_outb_cpt_lfs_dump(struct roc_nix *roc_nix, FILE *file);
 uint64_t __roc_api roc_nix_inl_eng_caps_get(struct roc_nix *roc_nix);
 
 #endif /* _ROC_NIX_INL_H_ */

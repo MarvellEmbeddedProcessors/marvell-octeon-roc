@@ -14,8 +14,8 @@
 #include <unistd.h>
 
 #define MSIX_IRQ_SET_BUF_LEN                                                   \
-	(sizeof(struct vfio_irq_set) +                                         \
-	 sizeof(int) * (plt_intr_max_intr_get(intr_handle)))
+	(sizeof(struct vfio_irq_set) + sizeof(int) *			       \
+			(plt_intr_max_intr_get(intr_handle)))
 
 static int
 irq_get_info(struct plt_intr_handle *intr_handle)
@@ -150,8 +150,8 @@ dev_irq_register(struct plt_intr_handle *intr_handle, plt_intr_callback_fn cb,
 	}
 
 	if (vec > (uint32_t)plt_intr_max_intr_get(intr_handle)) {
-		plt_err("Vector=%d greater than max_intr=%d or ", vec,
-			plt_intr_max_intr_get(intr_handle));
+		plt_err("Vector=%d greater than max_intr=%d or ",
+			vec, plt_intr_max_intr_get(intr_handle));
 		return -EINVAL;
 	}
 
@@ -176,8 +176,7 @@ dev_irq_register(struct plt_intr_handle *intr_handle, plt_intr_callback_fn cb,
 		return rc;
 
 	nb_efd = (vec > (uint32_t)plt_intr_nb_efd_get(intr_handle)) ?
-			 vec :
-			 (uint32_t)plt_intr_nb_efd_get(intr_handle);
+		vec : (uint32_t)plt_intr_nb_efd_get(intr_handle);
 	plt_intr_nb_efd_set(intr_handle, nb_efd);
 
 	tmp_nb_efd = plt_intr_nb_efd_get(intr_handle) + 1;
@@ -251,7 +250,7 @@ dev_irq_register(struct plt_intr_handle *intr_handle, plt_intr_callback_fn cb,
 	PLT_SET_USED(data);
 	PLT_SET_USED(vec);
 
-	return 0;
+	return -ENOTSUP;
 }
 
 void
@@ -269,7 +268,7 @@ dev_irqs_disable(struct plt_intr_handle *intr_handle)
 {
 	PLT_SET_USED(intr_handle);
 
-	return 0;
+	return -ENOTSUP;
 }
 
 #endif /* __linux__  && OCT_ROC_USE_MSIX_INTERRUPTS */

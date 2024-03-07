@@ -15,8 +15,7 @@ struct mcs_event_cb {
 };
 TAILQ_HEAD(mcs_event_cb_list, mcs_event_cb);
 
-PLT_STATIC_ASSERT(ROC_MCS_MEM_SZ >=
-		  (sizeof(struct mcs_priv) + sizeof(struct mcs_event_cb_list)));
+PLT_STATIC_ASSERT(ROC_MCS_MEM_SZ >= (sizeof(struct mcs_priv) + sizeof(struct mcs_event_cb_list)));
 
 int
 roc_mcs_hw_info_get(struct roc_mcs_hw_info *hw_info)
@@ -52,8 +51,7 @@ roc_mcs_hw_info_get(struct roc_mcs_hw_info *hw_info)
 }
 
 int
-roc_mcs_active_lmac_set(struct roc_mcs *mcs,
-			struct roc_mcs_set_active_lmac *lmac)
+roc_mcs_active_lmac_set(struct roc_mcs *mcs, struct roc_mcs_set_active_lmac *lmac)
 {
 	struct mcs_set_active_lmac *req;
 	struct msg_rsp *rsp;
@@ -79,8 +77,7 @@ roc_mcs_active_lmac_set(struct roc_mcs *mcs,
 }
 
 static int
-mcs_port_reset_set(struct roc_mcs *mcs, struct roc_mcs_port_reset_req *port,
-		   uint8_t reset)
+mcs_port_reset_set(struct roc_mcs *mcs, struct roc_mcs_port_reset_req *port, uint8_t reset)
 {
 	struct mcs_port_reset_req *req;
 	struct msg_rsp *rsp;
@@ -121,8 +118,7 @@ roc_mcs_lmac_mode_set(struct roc_mcs *mcs, struct roc_mcs_set_lmac_mode *port)
 }
 
 int
-roc_mcs_pn_threshold_set(struct roc_mcs *mcs,
-			 struct roc_mcs_set_pn_threshold *pn)
+roc_mcs_pn_threshold_set(struct roc_mcs *mcs, struct roc_mcs_set_pn_threshold *pn)
 {
 	struct mcs_set_pn_threshold *req;
 	struct msg_rsp *rsp;
@@ -145,8 +141,7 @@ roc_mcs_pn_threshold_set(struct roc_mcs *mcs,
 }
 
 int
-roc_mcs_ctrl_pkt_rule_alloc(struct roc_mcs *mcs,
-			    struct roc_mcs_alloc_ctrl_pkt_rule_req *req,
+roc_mcs_ctrl_pkt_rule_alloc(struct roc_mcs *mcs, struct roc_mcs_alloc_ctrl_pkt_rule_req *req,
 			    struct roc_mcs_alloc_ctrl_pkt_rule_rsp *rsp)
 {
 	struct mcs_alloc_ctrl_pkt_rule_req *rule_req;
@@ -178,8 +173,7 @@ roc_mcs_ctrl_pkt_rule_alloc(struct roc_mcs *mcs,
 }
 
 int
-roc_mcs_ctrl_pkt_rule_free(struct roc_mcs *mcs,
-			   struct roc_mcs_free_ctrl_pkt_rule_req *req)
+roc_mcs_ctrl_pkt_rule_free(struct roc_mcs *mcs, struct roc_mcs_free_ctrl_pkt_rule_req *req)
 {
 	struct mcs_free_ctrl_pkt_rule_req *rule_req;
 	struct msg_rsp *rsp;
@@ -203,8 +197,7 @@ roc_mcs_ctrl_pkt_rule_free(struct roc_mcs *mcs,
 }
 
 int
-roc_mcs_ctrl_pkt_rule_write(struct roc_mcs *mcs,
-			    struct roc_mcs_ctrl_pkt_rule_write_req *req)
+roc_mcs_ctrl_pkt_rule_write(struct roc_mcs *mcs, struct roc_mcs_ctrl_pkt_rule_write_req *req)
 {
 	struct mcs_ctrl_pkt_rule_write_req *rule_req;
 	struct msg_rsp *rsp;
@@ -288,8 +281,7 @@ roc_mcs_port_cfg_get(struct roc_mcs *mcs, struct roc_mcs_port_cfg_get_req *req,
 }
 
 int
-roc_mcs_custom_tag_cfg_get(struct roc_mcs *mcs,
-			   struct roc_mcs_custom_tag_cfg_get_req *req,
+roc_mcs_custom_tag_cfg_get(struct roc_mcs *mcs, struct roc_mcs_custom_tag_cfg_get_req *req,
 			   struct roc_mcs_custom_tag_cfg_get_rsp *rsp)
 {
 	struct mcs_custom_tag_cfg_get_req *get_req;
@@ -345,8 +337,7 @@ roc_mcs_intr_configure(struct roc_mcs *mcs, struct roc_mcs_intr_cfg *config)
 }
 
 int
-roc_mcs_port_recovery(struct roc_mcs *mcs, union roc_mcs_event_data *mdata,
-		      uint8_t port_id)
+roc_mcs_port_recovery(struct roc_mcs *mcs, union roc_mcs_event_data *mdata, uint8_t port_id)
 {
 	struct mcs_priv *priv = roc_mcs_to_mcs_priv(mcs);
 	struct roc_mcs_pn_table_write_req pn_table = {0};
@@ -398,12 +389,10 @@ roc_mcs_port_recovery(struct roc_mcs *mcs, union roc_mcs_event_data *mdata,
 		mdata->num_tx_sa = tx_cnt;
 		mdata->num_rx_sa = rx_cnt;
 		for (i = 0; i < (priv->sa_entries << 1); i++) {
-			set = plt_bitmap_get(priv->port_rsrc[port_id].sa_bmap,
-					     i);
+			set = plt_bitmap_get(priv->port_rsrc[port_id].sa_bmap, i);
 			if (set) {
 				if (i >= priv->sa_entries)
-					mdata->tx_sa_array[--tx_cnt] =
-						i - priv->sa_entries;
+					mdata->tx_sa_array[--tx_cnt] = i - priv->sa_entries;
 				else
 					mdata->rx_sa_array[--rx_cnt] = i;
 			}
@@ -418,17 +407,10 @@ roc_mcs_port_recovery(struct roc_mcs *mcs, union roc_mcs_event_data *mdata,
 		if (set) {
 			uint16_t sc_id = i - priv->sc_entries;
 
-			tx_map.sa_index0 = priv->port_rsrc[port_id]
-						   .sc_conf[sc_id]
-						   .tx.sa_idx0;
-			tx_map.sa_index1 = priv->port_rsrc[port_id]
-						   .sc_conf[sc_id]
-						   .tx.sa_idx1;
-			tx_map.rekey_ena = priv->port_rsrc[port_id]
-						   .sc_conf[sc_id]
-						   .tx.rekey_enb;
-			tx_map.sectag_sci =
-				priv->port_rsrc[port_id].sc_conf[sc_id].tx.sci;
+			tx_map.sa_index0 = priv->port_rsrc[port_id].sc_conf[sc_id].tx.sa_idx0;
+			tx_map.sa_index1 = priv->port_rsrc[port_id].sc_conf[sc_id].tx.sa_idx1;
+			tx_map.rekey_ena = priv->port_rsrc[port_id].sc_conf[sc_id].tx.rekey_enb;
+			tx_map.sectag_sci = priv->port_rsrc[port_id].sc_conf[sc_id].tx.sci;
 			tx_map.sa_index0_vld = 1;
 			tx_map.sa_index1_vld = 0;
 			tx_map.tx_sa_active = 0;
@@ -450,11 +432,9 @@ roc_mcs_port_recovery(struct roc_mcs *mcs, union roc_mcs_event_data *mdata,
 
 		mdata->num_tx_sc = tx_cnt;
 		for (i = priv->sc_entries; i < (priv->sc_entries << 1); i++) {
-			set = plt_bitmap_get(priv->port_rsrc[port_id].sc_bmap,
-					     i);
+			set = plt_bitmap_get(priv->port_rsrc[port_id].sc_bmap, i);
 			if (set)
-				mdata->tx_sc_array[--tx_cnt] =
-					i - priv->sc_entries;
+				mdata->tx_sc_array[--tx_cnt] = i - priv->sc_entries;
 		}
 	}
 
@@ -462,8 +442,7 @@ roc_mcs_port_recovery(struct roc_mcs *mcs, union roc_mcs_event_data *mdata,
 	for (i = 0; i < priv->sc_entries; i++) {
 		set = plt_bitmap_get(priv->port_rsrc[port_id].sc_bmap, i);
 		if (set) {
-			rx_map.sa_index =
-				priv->port_rsrc[port_id].sc_conf[i].rx.sa_idx;
+			rx_map.sa_index = priv->port_rsrc[port_id].sc_conf[i].rx.sa_idx;
 			rx_map.an = priv->port_rsrc[port_id].sc_conf[i].rx.an;
 			rx_map.sa_in_use = 0;
 			rx_map.sc_id = i;
@@ -523,8 +502,7 @@ roc_mcs_port_recovery(struct roc_mcs *mcs, union roc_mcs_event_data *mdata,
 	}
 	if (roc_model_is_cn10kb_a0()) {
 		for (i = 0; i < (priv->sa_entries << 1); i++) {
-			set = plt_bitmap_get(priv->port_rsrc[port_id].sa_bmap,
-					     i);
+			set = plt_bitmap_get(priv->port_rsrc[port_id].sa_bmap, i);
 			if (set) {
 				stats.type = MCS_SA_STATS;
 				stats.id = i;
@@ -566,8 +544,7 @@ roc_mcs_port_recovery(struct roc_mcs *mcs, union roc_mcs_event_data *mdata,
 	for (i = 0; i < priv->sc_entries; i++) {
 		set = plt_bitmap_get(priv->port_rsrc[port_id].sc_bmap, i);
 		if (set) {
-			rx_map.sa_index =
-				priv->port_rsrc[port_id].sc_conf[i].rx.sa_idx;
+			rx_map.sa_index = priv->port_rsrc[port_id].sc_conf[i].rx.sa_idx;
 			rx_map.an = priv->port_rsrc[port_id].sc_conf[i].rx.an;
 			rx_map.sa_in_use = 1;
 			rx_map.sc_id = i;
@@ -576,8 +553,7 @@ roc_mcs_port_recovery(struct roc_mcs *mcs, union roc_mcs_event_data *mdata,
 				return rc;
 
 			mdata->rx_sc_array[--rx_cnt] = i;
-			mdata->sc_an_array[rx_cnt] =
-				priv->port_rsrc[port_id].sc_conf[i].rx.an;
+			mdata->sc_an_array[rx_cnt] = priv->port_rsrc[port_id].sc_conf[i].rx.an;
 		}
 	}
 
@@ -633,8 +609,7 @@ int
 roc_mcs_event_cb_register(struct roc_mcs *mcs, enum roc_mcs_event_type event,
 			  roc_mcs_dev_cb_fn cb_fn, void *cb_arg, void *userdata)
 {
-	struct mcs_event_cb_list *cb_list =
-		(struct mcs_event_cb_list *)roc_mcs_to_mcs_cb_list(mcs);
+	struct mcs_event_cb_list *cb_list = (struct mcs_event_cb_list *)roc_mcs_to_mcs_cb_list(mcs);
 	struct mcs_event_cb *cb;
 
 	if (cb_fn == NULL || cb_arg == NULL || userdata == NULL)
@@ -642,9 +617,8 @@ roc_mcs_event_cb_register(struct roc_mcs *mcs, enum roc_mcs_event_type event,
 
 	MCS_SUPPORT_CHECK;
 
-	TAILQ_FOREACH (cb, cb_list, next) {
-		if (cb->cb_fn == cb_fn && cb->cb_arg == cb_arg &&
-		    cb->event == event)
+	TAILQ_FOREACH(cb, cb_list, next) {
+		if (cb->cb_fn == cb_fn && cb->cb_arg == cb_arg && cb->event == event)
 			break;
 	}
 
@@ -666,8 +640,7 @@ roc_mcs_event_cb_register(struct roc_mcs *mcs, enum roc_mcs_event_type event,
 int
 roc_mcs_event_cb_unregister(struct roc_mcs *mcs, enum roc_mcs_event_type event)
 {
-	struct mcs_event_cb_list *cb_list =
-		(struct mcs_event_cb_list *)roc_mcs_to_mcs_cb_list(mcs);
+	struct mcs_event_cb_list *cb_list = (struct mcs_event_cb_list *)roc_mcs_to_mcs_cb_list(mcs);
 	struct mcs_event_cb *cb, *next;
 
 	MCS_SUPPORT_CHECK;
@@ -692,13 +665,12 @@ roc_mcs_event_cb_unregister(struct roc_mcs *mcs, enum roc_mcs_event_type event)
 int
 mcs_event_cb_process(struct roc_mcs *mcs, struct roc_mcs_event_desc *desc)
 {
-	struct mcs_event_cb_list *cb_list =
-		(struct mcs_event_cb_list *)roc_mcs_to_mcs_cb_list(mcs);
+	struct mcs_event_cb_list *cb_list = (struct mcs_event_cb_list *)roc_mcs_to_mcs_cb_list(mcs);
 	struct mcs_event_cb mcs_cb;
 	struct mcs_event_cb *cb;
 	int rc = 0;
 
-	TAILQ_FOREACH (cb, cb_list, next) {
+	TAILQ_FOREACH(cb, cb_list, next) {
 		if (cb->cb_fn == NULL || cb->event != desc->type)
 			continue;
 
@@ -706,8 +678,7 @@ mcs_event_cb_process(struct roc_mcs *mcs, struct roc_mcs_event_desc *desc)
 		cb->active = 1;
 		mcs_cb.ret_param = desc;
 
-		rc = mcs_cb.cb_fn(mcs->userdata, mcs_cb.ret_param,
-				  mcs_cb.cb_arg);
+		rc = mcs_cb.cb_fn(mcs->userdata, mcs_cb.ret_param, mcs_cb.cb_arg);
 		cb->active = 0;
 	}
 
@@ -753,23 +724,19 @@ rsrc_bmap_alloc(struct mcs_priv *priv, struct mcs_rsrc *rsrc)
 {
 	int rc;
 
-	rc = mcs_alloc_bmap(priv->tcam_entries << 1, &rsrc->tcam_bmap_mem,
-			    &rsrc->tcam_bmap);
+	rc = mcs_alloc_bmap(priv->tcam_entries << 1, &rsrc->tcam_bmap_mem, &rsrc->tcam_bmap);
 	if (rc)
 		goto exit;
 
-	rc = mcs_alloc_bmap(priv->secy_entries << 1, &rsrc->secy_bmap_mem,
-			    &rsrc->secy_bmap);
+	rc = mcs_alloc_bmap(priv->secy_entries << 1, &rsrc->secy_bmap_mem, &rsrc->secy_bmap);
 	if (rc)
 		goto exit;
 
-	rc = mcs_alloc_bmap(priv->sc_entries << 1, &rsrc->sc_bmap_mem,
-			    &rsrc->sc_bmap);
+	rc = mcs_alloc_bmap(priv->sc_entries << 1, &rsrc->sc_bmap_mem, &rsrc->sc_bmap);
 	if (rc)
 		goto exit;
 
-	rc = mcs_alloc_bmap(priv->sa_entries << 1, &rsrc->sa_bmap_mem,
-			    &rsrc->sa_bmap);
+	rc = mcs_alloc_bmap(priv->sa_entries << 1, &rsrc->sa_bmap_mem, &rsrc->sa_bmap);
 	if (rc)
 		goto exit;
 
@@ -813,8 +780,8 @@ mcs_alloc_rsrc_bmap(struct roc_mcs *mcs)
 		if (rc)
 			goto exit;
 
-		priv->port_rsrc[i].sc_conf = plt_zmalloc(
-			priv->sc_entries * sizeof(struct mcs_sc_conf), 0);
+		priv->port_rsrc[i].sc_conf =
+			plt_zmalloc(priv->sc_entries * sizeof(struct mcs_sc_conf), 0);
 		if (priv->port_rsrc[i].sc_conf == NULL) {
 			rsrc_bmap_free(&priv->port_rsrc[i]);
 			goto exit;

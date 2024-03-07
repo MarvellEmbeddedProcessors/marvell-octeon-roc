@@ -6,8 +6,7 @@
 #include "roc_priv.h"
 
 int
-roc_npa_buf_type_update(uint64_t aura_handle, enum roc_npa_buf_type type,
-			int count)
+roc_npa_buf_type_update(uint64_t aura_handle, enum roc_npa_buf_type type, int count)
 {
 	uint64_t aura_id = roc_npa_aura_handle_to_aura(aura_handle);
 	struct npa_lf *lf;
@@ -21,8 +20,7 @@ roc_npa_buf_type_update(uint64_t aura_handle, enum roc_npa_buf_type type,
 		return NPA_ERR_PARAM;
 	}
 
-	if (type >= ROC_NPA_BUF_TYPE_END ||
-	    (lf->aura_attr[aura_id].buf_type[type] + count < 0)) {
+	if (type >= ROC_NPA_BUF_TYPE_END || (lf->aura_attr[aura_id].buf_type[type] + count < 0)) {
 		plt_err("Pool buf type invalid");
 		return NPA_ERR_PARAM;
 	}

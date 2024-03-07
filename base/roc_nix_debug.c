@@ -5,13 +5,13 @@
 #include "roc_api.h"
 #include "roc_priv.h"
 
-#define nix_dump(file, fmt, ...)                                               \
-	do {                                                                   \
-		if ((file) == NULL)                                            \
-			plt_dump(fmt, ##__VA_ARGS__);                          \
-		else                                                           \
-			fprintf(file, fmt "\n", ##__VA_ARGS__);                \
-	} while (0)
+
+#define nix_dump(file, fmt, ...) do {                                           \
+	if ((file) == NULL)							\
+		plt_dump(fmt, ##__VA_ARGS__);					\
+	else                                                                    \
+		fprintf(file, fmt "\n", ##__VA_ARGS__);                         \
+} while (0)
 
 #define NIX_REG_INFO(reg)                                                      \
 	{                                                                      \
@@ -19,13 +19,13 @@
 	}
 #define NIX_REG_NAME_SZ 48
 
-#define nix_dump_no_nl(file, fmt, ...)                                         \
-	do {                                                                   \
-		if ((file) == NULL)                                            \
-			plt_dump_no_nl(fmt, ##__VA_ARGS__);                    \
-		else                                                           \
-			fprintf(file, fmt, ##__VA_ARGS__);                     \
-	} while (0)
+#define nix_dump_no_nl(file, fmt, ...) do {                                     \
+	if ((file) == NULL)                                                     \
+		plt_dump_no_nl(fmt, ##__VA_ARGS__);				\
+	else                                                                    \
+		fprintf(file, fmt, ##__VA_ARGS__);                              \
+} while (0)
+
 
 struct nix_lf_reg_info {
 	uint32_t offset;
@@ -137,8 +137,7 @@ nix_lf_gen_reg_dump(uintptr_t nix_lf_base, uint64_t *data)
 	for (i = 0; i < PLT_DIM(nix_lf_reg); i++) {
 		reg = plt_read64(nix_lf_base + nix_lf_reg[i].offset);
 		if (dump_stdout && reg)
-			nix_dump(file, "%32s = 0x%" PRIx64, nix_lf_reg[i].name,
-				 reg);
+			nix_dump(file, "%32s = 0x%" PRIx64, nix_lf_reg[i].name, reg);
 		if (data)
 			*data++ = reg;
 	}
@@ -161,8 +160,8 @@ nix_lf_stat_reg_dump(uintptr_t nix_lf_base, uint64_t *data, uint8_t lf_tx_stats,
 	for (i = 0; i < lf_tx_stats; i++) {
 		reg = plt_read64(nix_lf_base + NIX_LF_TX_STATX(i));
 		if (dump_stdout && reg)
-			nix_dump(file, "%32s_%d = 0x%" PRIx64,
-				 "NIX_LF_TX_STATX", i, reg);
+			nix_dump(file, "%32s_%d = 0x%" PRIx64, "NIX_LF_TX_STATX", i,
+				 reg);
 		if (data)
 			*data++ = reg;
 	}
@@ -172,8 +171,8 @@ nix_lf_stat_reg_dump(uintptr_t nix_lf_base, uint64_t *data, uint8_t lf_tx_stats,
 	for (i = 0; i < lf_rx_stats; i++) {
 		reg = plt_read64(nix_lf_base + NIX_LF_RX_STATX(i));
 		if (dump_stdout && reg)
-			nix_dump(file, "%32s_%d = 0x%" PRIx64,
-				 "NIX_LF_RX_STATX", i, reg);
+			nix_dump(file, "%32s_%d = 0x%" PRIx64, "NIX_LF_RX_STATX", i,
+				 reg);
 		if (data)
 			*data++ = reg;
 	}
@@ -196,8 +195,8 @@ nix_lf_int_reg_dump(uintptr_t nix_lf_base, uint64_t *data, uint16_t qints,
 	for (i = 0; i < qints; i++) {
 		reg = plt_read64(nix_lf_base + NIX_LF_QINTX_CNT(i));
 		if (dump_stdout && reg)
-			nix_dump(file, "%32s_%d = 0x%" PRIx64,
-				 "NIX_LF_QINTX_CNT", i, reg);
+			nix_dump(file, "%32s_%d = 0x%" PRIx64, "NIX_LF_QINTX_CNT", i,
+				 reg);
 		if (data)
 			*data++ = reg;
 	}
@@ -207,8 +206,8 @@ nix_lf_int_reg_dump(uintptr_t nix_lf_base, uint64_t *data, uint16_t qints,
 	for (i = 0; i < qints; i++) {
 		reg = plt_read64(nix_lf_base + NIX_LF_QINTX_INT(i));
 		if (dump_stdout && reg)
-			nix_dump(file, "%32s_%d = 0x%" PRIx64,
-				 "NIX_LF_QINTX_INT", i, reg);
+			nix_dump(file, "%32s_%d = 0x%" PRIx64, "NIX_LF_QINTX_INT", i,
+				 reg);
 		if (data)
 			*data++ = reg;
 	}
@@ -218,8 +217,8 @@ nix_lf_int_reg_dump(uintptr_t nix_lf_base, uint64_t *data, uint16_t qints,
 	for (i = 0; i < qints; i++) {
 		reg = plt_read64(nix_lf_base + NIX_LF_QINTX_ENA_W1S(i));
 		if (dump_stdout && reg)
-			nix_dump(file, "%32s_%d = 0x%" PRIx64,
-				 "NIX_LF_QINTX_ENA_W1S", i, reg);
+			nix_dump(file, "%32s_%d = 0x%" PRIx64, "NIX_LF_QINTX_ENA_W1S",
+				 i, reg);
 		if (data)
 			*data++ = reg;
 	}
@@ -229,8 +228,8 @@ nix_lf_int_reg_dump(uintptr_t nix_lf_base, uint64_t *data, uint16_t qints,
 	for (i = 0; i < qints; i++) {
 		reg = plt_read64(nix_lf_base + NIX_LF_QINTX_ENA_W1C(i));
 		if (dump_stdout && reg)
-			nix_dump(file, "%32s_%d = 0x%" PRIx64,
-				 "NIX_LF_QINTX_ENA_W1C", i, reg);
+			nix_dump(file, "%32s_%d = 0x%" PRIx64, "NIX_LF_QINTX_ENA_W1C",
+				 i, reg);
 		if (data)
 			*data++ = reg;
 	}
@@ -240,8 +239,8 @@ nix_lf_int_reg_dump(uintptr_t nix_lf_base, uint64_t *data, uint16_t qints,
 	for (i = 0; i < cints; i++) {
 		reg = plt_read64(nix_lf_base + NIX_LF_CINTX_CNT(i));
 		if (dump_stdout && reg)
-			nix_dump(file, "%32s_%d = 0x%" PRIx64,
-				 "NIX_LF_CINTX_CNT", i, reg);
+			nix_dump(file, "%32s_%d = 0x%" PRIx64, "NIX_LF_CINTX_CNT", i,
+				 reg);
 		if (data)
 			*data++ = reg;
 	}
@@ -251,8 +250,8 @@ nix_lf_int_reg_dump(uintptr_t nix_lf_base, uint64_t *data, uint16_t qints,
 	for (i = 0; i < cints; i++) {
 		reg = plt_read64(nix_lf_base + NIX_LF_CINTX_WAIT(i));
 		if (dump_stdout && reg)
-			nix_dump(file, "%32s_%d = 0x%" PRIx64,
-				 "NIX_LF_CINTX_WAIT", i, reg);
+			nix_dump(file, "%32s_%d = 0x%" PRIx64, "NIX_LF_CINTX_WAIT", i,
+				 reg);
 		if (data)
 			*data++ = reg;
 	}
@@ -262,8 +261,8 @@ nix_lf_int_reg_dump(uintptr_t nix_lf_base, uint64_t *data, uint16_t qints,
 	for (i = 0; i < cints; i++) {
 		reg = plt_read64(nix_lf_base + NIX_LF_CINTX_INT(i));
 		if (dump_stdout && reg)
-			nix_dump(file, "%32s_%d = 0x%" PRIx64,
-				 "NIX_LF_CINTX_INT", i, reg);
+			nix_dump(file, "%32s_%d = 0x%" PRIx64, "NIX_LF_CINTX_INT", i,
+				 reg);
 		if (data)
 			*data++ = reg;
 	}
@@ -273,8 +272,8 @@ nix_lf_int_reg_dump(uintptr_t nix_lf_base, uint64_t *data, uint16_t qints,
 	for (i = 0; i < cints; i++) {
 		reg = plt_read64(nix_lf_base + NIX_LF_CINTX_INT_W1S(i));
 		if (dump_stdout && reg)
-			nix_dump(file, "%32s_%d = 0x%" PRIx64,
-				 "NIX_LF_CINTX_INT_W1S", i, reg);
+			nix_dump(file, "%32s_%d = 0x%" PRIx64, "NIX_LF_CINTX_INT_W1S",
+				 i, reg);
 		if (data)
 			*data++ = reg;
 	}
@@ -284,8 +283,8 @@ nix_lf_int_reg_dump(uintptr_t nix_lf_base, uint64_t *data, uint16_t qints,
 	for (i = 0; i < cints; i++) {
 		reg = plt_read64(nix_lf_base + NIX_LF_CINTX_ENA_W1S(i));
 		if (dump_stdout && reg)
-			nix_dump(file, "%32s_%d = 0x%" PRIx64,
-				 "NIX_LF_CINTX_ENA_W1S", i, reg);
+			nix_dump(file, "%32s_%d = 0x%" PRIx64, "NIX_LF_CINTX_ENA_W1S",
+				 i, reg);
 		if (data)
 			*data++ = reg;
 	}
@@ -295,8 +294,8 @@ nix_lf_int_reg_dump(uintptr_t nix_lf_base, uint64_t *data, uint16_t qints,
 	for (i = 0; i < cints; i++) {
 		reg = plt_read64(nix_lf_base + NIX_LF_CINTX_ENA_W1C(i));
 		if (dump_stdout && reg)
-			nix_dump(file, "%32s_%d = 0x%" PRIx64,
-				 "NIX_LF_CINTX_ENA_W1C", i, reg);
+			nix_dump(file, "%32s_%d = 0x%" PRIx64, "NIX_LF_CINTX_ENA_W1C",
+				 i, reg);
 		if (data)
 			*data++ = reg;
 	}
@@ -391,28 +390,26 @@ exit:
 }
 
 static inline void
-nix_cn9k_lf_sq_dump(__io struct nix_sq_ctx_s *ctx, uint32_t *sqb_aura_p,
-		    FILE *file)
+nix_cn9k_lf_sq_dump(__io struct nix_sq_ctx_s *ctx, uint32_t *sqb_aura_p, FILE *file)
 {
 	nix_dump(file, "W0: sqe_way_mask \t\t%d\nW0: cq \t\t\t\t%d",
 		 ctx->sqe_way_mask, ctx->cq);
 	nix_dump(file, "W0: sdp_mcast \t\t\t%d\nW0: substream \t\t\t0x%03x",
 		 ctx->sdp_mcast, ctx->substream);
-	nix_dump(file, "W0: qint_idx \t\t\t%d\nW0: ena \t\t\t%d\n",
-		 ctx->qint_idx, ctx->ena);
+	nix_dump(file, "W0: qint_idx \t\t\t%d\nW0: ena \t\t\t%d\n", ctx->qint_idx,
+		 ctx->ena);
 
 	nix_dump(file, "W1: sqb_count \t\t\t%d\nW1: default_chan \t\t%d",
 		 ctx->sqb_count, ctx->default_chan);
 	nix_dump(file, "W1: smq_rr_quantum \t\t%d\nW1: sso_ena \t\t\t%d",
 		 ctx->smq_rr_quantum, ctx->sso_ena);
-	nix_dump(file,
-		 "W1: xoff \t\t\t%d\nW1: cq_ena \t\t\t%d\nW1: smq\t\t\t\t%d\n",
+	nix_dump(file, "W1: xoff \t\t\t%d\nW1: cq_ena \t\t\t%d\nW1: smq\t\t\t\t%d\n",
 		 ctx->xoff, ctx->cq_ena, ctx->smq);
 
 	nix_dump(file, "W2: sqe_stype \t\t\t%d\nW2: sq_int_ena \t\t\t%d",
 		 ctx->sqe_stype, ctx->sq_int_ena);
-	nix_dump(file, "W2: sq_int  \t\t\t%d\nW2: sqb_aura \t\t\t%d",
-		 ctx->sq_int, ctx->sqb_aura);
+	nix_dump(file, "W2: sq_int  \t\t\t%d\nW2: sqb_aura \t\t\t%d", ctx->sq_int,
+		 ctx->sqb_aura);
 	nix_dump(file, "W2: smq_rr_count \t\t%d\n", ctx->smq_rr_count);
 
 	nix_dump(file, "W3: smq_next_sq_vld\t\t%d\nW3: smq_pend\t\t\t%d",
@@ -423,16 +420,15 @@ nix_cn9k_lf_sq_dump(__io struct nix_sq_ctx_s *ctx, uint32_t *sqb_aura_p,
 		 ctx->smenq_offset, ctx->tail_offset);
 	nix_dump(file, "W3: smq_lso_segnum \t\t%d\nW3: smq_next_sq \t\t%d",
 		 ctx->smq_lso_segnum, ctx->smq_next_sq);
-	nix_dump(file, "W3: mnq_dis \t\t\t%d\nW3: lmt_dis \t\t\t%d",
-		 ctx->mnq_dis, ctx->lmt_dis);
+	nix_dump(file, "W3: mnq_dis \t\t\t%d\nW3: lmt_dis \t\t\t%d", ctx->mnq_dis,
+		 ctx->lmt_dis);
 	nix_dump(file, "W3: cq_limit\t\t\t%d\nW3: max_sqe_size\t\t%d\n",
 		 ctx->cq_limit, ctx->max_sqe_size);
 
 	nix_dump(file, "W4: next_sqb \t\t\t0x%" PRIx64 "", ctx->next_sqb);
 	nix_dump(file, "W5: tail_sqb \t\t\t0x%" PRIx64 "", ctx->tail_sqb);
 	nix_dump(file, "W6: smenq_sqb \t\t\t0x%" PRIx64 "", ctx->smenq_sqb);
-	nix_dump(file, "W7: smenq_next_sqb \t\t0x%" PRIx64 "",
-		 ctx->smenq_next_sqb);
+	nix_dump(file, "W7: smenq_next_sqb \t\t0x%" PRIx64 "", ctx->smenq_next_sqb);
 	nix_dump(file, "W8: head_sqb \t\t\t0x%" PRIx64 "", ctx->head_sqb);
 
 	nix_dump(file, "W9: vfi_lso_vld \t\t%d\nW9: vfi_lso_vlan1_ins_ena\t%d",
@@ -456,30 +452,28 @@ nix_cn9k_lf_sq_dump(__io struct nix_sq_ctx_s *ctx, uint32_t *sqb_aura_p,
 }
 
 static inline void
-nix_lf_sq_dump(__io struct nix_cn10k_sq_ctx_s *ctx, uint32_t *sqb_aura_p,
-	       FILE *file)
+nix_lf_sq_dump(__io struct nix_cn10k_sq_ctx_s *ctx, uint32_t *sqb_aura_p, FILE *file)
 {
 	nix_dump(file, "W0: sqe_way_mask \t\t%d\nW0: cq \t\t\t\t%d",
 		 ctx->sqe_way_mask, ctx->cq);
 	nix_dump(file, "W0: sdp_mcast \t\t\t%d\nW0: substream \t\t\t0x%03x",
 		 ctx->sdp_mcast, ctx->substream);
-	nix_dump(file, "W0: qint_idx \t\t\t%d\nW0: ena \t\t\t%d\n",
-		 ctx->qint_idx, ctx->ena);
+	nix_dump(file, "W0: qint_idx \t\t\t%d\nW0: ena \t\t\t%d\n", ctx->qint_idx,
+		 ctx->ena);
 
 	nix_dump(file, "W1: sqb_count \t\t\t%d\nW1: default_chan \t\t%d",
 		 ctx->sqb_count, ctx->default_chan);
 	nix_dump(file, "W1: smq_rr_weight \t\t%d\nW1: sso_ena \t\t\t%d",
 		 ctx->smq_rr_weight, ctx->sso_ena);
-	nix_dump(file,
-		 "W1: xoff \t\t\t%d\nW1: cq_ena \t\t\t%d\nW1: smq\t\t\t\t%d\n",
+	nix_dump(file, "W1: xoff \t\t\t%d\nW1: cq_ena \t\t\t%d\nW1: smq\t\t\t\t%d\n",
 		 ctx->xoff, ctx->cq_ena, ctx->smq);
 
 	nix_dump(file, "W2: sqe_stype \t\t\t%d\nW2: sq_int_ena \t\t\t%d",
 		 ctx->sqe_stype, ctx->sq_int_ena);
-	nix_dump(file, "W2: sq_int  \t\t\t%d\nW2: sqb_aura \t\t\t%d",
-		 ctx->sq_int, ctx->sqb_aura);
-	nix_dump(file, "W2: smq_rr_count[ub:lb] \t\t%x:%x\n",
-		 ctx->smq_rr_count_ub, ctx->smq_rr_count_lb);
+	nix_dump(file, "W2: sq_int  \t\t\t%d\nW2: sqb_aura \t\t\t%d", ctx->sq_int,
+		 ctx->sqb_aura);
+	nix_dump(file, "W2: smq_rr_count[ub:lb] \t\t%x:%x\n", ctx->smq_rr_count_ub,
+		 ctx->smq_rr_count_lb);
 
 	nix_dump(file, "W3: smq_next_sq_vld\t\t%d\nW3: smq_pend\t\t\t%d",
 		 ctx->smq_next_sq_vld, ctx->smq_pend);
@@ -489,38 +483,32 @@ nix_lf_sq_dump(__io struct nix_cn10k_sq_ctx_s *ctx, uint32_t *sqb_aura_p,
 		 ctx->smenq_offset, ctx->tail_offset);
 	nix_dump(file, "W3: smq_lso_segnum \t\t%d\nW3: smq_next_sq \t\t%d",
 		 ctx->smq_lso_segnum, ctx->smq_next_sq);
-	nix_dump(file, "W3: mnq_dis \t\t\t%d\nW3: lmt_dis \t\t\t%d",
-		 ctx->mnq_dis, ctx->lmt_dis);
+	nix_dump(file, "W3: mnq_dis \t\t\t%d\nW3: lmt_dis \t\t\t%d", ctx->mnq_dis,
+		 ctx->lmt_dis);
 	nix_dump(file, "W3: cq_limit\t\t\t%d\nW3: max_sqe_size\t\t%d\n",
 		 ctx->cq_limit, ctx->max_sqe_size);
 
 	nix_dump(file, "W4: next_sqb \t\t\t0x%" PRIx64 "", ctx->next_sqb);
 	nix_dump(file, "W5: tail_sqb \t\t\t0x%" PRIx64 "", ctx->tail_sqb);
 	nix_dump(file, "W6: smenq_sqb \t\t\t0x%" PRIx64 "", ctx->smenq_sqb);
-	nix_dump(file, "W7: smenq_next_sqb \t\t0x%" PRIx64 "",
-		 ctx->smenq_next_sqb);
+	nix_dump(file, "W7: smenq_next_sqb \t\t0x%" PRIx64 "", ctx->smenq_next_sqb);
 	nix_dump(file, "W8: head_sqb \t\t\t0x%" PRIx64 "", ctx->head_sqb);
 
-	nix_dump(file, "W9: vfi_lso_vld \t\t%d\nW9: vfi_lso_vlan1_ins_ena\t%d",
-		 ctx->vfi_lso_vld, ctx->vfi_lso_vlan1_ins_ena);
+	nix_dump(file, "W9: vfi_lso_vld \t\t%d\nW9: vfi_lso_vlan1_ins_ena\t%d", ctx->vfi_lso_vld,
+		 ctx->vfi_lso_vlan1_ins_ena);
 	nix_dump(file, "W9: vfi_lso_vlan0_ins_ena\t%d\nW9: vfi_lso_mps\t\t\t%d",
 		 ctx->vfi_lso_vlan0_ins_ena, ctx->vfi_lso_mps);
-	nix_dump(file, "W9: vfi_lso_sb \t\t\t%d\nW9: vfi_lso_sizem1\t\t%d",
-		 ctx->vfi_lso_sb, ctx->vfi_lso_sizem1);
+	nix_dump(file, "W9: vfi_lso_sb \t\t\t%d\nW9: vfi_lso_sizem1\t\t%d", ctx->vfi_lso_sb,
+		 ctx->vfi_lso_sizem1);
 	nix_dump(file, "W9: vfi_lso_total\t\t%d", ctx->vfi_lso_total);
 
-	nix_dump(file, "W10: scm_lso_rem \t\t0x%" PRIx64 "",
-		 (uint64_t)ctx->scm_lso_rem);
+	nix_dump(file, "W10: scm_lso_rem \t\t0x%" PRIx64 "", (uint64_t)ctx->scm_lso_rem);
 	nix_dump(file, "W11: octs \t\t\t0x%" PRIx64 "", (uint64_t)ctx->octs);
 	nix_dump(file, "W12: pkts \t\t\t0x%" PRIx64 "", (uint64_t)ctx->pkts);
-	nix_dump(file, "W13: aged_drop_pkts \t\t\t0x%" PRIx64 "",
-		 (uint64_t)ctx->aged_drop_pkts);
-	nix_dump(file, "W13: aged_drop_octs \t\t\t0x%" PRIx64 "",
-		 (uint64_t)ctx->aged_drop_octs);
-	nix_dump(file, "W14: dropped_octs \t\t0x%" PRIx64 "",
-		 (uint64_t)ctx->drop_octs);
-	nix_dump(file, "W15: dropped_pkts \t\t0x%" PRIx64 "",
-		 (uint64_t)ctx->drop_pkts);
+	nix_dump(file, "W13: aged_drop_pkts \t\t\t0x%" PRIx64 "", (uint64_t)ctx->aged_drop_pkts);
+	nix_dump(file, "W13: aged_drop_octs \t\t\t0x%" PRIx64 "", (uint64_t)ctx->aged_drop_octs);
+	nix_dump(file, "W14: dropped_octs \t\t0x%" PRIx64 "", (uint64_t)ctx->drop_octs);
+	nix_dump(file, "W15: dropped_pkts \t\t0x%" PRIx64 "", (uint64_t)ctx->drop_pkts);
 
 	*sqb_aura_p = ctx->sqb_aura;
 }
@@ -542,8 +530,8 @@ nix_cn9k_lf_rq_dump(__io struct nix_rq_ctx_s *ctx, FILE *file)
 		 ctx->xqe_drop_ena, ctx->wqe_caching);
 	nix_dump(file, "W1: pb_caching \t\t\t%d\nW1: sso_tt \t\t\t%d",
 		 ctx->pb_caching, ctx->sso_tt);
-	nix_dump(file, "W1: sso_grp \t\t\t%d\nW1: lpb_aura \t\t\t%d",
-		 ctx->sso_grp, ctx->lpb_aura);
+	nix_dump(file, "W1: sso_grp \t\t\t%d\nW1: lpb_aura \t\t\t%d", ctx->sso_grp,
+		 ctx->lpb_aura);
 	nix_dump(file, "W1: spb_aura \t\t\t%d\n", ctx->spb_aura);
 
 	nix_dump(file, "W2: xqe_hdr_split \t\t%d\nW2: xqe_imm_copy \t\t%d",
@@ -552,8 +540,8 @@ nix_cn9k_lf_rq_dump(__io struct nix_rq_ctx_s *ctx, FILE *file)
 		 ctx->xqe_imm_size, ctx->later_skip);
 	nix_dump(file, "W2: first_skip \t\t\t%d\nW2: lpb_sizem1 \t\t\t%d",
 		 ctx->first_skip, ctx->lpb_sizem1);
-	nix_dump(file, "W2: spb_ena \t\t\t%d\nW2: wqe_skip \t\t\t%d",
-		 ctx->spb_ena, ctx->wqe_skip);
+	nix_dump(file, "W2: spb_ena \t\t\t%d\nW2: wqe_skip \t\t\t%d", ctx->spb_ena,
+		 ctx->wqe_skip);
 	nix_dump(file, "W2: spb_sizem1 \t\t\t%d\n", ctx->spb_sizem1);
 
 	nix_dump(file, "W3: spb_pool_pass \t\t%d\nW3: spb_pool_drop \t\t%d",
@@ -567,25 +555,22 @@ nix_cn9k_lf_rq_dump(__io struct nix_rq_ctx_s *ctx, FILE *file)
 
 	nix_dump(file, "W4: qint_idx \t\t\t%d\nW4: rq_int_ena \t\t\t%d",
 		 ctx->qint_idx, ctx->rq_int_ena);
-	nix_dump(file, "W4: rq_int \t\t\t%d\nW4: lpb_pool_pass \t\t%d",
-		 ctx->rq_int, ctx->lpb_pool_pass);
+	nix_dump(file, "W4: rq_int \t\t\t%d\nW4: lpb_pool_pass \t\t%d", ctx->rq_int,
+		 ctx->lpb_pool_pass);
 	nix_dump(file, "W4: lpb_pool_drop \t\t%d\nW4: lpb_aura_pass \t\t%d",
 		 ctx->lpb_pool_drop, ctx->lpb_aura_pass);
 	nix_dump(file, "W4: lpb_aura_drop \t\t%d\n", ctx->lpb_aura_drop);
 
 	nix_dump(file, "W5: flow_tagw \t\t\t%d\nW5: bad_utag \t\t\t%d",
 		 ctx->flow_tagw, ctx->bad_utag);
-	nix_dump(file, "W5: good_utag \t\t\t%d\nW5: ltag \t\t\t%d\n",
-		 ctx->good_utag, ctx->ltag);
+	nix_dump(file, "W5: good_utag \t\t\t%d\nW5: ltag \t\t\t%d\n", ctx->good_utag,
+		 ctx->ltag);
 
 	nix_dump(file, "W6: octs \t\t\t0x%" PRIx64 "", (uint64_t)ctx->octs);
 	nix_dump(file, "W7: pkts \t\t\t0x%" PRIx64 "", (uint64_t)ctx->pkts);
-	nix_dump(file, "W8: drop_octs \t\t\t0x%" PRIx64 "",
-		 (uint64_t)ctx->drop_octs);
-	nix_dump(file, "W9: drop_pkts \t\t\t0x%" PRIx64 "",
-		 (uint64_t)ctx->drop_pkts);
-	nix_dump(file, "W10: re_pkts \t\t\t0x%" PRIx64 "\n",
-		 (uint64_t)ctx->re_pkts);
+	nix_dump(file, "W8: drop_octs \t\t\t0x%" PRIx64 "", (uint64_t)ctx->drop_octs);
+	nix_dump(file, "W9: drop_pkts \t\t\t0x%" PRIx64 "", (uint64_t)ctx->drop_pkts);
+	nix_dump(file, "W10: re_pkts \t\t\t0x%" PRIx64 "\n", (uint64_t)ctx->re_pkts);
 }
 
 void
@@ -605,8 +590,8 @@ nix_lf_rq_dump(__io struct nix_cn10k_rq_ctx_s *ctx, FILE *file)
 		 ctx->ipsech_ena, ctx->sso_ena);
 	nix_dump(file, "W0: ena \t\t\t%d\n", ctx->ena);
 
-	nix_dump(file, "W1: chi_ena \t\t%d\nW1: ipsecd_drop_en \t\t%d",
-		 ctx->chi_ena, ctx->ipsecd_drop_en);
+	nix_dump(file, "W1: chi_ena \t\t%d\nW1: ipsecd_drop_en \t\t%d", ctx->chi_ena,
+		 ctx->ipsecd_drop_en);
 	nix_dump(file, "W1: pb_stashing \t\t\t%d", ctx->pb_stashing);
 	nix_dump(file, "W1: lpb_drop_ena \t\t%d\nW1: spb_drop_ena \t\t%d",
 		 ctx->lpb_drop_ena, ctx->spb_drop_ena);
@@ -614,8 +599,8 @@ nix_lf_rq_dump(__io struct nix_cn10k_rq_ctx_s *ctx, FILE *file)
 		 ctx->xqe_drop_ena, ctx->wqe_caching);
 	nix_dump(file, "W1: pb_caching \t\t\t%d\nW1: sso_tt \t\t\t%d",
 		 ctx->pb_caching, ctx->sso_tt);
-	nix_dump(file, "W1: sso_grp \t\t\t%d\nW1: lpb_aura \t\t\t%d",
-		 ctx->sso_grp, ctx->lpb_aura);
+	nix_dump(file, "W1: sso_grp \t\t\t%d\nW1: lpb_aura \t\t\t%d", ctx->sso_grp,
+		 ctx->lpb_aura);
 	nix_dump(file, "W1: spb_aura \t\t\t%d\n", ctx->spb_aura);
 
 	nix_dump(file, "W2: xqe_hdr_split \t\t%d\nW2: xqe_imm_copy \t\t%d",
@@ -624,8 +609,8 @@ nix_lf_rq_dump(__io struct nix_cn10k_rq_ctx_s *ctx, FILE *file)
 		 ctx->xqe_imm_size, ctx->later_skip);
 	nix_dump(file, "W2: first_skip \t\t\t%d\nW2: lpb_sizem1 \t\t\t%d",
 		 ctx->first_skip, ctx->lpb_sizem1);
-	nix_dump(file, "W2: spb_ena \t\t\t%d\nW2: wqe_skip \t\t\t%d",
-		 ctx->spb_ena, ctx->wqe_skip);
+	nix_dump(file, "W2: spb_ena \t\t\t%d\nW2: wqe_skip \t\t\t%d", ctx->spb_ena,
+		 ctx->wqe_skip);
 	nix_dump(file, "W2: spb_sizem1 \t\t\t%d\nW2: policer_ena \t\t\t%d",
 		 ctx->spb_sizem1, ctx->policer_ena);
 	nix_dump(file, "W2: band_prof_id \t\t\t%d", ctx->band_prof_id);
@@ -641,8 +626,8 @@ nix_lf_rq_dump(__io struct nix_cn10k_rq_ctx_s *ctx, FILE *file)
 
 	nix_dump(file, "W4: qint_idx \t\t\t%d\nW4: rq_int_ena \t\t\t%d",
 		 ctx->qint_idx, ctx->rq_int_ena);
-	nix_dump(file, "W4: rq_int \t\t\t%d\nW4: lpb_pool_pass \t\t%d",
-		 ctx->rq_int, ctx->lpb_pool_pass);
+	nix_dump(file, "W4: rq_int \t\t\t%d\nW4: lpb_pool_pass \t\t%d", ctx->rq_int,
+		 ctx->lpb_pool_pass);
 	nix_dump(file, "W4: lpb_pool_drop \t\t%d\nW4: lpb_aura_pass \t\t%d",
 		 ctx->lpb_pool_drop, ctx->lpb_aura_pass);
 	nix_dump(file, "W4: lpb_aura_drop \t\t%d\n", ctx->lpb_aura_drop);
@@ -654,17 +639,14 @@ nix_lf_rq_dump(__io struct nix_cn10k_rq_ctx_s *ctx, FILE *file)
 	nix_dump(file, "W5: ipsec_vwqe \t\t\t%d", ctx->ipsec_vwqe);
 	nix_dump(file, "W5: flow_tagw \t\t\t%d\nW5: bad_utag \t\t\t%d",
 		 ctx->flow_tagw, ctx->bad_utag);
-	nix_dump(file, "W5: good_utag \t\t\t%d\nW5: ltag \t\t\t%d\n",
-		 ctx->good_utag, ctx->ltag);
+	nix_dump(file, "W5: good_utag \t\t\t%d\nW5: ltag \t\t\t%d\n", ctx->good_utag,
+		 ctx->ltag);
 
 	nix_dump(file, "W6: octs \t\t\t0x%" PRIx64 "", (uint64_t)ctx->octs);
 	nix_dump(file, "W7: pkts \t\t\t0x%" PRIx64 "", (uint64_t)ctx->pkts);
-	nix_dump(file, "W8: drop_octs \t\t\t0x%" PRIx64 "",
-		 (uint64_t)ctx->drop_octs);
-	nix_dump(file, "W9: drop_pkts \t\t\t0x%" PRIx64 "",
-		 (uint64_t)ctx->drop_pkts);
-	nix_dump(file, "W10: re_pkts \t\t\t0x%" PRIx64 "\n",
-		 (uint64_t)ctx->re_pkts);
+	nix_dump(file, "W8: drop_octs \t\t\t0x%" PRIx64 "", (uint64_t)ctx->drop_octs);
+	nix_dump(file, "W9: drop_pkts \t\t\t0x%" PRIx64 "", (uint64_t)ctx->drop_pkts);
+	nix_dump(file, "W10: re_pkts \t\t\t0x%" PRIx64 "\n", (uint64_t)ctx->re_pkts);
 }
 
 static inline void
@@ -673,18 +655,17 @@ nix_lf_cq_dump(__io struct nix_cq_ctx_s *ctx, FILE *file)
 	nix_dump(file, "W0: base \t\t\t0x%" PRIx64 "\n", ctx->base);
 
 	nix_dump(file, "W1: wrptr \t\t\t%" PRIx64 "", (uint64_t)ctx->wrptr);
-	nix_dump(file, "W1: avg_con \t\t\t%d\nW1: cint_idx \t\t\t%d",
-		 ctx->avg_con, ctx->cint_idx);
-	nix_dump(file, "W1: cq_err \t\t\t%d\nW1: qint_idx \t\t\t%d",
-		 ctx->cq_err, ctx->qint_idx);
+	nix_dump(file, "W1: avg_con \t\t\t%d\nW1: cint_idx \t\t\t%d", ctx->avg_con,
+		 ctx->cint_idx);
+	nix_dump(file, "W1: cq_err \t\t\t%d\nW1: qint_idx \t\t\t%d", ctx->cq_err,
+		 ctx->qint_idx);
 	nix_dump(file, "W1: bpid  \t\t\t%d\nW1: bp_ena \t\t\t%d\n", ctx->bpid,
 		 ctx->bp_ena);
 	nix_dump(file,
 		 "W1: lbpid_high \t\t\t0x%03x\nW1: lbpid_med \t\t\t0x%03x\n"
 		 "W1: lbpid_low \t\t\t0x%03x\n(W1: lbpid) \t\t\t0x%03x\n",
-		 ctx->lbpid_high, ctx->lbpid_med, ctx->lbpid_low,
-		 (unsigned int)(ctx->lbpid_high << 6 | ctx->lbpid_med << 3 |
-				ctx->lbpid_low));
+		 ctx->lbpid_high, ctx->lbpid_med, ctx->lbpid_low, (unsigned int)
+		 (ctx->lbpid_high << 6 | ctx->lbpid_med << 3 | ctx->lbpid_low));
 	nix_dump(file, "W1: lbp_ena \t\t\t\t%d\n", ctx->lbp_ena);
 
 	nix_dump(file, "W2: update_time \t\t%d\nW2: avg_level \t\t\t%d",
@@ -697,12 +678,11 @@ nix_lf_cq_dump(__io struct nix_cq_ctx_s *ctx, FILE *file)
 	nix_dump(file, "W3: qsize \t\t\t%d\nW3: caching \t\t\t%d", ctx->qsize,
 		 ctx->caching);
 	nix_dump(file, "W3: lbp_frac \t\t\t%d\n", ctx->lbp_frac);
-	nix_dump(file,
-		 "W3: substream \t\t\t0x%03x\nW3: cpt_drop_err_en \t\t\t%d\n",
+	nix_dump(file, "W3: substream \t\t\t0x%03x\nW3: cpt_drop_err_en \t\t\t%d\n",
 		 ctx->substream, ctx->cpt_drop_err_en);
 	nix_dump(file, "W3: ena \t\t\t%d\n", ctx->ena);
-	nix_dump(file, "W3: drop_ena \t\t\t%d\nW3: drop \t\t\t%d",
-		 ctx->drop_ena, ctx->drop);
+	nix_dump(file, "W3: drop_ena \t\t\t%d\nW3: drop \t\t\t%d", ctx->drop_ena,
+		 ctx->drop);
 	nix_dump(file, "W3: bp \t\t\t\t%d\n", ctx->bp);
 }
 
@@ -761,15 +741,13 @@ roc_nix_queues_ctx_dump(struct roc_nix *roc_nix, FILE *file)
 		if (!inl_dev)
 			return -EINVAL;
 
-		rc = nix_q_ctx_get(&inl_dev->dev, NIX_AQ_CTYPE_RQ, inl_rq->qid,
-				   &ctx);
+		rc = nix_q_ctx_get(&inl_dev->dev, NIX_AQ_CTYPE_RQ, inl_rq->qid, &ctx);
 		if (rc) {
 			plt_err("Failed to get rq context");
 			goto fail;
 		}
-		nix_dump(file,
-			 "============== port=%d inl_rq=%d ===============",
-			 roc_nix->port_id, inl_rq->qid);
+		nix_dump(file, "============== port=%d inl_rq=%d ===============", roc_nix->port_id,
+			 inl_rq->qid);
 		if (roc_model_is_cn9k())
 			nix_cn9k_lf_rq_dump(ctx, file);
 		else
@@ -819,8 +797,7 @@ roc_nix_queues_ctx_dump(struct roc_nix *roc_nix, FILE *file)
 			 (uint64_t)npa_rsp->aura.count);
 		nix_dump(file, "SQB Aura W3: limit\t\t%" PRIx64 "",
 			 (uint64_t)npa_rsp->aura.limit);
-		nix_dump(file, "SQB Aura W3: fc_ena\t\t%d",
-			 npa_rsp->aura.fc_ena);
+		nix_dump(file, "SQB Aura W3: fc_ena\t\t%d", npa_rsp->aura.fc_ena);
 		nix_dump(file, "SQB Aura W4: fc_addr\t\t0x%" PRIx64 "\n",
 			 npa_rsp->aura.fc_addr);
 	}
@@ -846,14 +823,13 @@ roc_nix_cqe_dump(const struct nix_cqe_hdr_s *cq)
 		 rx->desc_sizem1);
 	nix_dump(file, "W0: imm_copy \t%d\t\texpress \t%d", rx->imm_copy,
 		 rx->express);
-	nix_dump(file, "W0: wqwd \t%d\t\terrlev \t\t%d\t\terrcode \t%d",
-		 rx->wqwd, rx->errlev, rx->errcode);
+	nix_dump(file, "W0: wqwd \t%d\t\terrlev \t\t%d\t\terrcode \t%d", rx->wqwd,
+		 rx->errlev, rx->errcode);
 	nix_dump(file, "W0: latype \t%d\t\tlbtype \t\t%d\t\tlctype \t\t%d",
 		 rx->latype, rx->lbtype, rx->lctype);
 	nix_dump(file, "W0: ldtype \t%d\t\tletype \t\t%d\t\tlftype \t\t%d",
 		 rx->ldtype, rx->letype, rx->lftype);
-	nix_dump(file, "W0: lgtype \t%d \t\tlhtype \t\t%d", rx->lgtype,
-		 rx->lhtype);
+	nix_dump(file, "W0: lgtype \t%d \t\tlhtype \t\t%d", rx->lgtype, rx->lhtype);
 
 	nix_dump(file, "W1: pkt_lenm1 \t%d", rx->pkt_lenm1);
 	nix_dump(file, "W1: l2m \t%d\t\tl2b \t\t%d\t\tl3m \t\t%d\tl3b \t\t%d",
@@ -870,21 +846,19 @@ roc_nix_cqe_dump(const struct nix_cqe_hdr_s *cq)
 		 rx->laflags, rx->lbflags, rx->lcflags);
 	nix_dump(file, "W2: ldflags \t%d\t\tleflags\t\t%d\t\tlfflags \t%d",
 		 rx->ldflags, rx->leflags, rx->lfflags);
-	nix_dump(file, "W2: lgflags \t%d\t\tlhflags \t%d", rx->lgflags,
-		 rx->lhflags);
+	nix_dump(file, "W2: lgflags \t%d\t\tlhflags \t%d", rx->lgflags, rx->lhflags);
 
 	nix_dump(file, "W3: eoh_ptr \t%d\t\twqe_aura \t%d\t\tpb_aura \t%d",
 		 rx->eoh_ptr, rx->wqe_aura, rx->pb_aura);
 	nix_dump(file, "W3: match_id \t%d", rx->match_id);
 
-	nix_dump(file, "W4: laptr \t%d\t\tlbptr \t\t%d\t\tlcptr \t\t%d",
-		 rx->laptr, rx->lbptr, rx->lcptr);
-	nix_dump(file, "W4: ldptr \t%d\t\tleptr \t\t%d\t\tlfptr \t\t%d",
-		 rx->ldptr, rx->leptr, rx->lfptr);
+	nix_dump(file, "W4: laptr \t%d\t\tlbptr \t\t%d\t\tlcptr \t\t%d", rx->laptr,
+		 rx->lbptr, rx->lcptr);
+	nix_dump(file, "W4: ldptr \t%d\t\tleptr \t\t%d\t\tlfptr \t\t%d", rx->ldptr,
+		 rx->leptr, rx->lfptr);
 	nix_dump(file, "W4: lgptr \t%d\t\tlhptr \t\t%d", rx->lgptr, rx->lhptr);
 
-	nix_dump(file,
-		 "W5: vtag0_ptr \t%d\t\tvtag1_ptr \t%d\t\tflow_key_alg \t%d",
+	nix_dump(file, "W5: vtag0_ptr \t%d\t\tvtag1_ptr \t%d\t\tflow_key_alg \t%d",
 		 rx->vtag0_ptr, rx->vtag1_ptr, rx->flow_key_alg);
 
 	for (i = 0; i < (rx->desc_sizem1 + 1) << 1; i++)
@@ -1183,8 +1157,8 @@ nix_tm_dump_lvl(struct nix *nix, struct nix_tm_node_list *list, uint8_t hw_lvl)
 		rc = mbox_process_msg(mbox, (void **)&rsp);
 		if (!rc) {
 			for (j = 0; j < k; j++)
-				nix_dump(file, "\t\t%s=0x%016" PRIx64,
-					 regstr[j], rsp->regval[j]);
+				nix_dump(file, "\t\t%s=0x%016" PRIx64, regstr[j],
+					 rsp->regval[j]);
 		} else {
 			nix_dump(file, "\t!!!Failed to dump registers!!!");
 		}
@@ -1209,8 +1183,8 @@ nix_tm_dump_lvl(struct nix *nix, struct nix_tm_node_list *list, uint8_t hw_lvl)
 		rc = mbox_process_msg(mbox, (void **)&rsp);
 		if (!rc) {
 			for (j = 0; j < k; j++)
-				nix_dump(file, "\t\t%s=0x%016" PRIx64,
-					 regstr[j], rsp->regval[j]);
+				nix_dump(file, "\t\t%s=0x%016" PRIx64, regstr[j],
+					 rsp->regval[j]);
 		} else {
 			nix_dump(file, "\t!!!Failed to dump registers!!!");
 		}
@@ -1226,8 +1200,7 @@ roc_nix_tm_dump(struct roc_nix *roc_nix, FILE *file)
 	struct dev *dev = &nix->dev;
 	uint8_t hw_lvl, i;
 
-	nix_dump(file,
-		 "===TM hierarchy and registers dump of %s (pf:vf) (%d:%d)===",
+	nix_dump(file, "===TM hierarchy and registers dump of %s (pf:vf) (%d:%d)===",
 		 nix->pci_dev->name, dev_get_pf(dev->pf_func),
 		 dev_get_vf(dev->pf_func));
 
@@ -1311,8 +1284,7 @@ roc_nix_dump(struct roc_nix *roc_nix, FILE *file)
 	nix_dump(file, "  \tsqb_size = %d", nix->sqb_size);
 	nix_dump(file, "  \tmsixoff = %d", nix->msixoff);
 	for (i = 0; i < nix->nb_cpt_lf; i++)
-		nix_dump(file, "  \tcpt_msixoff[%d] = %d", i,
-			 nix->cpt_msixoff[i]);
+		nix_dump(file, "  \tcpt_msixoff[%d] = %d", i, nix->cpt_msixoff[i]);
 	nix_dump(file, "  \tcints = %d", nix->cints);
 	nix_dump(file, "  \tqints = %d", nix->qints);
 	nix_dump(file, "  \tsdp_link = %d", nix->sdp_link);
@@ -1325,11 +1297,11 @@ roc_nix_dump(struct roc_nix *roc_nix, FILE *file)
 	nix_dump(file, "  \tinb_sa_sz = %" PRIu64, nix->inb_sa_sz);
 	nix_dump(file, "  \toutb_sa_base = 0x%p", nix->outb_sa_base);
 	nix_dump(file, "  \toutb_sa_sz = %" PRIu64, nix->outb_sa_sz);
-	nix_dump(file, "  \toutb_err_sso_pffunc = 0x%x",
-		 nix->outb_err_sso_pffunc);
+	nix_dump(file, "  \toutb_err_sso_pffunc = 0x%x", nix->outb_err_sso_pffunc);
 	nix_dump(file, "  \tcpt_lf_base = 0x%p", nix->cpt_lf_base);
 	nix_dump(file, "  \tnb_cpt_lf = %d", nix->nb_cpt_lf);
 	nix_dump(file, "  \tinb_inl_dev = %d", nix->inb_inl_dev);
+
 }
 
 void

@@ -218,8 +218,8 @@ static const struct cnxk_nix_xstats_name inl_sw_xstats[] = {
 #define CNXK_NIX_NUM_RX_XSTATS_RPM PLT_DIM(nix_rx_xstats_rpm)
 #define CNXK_NIX_NUM_TX_XSTATS_RPM PLT_DIM(nix_tx_xstats_rpm)
 #define CNXK_NIX_NUM_CN10K_RX_XSTATS PLT_DIM(nix_cn10k_rx_xstats)
-#define CNXK_INL_NIX_NUM_RX_XSTATS   PLT_DIM(inl_nix_rx_xstats)
-#define CNXK_INL_NIX_RQ_XSTATS	     PLT_DIM(inl_nix_rq_xstats)
+#define CNXK_INL_NIX_NUM_RX_XSTATS PLT_DIM(inl_nix_rx_xstats)
+#define CNXK_INL_NIX_RQ_XSTATS     PLT_DIM(inl_nix_rq_xstats)
 
 #define CNXK_NIX_NUM_XSTATS_REG                                                \
 	(CNXK_NIX_NUM_RX_XSTATS + CNXK_NIX_NUM_TX_XSTATS +                     \

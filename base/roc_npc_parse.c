@@ -221,8 +221,7 @@ npc_parse_tx_queue(struct npc_parse_state *pst)
 	parse_info.hw_mask = &hw_mask;
 	npc_get_hw_supp_mask(pst, &parse_info, lid, lt);
 
-	rc = npc_mask_is_supported(parse_info.mask, parse_info.hw_mask,
-				   parse_info.len);
+	rc = npc_mask_is_supported(parse_info.mask, parse_info.hw_mask, parse_info.len);
 	if (!rc)
 		return NPC_ERR_INVALID_MASK;
 
@@ -295,8 +294,7 @@ npc_parse_la(struct npc_parse_state *pst)
 static int
 npc_parse_vlan_count(const struct roc_npc_item_info *pattern,
 		     const struct roc_npc_item_info **pattern_list,
-		     const struct roc_npc_flow_item_vlan **vlan_items,
-		     int *vlan_count)
+		     const struct roc_npc_flow_item_vlan **vlan_items, int *vlan_count)
 {
 	*vlan_count = 0;
 	while (pattern->type == ROC_NPC_ITEM_TYPE_VLAN) {
@@ -329,8 +327,8 @@ npc_parse_vlan_count(const struct roc_npc_item_info *pattern,
 
 static int
 npc_parse_vlan_ltype_get(struct npc_parse_state *pst,
-			 const struct roc_npc_flow_item_vlan **vlan_item,
-			 int vlan_count, int *ltype, int *lflags)
+			 const struct roc_npc_flow_item_vlan **vlan_item, int vlan_count,
+			 int *ltype, int *lflags)
 {
 	switch (vlan_count) {
 	case 1:
@@ -353,8 +351,7 @@ npc_parse_vlan_ltype_get(struct npc_parse_state *pst,
 			 * hence will not match.
 			 */
 
-			*lflags = NPC_F_LB_L_WITH_QINQ_CTAG &
-				  NPC_F_LB_L_WITH_QINQ_QINQ &
+			*lflags = NPC_F_LB_L_WITH_QINQ_CTAG & NPC_F_LB_L_WITH_QINQ_QINQ &
 				  NPC_F_LB_L_WITH_STAG_STAG;
 		}
 		*ltype = NPC_LT_LB_STAG_QINQ;
@@ -362,8 +359,7 @@ npc_parse_vlan_ltype_get(struct npc_parse_state *pst,
 	case 3:
 		if (vlan_item[2] && vlan_item[2]->has_more_vlan)
 			return NPC_ERR_PATTERN_NOTSUP;
-		if (!(pst->npc->keyx_supp_nmask[pst->nix_intf] &
-		      0x3ULL << NPC_LFLAG_LB_OFFSET))
+		if (!(pst->npc->keyx_supp_nmask[pst->nix_intf] & 0x3ULL << NPC_LFLAG_LB_OFFSET))
 			return NPC_ERR_PATTERN_NOTSUP;
 		*ltype = NPC_LT_LB_STAG_QINQ;
 		*lflags = NPC_F_STAG_STAG_CTAG;
@@ -376,22 +372,17 @@ npc_parse_vlan_ltype_get(struct npc_parse_state *pst,
 }
 
 static int
-npc_update_vlan_parse_state(struct npc_parse_state *pst,
-			    const struct roc_npc_item_info *pattern, int lid,
-			    int lt, uint8_t lflags, int vlan_count)
+npc_update_vlan_parse_state(struct npc_parse_state *pst, const struct roc_npc_item_info *pattern,
+			    int lid, int lt, uint8_t lflags, int vlan_count)
 {
-	uint8_t vlan_spec[NPC_MAX_SUPPORTED_VLANS *
-			  sizeof(struct roc_vlan_hdr)];
-	uint8_t vlan_mask[NPC_MAX_SUPPORTED_VLANS *
-			  sizeof(struct roc_vlan_hdr)];
+	uint8_t vlan_spec[NPC_MAX_SUPPORTED_VLANS * sizeof(struct roc_vlan_hdr)];
+	uint8_t vlan_mask[NPC_MAX_SUPPORTED_VLANS * sizeof(struct roc_vlan_hdr)];
 	int rc = 0, i, offset = NPC_TPID_LENGTH;
 	struct npc_parse_item_info parse_info;
 	char hw_mask[NPC_MAX_EXTRACT_HW_LEN];
 
-	memset(vlan_spec, 0,
-	       sizeof(struct roc_vlan_hdr) * NPC_MAX_SUPPORTED_VLANS);
-	memset(vlan_mask, 0,
-	       sizeof(struct roc_vlan_hdr) * NPC_MAX_SUPPORTED_VLANS);
+	memset(vlan_spec, 0, sizeof(struct roc_vlan_hdr) * NPC_MAX_SUPPORTED_VLANS);
+	memset(vlan_mask, 0, sizeof(struct roc_vlan_hdr) * NPC_MAX_SUPPORTED_VLANS);
 	memset(&parse_info, 0, sizeof(parse_info));
 
 	if (vlan_count > 2)
@@ -399,11 +390,9 @@ npc_update_vlan_parse_state(struct npc_parse_state *pst,
 
 	for (i = 0; i < vlan_count; i++) {
 		if (pattern[i].spec)
-			memcpy(vlan_spec + offset, pattern[i].spec,
-			       sizeof(struct roc_vlan_hdr));
+			memcpy(vlan_spec + offset, pattern[i].spec, sizeof(struct roc_vlan_hdr));
 		if (pattern[i].mask)
-			memcpy(vlan_mask + offset, pattern[i].mask,
-			       sizeof(struct roc_vlan_hdr));
+			memcpy(vlan_mask + offset, pattern[i].mask, sizeof(struct roc_vlan_hdr));
 
 		offset += 4;
 	}
@@ -421,16 +410,14 @@ npc_update_vlan_parse_state(struct npc_parse_state *pst,
 		parse_info.len = sizeof(struct roc_vlan_hdr) + NPC_TPID_LENGTH;
 
 	if (lt == NPC_LT_LB_STAG_QINQ)
-		parse_info.len =
-			sizeof(struct roc_vlan_hdr) * 2 + NPC_TPID_LENGTH;
+		parse_info.len = sizeof(struct roc_vlan_hdr) * 2 + NPC_TPID_LENGTH;
 
 	memset(hw_mask, 0, sizeof(hw_mask));
 
 	parse_info.hw_mask = &hw_mask;
 	npc_get_hw_supp_mask(pst, &parse_info, lid, lt);
 
-	rc = npc_mask_is_supported(parse_info.mask, parse_info.hw_mask,
-				   parse_info.len);
+	rc = npc_mask_is_supported(parse_info.mask, parse_info.hw_mask, parse_info.len);
 	if (!rc)
 		return NPC_ERR_INVALID_MASK;
 
@@ -442,8 +429,7 @@ npc_update_vlan_parse_state(struct npc_parse_state *pst,
 static int
 npc_parse_lb_vlan(struct npc_parse_state *pst)
 {
-	const struct roc_npc_flow_item_vlan
-		*vlan_items[NPC_MAX_SUPPORTED_VLANS];
+	const struct roc_npc_flow_item_vlan *vlan_items[NPC_MAX_SUPPORTED_VLANS];
 	const struct roc_npc_item_info *pattern_list[NPC_MAX_SUPPORTED_VLANS];
 	const struct roc_npc_item_info *last_pattern;
 	int vlan_count = 0, rc = 0;
@@ -453,19 +439,16 @@ npc_parse_lb_vlan(struct npc_parse_state *pst)
 	lflags = 0;
 	last_pattern = pst->pattern;
 
-	rc = npc_parse_vlan_count(pst->pattern, pattern_list, vlan_items,
-				  &vlan_count);
+	rc = npc_parse_vlan_count(pst->pattern, pattern_list, vlan_items, &vlan_count);
 	if (rc)
 		return rc;
 
-	rc = npc_parse_vlan_ltype_get(pst, vlan_items, vlan_count, &lt,
-				      &lflags);
+	rc = npc_parse_vlan_ltype_get(pst, vlan_items, vlan_count, &lt, &lflags);
 	if (rc)
 		return rc;
 
 	if (vlan_count == 3) {
-		if (pattern_list[2]->spec != NULL &&
-		    pattern_list[2]->mask != NULL &&
+		if (pattern_list[2]->spec != NULL && pattern_list[2]->mask != NULL &&
 		    pattern_list[2]->last != NULL)
 			return NPC_ERR_PATTERN_NOTSUP;
 
@@ -474,8 +457,7 @@ npc_parse_lb_vlan(struct npc_parse_state *pst)
 		last_pattern++;
 	}
 
-	rc = npc_update_vlan_parse_state(pst, pattern_list[0], lid, lt, lflags,
-					 vlan_count);
+	rc = npc_update_vlan_parse_state(pst, pattern_list[0], lid, lt, lflags, vlan_count);
 	if (rc)
 		return rc;
 
@@ -736,10 +718,8 @@ npc_handle_ipv6ext_attr(const struct roc_npc_flow_item_ipv6 *ipv6_spec,
 static int
 npc_process_ipv6_item(struct npc_parse_state *pst)
 {
-	uint8_t ipv6_hdr_mask[sizeof(struct roc_ipv6_hdr) +
-			      sizeof(struct roc_ipv6_fragment_ext)];
-	uint8_t ipv6_hdr_buf[sizeof(struct roc_ipv6_hdr) +
-			     sizeof(struct roc_ipv6_fragment_ext)];
+	uint8_t ipv6_hdr_mask[sizeof(struct roc_ipv6_hdr) + sizeof(struct roc_ipv6_fragment_ext)];
+	uint8_t ipv6_hdr_buf[sizeof(struct roc_ipv6_hdr) + sizeof(struct roc_ipv6_fragment_ext)];
 	const struct roc_npc_flow_item_ipv6 *ipv6_spec, *ipv6_mask;
 	const struct roc_npc_item_info *pattern = pst->pattern;
 	int offset = 0, rc = 0, lid, item_count = 0;
@@ -768,15 +748,13 @@ npc_process_ipv6_item(struct npc_parse_state *pst)
 	if (pattern->type == ROC_NPC_ITEM_TYPE_IPV6) {
 		item_count++;
 		if (ipv6_spec) {
-			memcpy(ipv6_hdr_buf, &ipv6_spec->hdr,
-			       sizeof(struct roc_ipv6_hdr));
+			memcpy(ipv6_hdr_buf, &ipv6_spec->hdr, sizeof(struct roc_ipv6_hdr));
 			rc = npc_handle_ipv6ext_attr(ipv6_spec, pst, &flags);
 			if (rc)
 				return rc;
 		}
 		if (ipv6_mask)
-			memcpy(ipv6_hdr_mask, &ipv6_mask->hdr,
-			       sizeof(struct roc_ipv6_hdr));
+			memcpy(ipv6_hdr_mask, &ipv6_mask->hdr, sizeof(struct roc_ipv6_hdr));
 	}
 
 	offset = sizeof(struct roc_ipv6_hdr);
@@ -802,8 +780,8 @@ npc_process_ipv6_item(struct npc_parse_state *pst)
 		if (pattern->type == ROC_NPC_ITEM_TYPE_IPV6_EXT) {
 			item_count++;
 			ltype = NPC_LT_LC_IP6_EXT;
-			parse_info.len = sizeof(struct roc_ipv6_hdr) +
-					 sizeof(struct roc_flow_item_ipv6_ext);
+			parse_info.len =
+				sizeof(struct roc_ipv6_hdr) + sizeof(struct roc_flow_item_ipv6_ext);
 			if (pattern->spec)
 				memcpy(ipv6_hdr_buf + offset, pattern->spec,
 				       sizeof(struct roc_flow_item_ipv6_ext));
@@ -815,8 +793,8 @@ npc_process_ipv6_item(struct npc_parse_state *pst)
 			item_count++;
 			ltype = NPC_LT_LC_IP6_EXT;
 			flags = NPC_F_LC_U_IP6_FRAG;
-			parse_info.len = sizeof(struct roc_ipv6_hdr) +
-					 sizeof(struct roc_ipv6_fragment_ext);
+			parse_info.len =
+				sizeof(struct roc_ipv6_hdr) + sizeof(struct roc_ipv6_fragment_ext);
 			if (pattern->spec)
 				memcpy(ipv6_hdr_buf + offset, pattern->spec,
 				       sizeof(struct roc_ipv6_fragment_ext));
@@ -836,8 +814,7 @@ npc_process_ipv6_item(struct npc_parse_state *pst)
 	parse_info.hw_mask = &hw_mask;
 	npc_get_hw_supp_mask(pst, &parse_info, lid, ltype);
 
-	rc = npc_mask_is_supported(parse_info.mask, parse_info.hw_mask,
-				   parse_info.len);
+	rc = npc_mask_is_supported(parse_info.mask, parse_info.hw_mask, parse_info.len);
 	if (!rc)
 		return NPC_ERR_INVALID_MASK;
 
@@ -846,8 +823,7 @@ npc_process_ipv6_item(struct npc_parse_state *pst)
 		return rc;
 
 	if (pst->npc->hash_extract_cap) {
-		rc = npc_process_ipv6_field_hash(parse_info.spec,
-						 parse_info.mask, pst, ltype);
+		rc = npc_process_ipv6_field_hash(parse_info.spec, parse_info.mask, pst, ltype);
 		if (rc)
 			return rc;
 	}

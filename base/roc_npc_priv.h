@@ -442,22 +442,18 @@ int npc_mcam_alloc_and_write(struct npc *npc, struct roc_npc_flow *flow,
 int npc_mcam_alloc_entry(struct npc *npc, struct roc_npc_flow *mcam,
 			 struct roc_npc_flow *ref_mcam, int prio,
 			 int *resp_count);
-int npc_mcam_alloc_entries(struct mbox *mbox, int ref_mcam, int *alloc_entry,
-			   int req_count, int prio, int *resp_count,
-			   bool is_conti);
+int npc_mcam_alloc_entries(struct mbox *mbox, int ref_mcam, int *alloc_entry, int req_count,
+			   int prio, int *resp_count, bool is_conti);
 
-int npc_mcam_ena_dis_entry(struct npc *npc, struct roc_npc_flow *mcam,
-			   bool enable);
+int npc_mcam_ena_dis_entry(struct npc *npc, struct roc_npc_flow *mcam, bool enable);
 int npc_mcam_write_entry(struct mbox *mbox, struct roc_npc_flow *mcam);
 int npc_flow_enable_all_entries(struct npc *npc, bool enable);
-int npc_update_parse_state(struct npc_parse_state *pst,
-			   struct npc_parse_item_info *info, int lid, int lt,
-			   uint8_t flags);
-void npc_get_hw_supp_mask(struct npc_parse_state *pst,
-			  struct npc_parse_item_info *info, int lid, int lt);
+int npc_update_parse_state(struct npc_parse_state *pst, struct npc_parse_item_info *info, int lid,
+			   int lt, uint8_t flags);
+void npc_get_hw_supp_mask(struct npc_parse_state *pst, struct npc_parse_item_info *info, int lid,
+			  int lt);
 int npc_mask_is_supported(const char *mask, const char *hw_mask, int len);
-int npc_parse_item_basic(const struct roc_npc_item_info *item,
-			 struct npc_parse_item_info *info);
+int npc_parse_item_basic(const struct roc_npc_item_info *item, struct npc_parse_item_info *info);
 int npc_parse_meta_items(struct npc_parse_state *pst);
 int npc_parse_mark_item(struct npc_parse_state *pst);
 int npc_parse_pre_l2(struct npc_parse_state *pst);
@@ -474,33 +470,26 @@ int npc_parse_lg(struct npc_parse_state *pst);
 int npc_parse_lh(struct npc_parse_state *pst);
 int npc_mcam_fetch_kex_cfg(struct npc *npc);
 int npc_mcam_fetch_hw_cap(struct npc *npc, uint8_t *npc_hw_cap);
-int npc_get_free_mcam_entry(struct mbox *mbox, struct roc_npc_flow *flow,
-			    struct npc *npc);
+int npc_get_free_mcam_entry(struct mbox *mbox, struct roc_npc_flow *flow, struct npc *npc);
 void npc_delete_prio_list_entry(struct npc *npc, struct roc_npc_flow *flow);
 int npc_flow_free_all_resources(struct npc *npc);
 const struct roc_npc_item_info *
 npc_parse_skip_void_and_any_items(const struct roc_npc_item_info *pattern);
-int npc_program_mcam(struct npc *npc, struct npc_parse_state *pst,
-		     bool mcam_alloc);
+int npc_program_mcam(struct npc *npc, struct npc_parse_state *pst, bool mcam_alloc);
 uint64_t npc_get_kex_capability(struct npc *npc);
 int npc_process_ipv6_field_hash(const struct roc_npc_flow_item_ipv6 *ipv6_spec,
 				const struct roc_npc_flow_item_ipv6 *ipv6_mask,
 				struct npc_parse_state *pst, uint8_t type);
 int npc_rss_free_grp_get(struct npc *npc, uint32_t *grp);
-int npc_rss_action_configure(struct roc_npc *roc_npc,
-			     const struct roc_npc_action_rss *rss,
-			     uint8_t *alg_idx, uint32_t *rss_grp,
-			     uint32_t mcam_id);
-int npc_rss_action_program(struct roc_npc *roc_npc,
-			   const struct roc_npc_action actions[],
+int npc_rss_action_configure(struct roc_npc *roc_npc, const struct roc_npc_action_rss *rss,
+			     uint8_t *alg_idx, uint32_t *rss_grp, uint32_t mcam_id);
+int npc_rss_action_program(struct roc_npc *roc_npc, const struct roc_npc_action actions[],
 			   struct roc_npc_flow *flow);
 int npc_rss_group_free(struct npc *npc, struct roc_npc_flow *flow);
 int npc_mcam_init(struct npc *npc, struct roc_npc_flow *flow, int mcam_id);
 int npc_mcam_move(struct mbox *mbox, uint16_t old_ent, uint16_t new_ent);
-void npc_age_flow_list_entry_add(struct roc_npc *npc,
-				 struct roc_npc_flow *flow);
-void npc_age_flow_list_entry_delete(struct roc_npc *npc,
-				    struct roc_npc_flow *flow);
+void npc_age_flow_list_entry_add(struct roc_npc *npc, struct roc_npc_flow *flow);
+void npc_age_flow_list_entry_delete(struct roc_npc *npc, struct roc_npc_flow *flow);
 void *npc_aged_flows_get(void *args);
 int npc_aged_flows_bitmap_alloc(struct roc_npc *roc_npc);
 void npc_aged_flows_bitmap_free(struct roc_npc *roc_npc);

@@ -227,7 +227,7 @@ roc_nix_lso_fmt_setup(struct roc_nix *roc_nix)
 	 */
 	req = mbox_alloc_msg_nix_lso_format_cfg(mbox);
 	if (req == NULL) {
-		rc = -ENOSPC;
+		rc =  -ENOSPC;
 		goto exit;
 	}
 	nix_lso_tcp(req, false);
@@ -247,7 +247,7 @@ roc_nix_lso_fmt_setup(struct roc_nix *roc_nix)
 	 */
 	req = mbox_alloc_msg_nix_lso_format_cfg(mbox);
 	if (req == NULL) {
-		rc = -ENOSPC;
+		rc =  -ENOSPC;
 		goto exit;
 	}
 	nix_lso_udp_tun_tcp(req, true, true);
@@ -263,7 +263,7 @@ roc_nix_lso_fmt_setup(struct roc_nix *roc_nix)
 	 */
 	req = mbox_alloc_msg_nix_lso_format_cfg(mbox);
 	if (req == NULL) {
-		rc = -ENOSPC;
+		rc =  -ENOSPC;
 		goto exit;
 	}
 	nix_lso_udp_tun_tcp(req, true, false);
@@ -279,7 +279,7 @@ roc_nix_lso_fmt_setup(struct roc_nix *roc_nix)
 	 */
 	req = mbox_alloc_msg_nix_lso_format_cfg(mbox);
 	if (req == NULL) {
-		rc = -ENOSPC;
+		rc =  -ENOSPC;
 		goto exit;
 	}
 	nix_lso_udp_tun_tcp(req, false, true);
@@ -295,7 +295,7 @@ roc_nix_lso_fmt_setup(struct roc_nix *roc_nix)
 	 */
 	req = mbox_alloc_msg_nix_lso_format_cfg(mbox);
 	if (req == NULL) {
-		rc = -ENOSPC;
+		rc =  -ENOSPC;
 		goto exit;
 	}
 	nix_lso_udp_tun_tcp(req, false, false);
@@ -311,7 +311,7 @@ roc_nix_lso_fmt_setup(struct roc_nix *roc_nix)
 	 */
 	req = mbox_alloc_msg_nix_lso_format_cfg(mbox);
 	if (req == NULL) {
-		rc = -ENOSPC;
+		rc =  -ENOSPC;
 		goto exit;
 	}
 	nix_lso_tun_tcp(req, true, true);
@@ -327,7 +327,7 @@ roc_nix_lso_fmt_setup(struct roc_nix *roc_nix)
 	 */
 	req = mbox_alloc_msg_nix_lso_format_cfg(mbox);
 	if (req == NULL) {
-		rc = -ENOSPC;
+		rc =  -ENOSPC;
 		goto exit;
 	}
 	nix_lso_tun_tcp(req, true, false);
@@ -343,7 +343,7 @@ roc_nix_lso_fmt_setup(struct roc_nix *roc_nix)
 	 */
 	req = mbox_alloc_msg_nix_lso_format_cfg(mbox);
 	if (req == NULL) {
-		rc = -ENOSPC;
+		rc =  -ENOSPC;
 		goto exit;
 	}
 	nix_lso_tun_tcp(req, false, true);
@@ -359,7 +359,7 @@ roc_nix_lso_fmt_setup(struct roc_nix *roc_nix)
 	 */
 	req = mbox_alloc_msg_nix_lso_format_cfg(mbox);
 	if (req == NULL) {
-		rc = -ENOSPC;
+		rc =  -ENOSPC;
 		goto exit;
 	}
 

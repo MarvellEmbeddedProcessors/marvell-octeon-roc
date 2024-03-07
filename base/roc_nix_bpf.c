@@ -712,7 +712,7 @@ roc_nix_bpf_ena_dis(struct roc_nix *roc_nix, uint16_t id, struct roc_nix_rq *rq,
 	}
 
 	if (rq->qid >= nix->nb_rx_queues) {
-		rc = NIX_ERR_QUEUE_INVALID_RANGE;
+		rc =  NIX_ERR_QUEUE_INVALID_RANGE;
 		goto exit;
 	}
 

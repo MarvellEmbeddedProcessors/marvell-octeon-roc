@@ -73,8 +73,8 @@ roc_npa_aura_op_range_get(uint64_t aura_handle, uint64_t *start_iova,
 }
 
 static int
-npa_aura_pool_init(struct mbox *m_box, uint32_t aura_id,
-		   struct npa_aura_s *aura, struct npa_pool_s *pool)
+npa_aura_pool_init(struct mbox *m_box, uint32_t aura_id, struct npa_aura_s *aura,
+		   struct npa_pool_s *pool)
 {
 	struct npa_aq_enq_req *aura_init_req, *pool_init_req;
 	struct npa_aq_enq_rsp *aura_init_rsp, *pool_init_rsp;
@@ -636,8 +636,8 @@ npa_aura_alloc(struct npa_lf *lf, const uint32_t block_count, int pool_id,
 	roc_npa_dev_unlock();
 	rc = (aura_id < 0 || pool_id >= (int)lf->nr_pools ||
 	      aura_id >= (int)BIT_ULL(6 + lf->aura_sz)) ?
-		     NPA_ERR_AURA_ID_ALLOC :
-		     0;
+			NPA_ERR_AURA_ID_ALLOC :
+			0;
 	if (rc)
 		goto exit;
 
@@ -896,8 +896,8 @@ roc_npa_zero_aura_handle(void)
 }
 
 int
-roc_npa_aura_bp_configure(uint64_t aura_handle, uint16_t bpid, uint8_t bp_intf,
-			  uint8_t bp_thresh, bool enable)
+roc_npa_aura_bp_configure(uint64_t aura_handle, uint16_t bpid, uint8_t bp_intf, uint8_t bp_thresh,
+			  bool enable)
 {
 	uint32_t aura_id = roc_npa_aura_handle_to_aura(aura_handle);
 	struct npa_lf *lf = idev_npa_obj_get();
@@ -905,9 +905,8 @@ roc_npa_aura_bp_configure(uint64_t aura_handle, uint16_t bpid, uint8_t bp_intf,
 	struct mbox *mbox;
 	int rc = 0;
 
-	plt_npa_dbg(
-		"Setting BPID %u BP_INTF 0x%x BP_THRESH %u enable %u on aura %" PRIx64,
-		bpid, bp_intf, bp_thresh, enable, aura_handle);
+	plt_npa_dbg("Setting BPID %u BP_INTF 0x%x BP_THRESH %u enable %u on aura %" PRIx64,
+		    bpid, bp_intf, bp_thresh, enable, aura_handle);
 
 	if (lf == NULL)
 		return NPA_ERR_PARAM;
@@ -1025,7 +1024,7 @@ npa_lf_alloc(struct npa_lf *lf)
 
 	req = mbox_alloc_msg_npa_lf_alloc(mbox);
 	if (req == NULL) {
-		rc = -ENOSPC;
+		rc =  -ENOSPC;
 		goto exit;
 	}
 	req->aura_sz = lf->aura_sz;

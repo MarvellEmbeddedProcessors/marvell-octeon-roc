@@ -446,8 +446,8 @@ roc_ree_lf_err_intr_unregister(struct roc_ree_vf *vf, uint16_t msix_off,
 	/* Disable error interrupts */
 	plt_write64(~0ull, base + REE_LF_MISC_INT_ENA_W1C);
 
-	dev_irq_unregister(pci_dev->intr_handle, roc_ree_lf_err_intr_handler,
-			   (void *)base, msix_off);
+	dev_irq_unregister(pci_dev->intr_handle,
+			   roc_ree_lf_err_intr_handler, (void *)base, msix_off);
 }
 
 void

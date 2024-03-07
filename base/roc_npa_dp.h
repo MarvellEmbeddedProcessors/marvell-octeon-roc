@@ -5,7 +5,7 @@
 #ifndef _ROC_NPA_DP_H_
 #define _ROC_NPA_DP_H_
 
-#define ROC_AURA_ID_MASK (BIT_ULL(16) - 1)
+#define ROC_AURA_ID_MASK       (BIT_ULL(16) - 1)
 
 static inline uint64_t
 roc_npa_aura_handle_to_aura(uint64_t aura_handle)

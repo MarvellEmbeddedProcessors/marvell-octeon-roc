@@ -355,8 +355,7 @@ roc_tim_init(struct roc_tim *roc_tim)
 	}
 
 	if (nb_lfs && (nb_free_lfs < nb_lfs)) {
-		plt_tim_dbg("Requested LFs : %d Available LFs : %d", nb_lfs,
-			    nb_free_lfs);
+		plt_tim_dbg("Requested LFs : %d Available LFs : %d", nb_lfs, nb_free_lfs);
 		nb_lfs = 0;
 		return nb_lfs;
 	}
@@ -383,8 +382,7 @@ roc_tim_init(struct roc_tim *roc_tim)
 	if (rc < 0) {
 		plt_err("Unable to get TIM MSIX vectors");
 
-		detach_req =
-			mbox_alloc_msg_detach_resources(mbox_get(dev->mbox));
+		detach_req = mbox_alloc_msg_detach_resources(mbox_get(dev->mbox));
 		if (detach_req == NULL) {
 			nb_lfs = 0;
 			goto fail;

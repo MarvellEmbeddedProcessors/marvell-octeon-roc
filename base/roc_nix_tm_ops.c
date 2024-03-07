@@ -558,8 +558,7 @@ cleanup:
 }
 
 int
-roc_nix_tm_hierarchy_xmit_enable(struct roc_nix *roc_nix,
-				 enum roc_nix_tm_tree tree)
+roc_nix_tm_hierarchy_xmit_enable(struct roc_nix *roc_nix, enum roc_nix_tm_tree tree)
 {
 	struct nix *nix = roc_nix_to_nix_priv(roc_nix);
 	struct nix_tm_node_list *list;
@@ -574,7 +573,7 @@ roc_nix_tm_hierarchy_xmit_enable(struct roc_nix *roc_nix,
 	list = nix_tm_node_list(nix, tree);
 
 	/* Update SQ Sched Data while SQ is idle */
-	TAILQ_FOREACH (node, list, node) {
+	TAILQ_FOREACH(node, list, node) {
 		if (!nix_tm_is_leaf(nix, node->lvl))
 			continue;
 
@@ -587,7 +586,7 @@ roc_nix_tm_hierarchy_xmit_enable(struct roc_nix *roc_nix,
 	}
 
 	/* Finally XON all SMQ's */
-	TAILQ_FOREACH (node, list, node) {
+	TAILQ_FOREACH(node, list, node) {
 		if (node->hw_lvl != NIX_TXSCH_LVL_SMQ)
 			continue;
 
@@ -600,7 +599,7 @@ roc_nix_tm_hierarchy_xmit_enable(struct roc_nix *roc_nix,
 	}
 
 	/* Enable xmit as all the topology is ready */
-	TAILQ_FOREACH (node, list, node) {
+	TAILQ_FOREACH(node, list, node) {
 		if (!nix_tm_is_leaf(nix, node->lvl))
 			continue;
 
@@ -932,8 +931,7 @@ roc_nix_tm_node_parent_update(struct roc_nix *roc_nix, uint32_t node_id,
 		TAILQ_FOREACH(sibling, list, node) {
 			if (sibling->parent != node->parent)
 				continue;
-			k += nix_tm_sw_xoff_prep(sibling, true, &req->reg[k],
-						 &req->regval[k]);
+			k += nix_tm_sw_xoff_prep(sibling, true, &req->reg[k], &req->regval[k]);
 			if (k >= MAX_REGS_PER_MBOX_MSG) {
 				req->num_regs = k;
 				rc = mbox_process(mbox);
@@ -941,8 +939,7 @@ roc_nix_tm_node_parent_update(struct roc_nix *roc_nix, uint32_t node_id,
 				if (rc)
 					return rc;
 				k = 0;
-				req = mbox_alloc_msg_nix_txschq_cfg(
-					mbox_get(mbox));
+				req = mbox_alloc_msg_nix_txschq_cfg(mbox_get(mbox));
 				req->lvl = node->hw_lvl;
 			}
 		}
@@ -958,8 +955,7 @@ roc_nix_tm_node_parent_update(struct roc_nix *roc_nix, uint32_t node_id,
 		}
 
 		req->lvl = node->hw_lvl;
-		req->num_regs =
-			nix_tm_sched_reg_prep(nix, node, req->reg, req->regval);
+		req->num_regs = nix_tm_sched_reg_prep(nix, node, req->reg, req->regval);
 		rc = mbox_process(mbox);
 		mbox_put(mbox);
 		if (rc)
@@ -973,8 +969,7 @@ roc_nix_tm_node_parent_update(struct roc_nix *roc_nix, uint32_t node_id,
 		TAILQ_FOREACH(sibling, list, node) {
 			if (sibling->parent != node->parent)
 				continue;
-			k += nix_tm_sw_xoff_prep(sibling, false, &req->reg[k],
-						 &req->regval[k]);
+			k += nix_tm_sw_xoff_prep(sibling, false, &req->reg[k], &req->regval[k]);
 			if (k >= MAX_REGS_PER_MBOX_MSG) {
 				req->num_regs = k;
 				rc = mbox_process(mbox);
@@ -982,8 +977,7 @@ roc_nix_tm_node_parent_update(struct roc_nix *roc_nix, uint32_t node_id,
 				if (rc)
 					return rc;
 				k = 0;
-				req = mbox_alloc_msg_nix_txschq_cfg(
-					mbox_get(mbox));
+				req = mbox_alloc_msg_nix_txschq_cfg(mbox_get(mbox));
 				req->lvl = node->hw_lvl;
 			}
 		}
@@ -999,8 +993,7 @@ roc_nix_tm_node_parent_update(struct roc_nix *roc_nix, uint32_t node_id,
 		}
 
 		req->lvl = node->parent->hw_lvl;
-		req->num_regs = nix_tm_sw_xoff_prep(node->parent, false,
-						    req->reg, req->regval);
+		req->num_regs = nix_tm_sw_xoff_prep(node->parent, false, req->reg, req->regval);
 		rc = mbox_process(mbox);
 		mbox_put(mbox);
 		if (rc)
@@ -1055,8 +1048,7 @@ roc_nix_tm_pfc_rlimit_sq(struct roc_nix *roc_nix, uint16_t qid, uint64_t rate)
 	uint8_t k = 0;
 	int rc;
 
-	if ((nix->tm_tree != ROC_NIX_TM_PFC) ||
-	    !(nix->tm_flags & NIX_TM_HIERARCHY_ENA))
+	if ((nix->tm_tree != ROC_NIX_TM_PFC) || !(nix->tm_flags & NIX_TM_HIERARCHY_ENA))
 		return NIX_ERR_TM_INVALID_TREE;
 
 	node = nix_tm_node_search(nix, qid, nix->tm_tree);
@@ -1100,8 +1092,8 @@ roc_nix_tm_pfc_rlimit_sq(struct roc_nix *roc_nix, uint16_t qid, uint64_t rate)
 	memset(&profile, 0, sizeof(profile));
 	profile.peak.rate = rate;
 	/* Minimum burst of ~4us Bytes of Tx */
-	profile.peak.size = PLT_MAX((uint64_t)roc_nix_max_pkt_len(roc_nix),
-				    (4ul * rate) / ((uint64_t)1E6 * 8));
+	profile.peak.size =
+		PLT_MAX((uint64_t)roc_nix_max_pkt_len(roc_nix), (4ul * rate) / ((uint64_t)1E6 * 8));
 	if (!nix->tm_rate_min || nix->tm_rate_min > rate)
 		nix->tm_rate_min = rate;
 
@@ -1128,11 +1120,9 @@ exit:
 		memset(&profile, 0, sizeof(profile));
 		profile.peak.rate = tl2_rate;
 		/* Minimum burst of ~4us Bytes of Tx */
-		profile.peak.size =
-			PLT_MAX((uint64_t)roc_nix_max_pkt_len(roc_nix),
-				(4ul * tl2_rate) / ((uint64_t)1E6 * 8));
-		k += nix_tm_shaper_reg_prep(parent, &profile, &reg[k],
-					    &regval[k]);
+		profile.peak.size = PLT_MAX((uint64_t)roc_nix_max_pkt_len(roc_nix),
+					    (4ul * tl2_rate) / ((uint64_t)1E6 * 8));
+		k += nix_tm_shaper_reg_prep(parent, &profile, &reg[k], &regval[k]);
 		req->num_regs = k;
 		rc = mbox_process(mbox);
 		mbox_put(mbox);

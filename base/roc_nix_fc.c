@@ -96,8 +96,7 @@ nix_fc_rxchan_bpid_set(struct roc_nix *roc_nix, bool enable)
 
 	mbox_put(mbox);
 	for (i = 0; i < nix->rx_chan_cnt; i++) {
-		rc = roc_nix_chan_bpid_set(roc_nix, i, nix->cpt_nixbpid, enable,
-					   false);
+		rc = roc_nix_chan_bpid_set(roc_nix, i, nix->cpt_nixbpid, enable, false);
 		if (rc)
 			break;
 	}
@@ -297,22 +296,18 @@ nix_fc_rq_config_set(struct roc_nix *roc_nix, struct roc_nix_fc_cfg *fc_cfg)
 			pool_drop_pct = ROC_NIX_AURA_THRESH;
 
 		roc_nix_fc_npa_bp_cfg(roc_nix, fc_cfg->rq_cfg.pool,
-				      fc_cfg->rq_cfg.enable,
-				      roc_nix->force_rx_aura_bp,
+				      fc_cfg->rq_cfg.enable, roc_nix->force_rx_aura_bp,
 				      fc_cfg->rq_cfg.tc, pool_drop_pct);
 
 		if (rq->spb_ena) {
 			roc_nix_fc_npa_bp_cfg(roc_nix, fc_cfg->rq_cfg.spb_pool,
-					      fc_cfg->rq_cfg.enable,
-					      roc_nix->force_rx_aura_bp,
+					      fc_cfg->rq_cfg.enable, roc_nix->force_rx_aura_bp,
 					      fc_cfg->rq_cfg.tc, pool_drop_pct);
 		}
 
 		if (roc_nix->local_meta_aura_ena && roc_nix->meta_aura_handle)
-			roc_nix_fc_npa_bp_cfg(roc_nix,
-					      roc_nix->meta_aura_handle,
-					      fc_cfg->rq_cfg.enable,
-					      roc_nix->force_rx_aura_bp,
+			roc_nix_fc_npa_bp_cfg(roc_nix, roc_nix->meta_aura_handle,
+					      fc_cfg->rq_cfg.enable, roc_nix->force_rx_aura_bp,
 					      fc_cfg->rq_cfg.tc, pool_drop_pct);
 	}
 
@@ -328,8 +323,7 @@ nix_fc_rq_config_set(struct roc_nix *roc_nix, struct roc_nix_fc_cfg *fc_cfg)
 	if (rc)
 		return rc;
 
-	rq->tc = fc_cfg->rq_cfg.enable ? fc_cfg->rq_cfg.tc :
-					 ROC_NIX_PFC_CLASS_INVALID;
+	rq->tc = fc_cfg->rq_cfg.enable ? fc_cfg->rq_cfg.tc : ROC_NIX_PFC_CLASS_INVALID;
 	plt_nix_dbg("RQ %u: TC %u %s", fc_cfg->rq_cfg.rq, fc_cfg->rq_cfg.tc,
 		    fc_cfg->rq_cfg.enable ? "enabled" : "disabled");
 	return 0;
@@ -430,8 +424,7 @@ exit:
 }
 
 static int
-nix_rx_chan_multi_bpid_cfg(struct roc_nix *roc_nix, uint8_t chan, uint16_t bpid,
-			   uint16_t *bpid_new)
+nix_rx_chan_multi_bpid_cfg(struct roc_nix *roc_nix, uint8_t chan, uint16_t bpid, uint16_t *bpid_new)
 {
 	struct roc_nix *roc_nix_tmp, *roc_nix_pre = NULL;
 	struct roc_nix_list *nix_list;
@@ -445,7 +438,7 @@ nix_rx_chan_multi_bpid_cfg(struct roc_nix *roc_nix, uint8_t chan, uint16_t bpid,
 		return -EINVAL;
 
 	/* Find associated NIX RX channel if Aura BPID is of that of a NIX. */
-	TAILQ_FOREACH (roc_nix_tmp, nix_list, next) {
+	TAILQ_FOREACH(roc_nix_tmp, nix_list, next) {
 		struct nix *nix = roc_nix_to_nix_priv(roc_nix_tmp);
 		int i;
 
@@ -463,16 +456,13 @@ nix_rx_chan_multi_bpid_cfg(struct roc_nix *roc_nix, uint8_t chan, uint16_t bpid,
 
 	/* Alloc and configure a new BPID if Aura BPID is that of a NIX. */
 	if (roc_nix_pre) {
-		if (roc_nix_bpids_alloc(roc_nix, ROC_NIX_INTF_TYPE_SSO, 1,
-					bpid_new) <= 0)
+		if (roc_nix_bpids_alloc(roc_nix, ROC_NIX_INTF_TYPE_SSO, 1, bpid_new) <= 0)
 			return -ENOSPC;
 
-		if (roc_nix_chan_bpid_set(roc_nix_pre, chan_pre, *bpid_new, 1,
-					  false) < 0)
+		if (roc_nix_chan_bpid_set(roc_nix_pre, chan_pre, *bpid_new, 1, false) < 0)
 			return -ENOSPC;
 
-		if (roc_nix_chan_bpid_set(roc_nix, chan, *bpid_new, 1, false) <
-		    0)
+		if (roc_nix_chan_bpid_set(roc_nix, chan, *bpid_new, 1, false) < 0)
 			return -ENOSPC;
 
 		return 0;
@@ -486,8 +476,8 @@ nix_rx_chan_multi_bpid_cfg(struct roc_nix *roc_nix, uint8_t chan, uint16_t bpid,
 #define NIX_BPID_INVALID 0xFFFF
 
 void
-roc_nix_fc_npa_bp_cfg(struct roc_nix *roc_nix, uint64_t pool_id, uint8_t ena,
-		      uint8_t force, uint8_t tc, uint64_t drop_percent)
+roc_nix_fc_npa_bp_cfg(struct roc_nix *roc_nix, uint64_t pool_id, uint8_t ena, uint8_t force,
+		      uint8_t tc, uint64_t drop_percent)
 {
 	uint32_t aura_id = roc_npa_aura_handle_to_aura(pool_id);
 	struct nix *nix = roc_nix_to_nix_priv(roc_nix);
@@ -506,35 +496,28 @@ roc_nix_fc_npa_bp_cfg(struct roc_nix *roc_nix, uint64_t pool_id, uint8_t ena,
 	aura_attr = &lf->aura_attr[aura_id];
 
 	bp_intf = 1 << nix->is_nix1;
-	bp_thresh = NIX_RQ_AURA_THRESH(drop_percent,
-				       aura_attr->limit >> aura_attr->shift);
+	bp_thresh = NIX_RQ_AURA_THRESH(drop_percent, aura_attr->limit >> aura_attr->shift);
 
-	bpid = (aura_attr->bp_ena & 0x1) ? aura_attr->nix0_bpid :
-					   aura_attr->nix1_bpid;
+	bpid = (aura_attr->bp_ena & 0x1) ? aura_attr->nix0_bpid : aura_attr->nix1_bpid;
 	/* BP is already enabled. */
 	if (aura_attr->bp_ena && ena) {
 		/* Disable BP if BPIDs don't match and couldn't add new BPID. */
 		if (bpid != nix->bpid[tc]) {
 			uint16_t bpid_new = NIX_BPID_INVALID;
 
-			if (force && !nix_rx_chan_multi_bpid_cfg(
-					     roc_nix, tc, bpid, &bpid_new)) {
-				plt_info(
-					"Setting up shared BPID on shared aura 0x%" PRIx64,
-					pool_id);
+			if (force && !nix_rx_chan_multi_bpid_cfg(roc_nix, tc, bpid, &bpid_new)) {
+				plt_info("Setting up shared BPID on shared aura 0x%" PRIx64,
+					 pool_id);
 
-				/* Configure Aura with new BPID if it is
-				 * allocated. */
-				if (roc_npa_aura_bp_configure(pool_id, bpid_new,
-							      bp_intf,
-							      bp_thresh, true))
+				/* Configure Aura with new BPID if it is allocated. */
+				if (roc_npa_aura_bp_configure(pool_id, bpid_new, bp_intf, bp_thresh,
+							      true))
 					plt_err("Enabling backpressue failed on aura 0x%" PRIx64,
 						pool_id);
 			} else {
 				aura_attr->ref_count++;
-				plt_info(
-					"Ignoring port=%u tc=%u config on shared aura 0x%" PRIx64,
-					roc_nix->port_id, tc, pool_id);
+				plt_info("Ignoring port=%u tc=%u config on shared aura 0x%" PRIx64,
+					 roc_nix->port_id, tc, pool_id);
 			}
 		}
 
@@ -546,17 +529,14 @@ roc_nix_fc_npa_bp_cfg(struct roc_nix *roc_nix, uint64_t pool_id, uint8_t ena,
 		return;
 
 	if (ena) {
-		if (roc_npa_aura_bp_configure(pool_id, nix->bpid[tc], bp_intf,
-					      bp_thresh, true))
-			plt_err("Enabling backpressue failed on aura 0x%" PRIx64,
-				pool_id);
+		if (roc_npa_aura_bp_configure(pool_id, nix->bpid[tc], bp_intf, bp_thresh, true))
+			plt_err("Enabling backpressue failed on aura 0x%" PRIx64, pool_id);
 		else
 			aura_attr->ref_count++;
 	} else {
 		bool found = !!force;
 
-		/* Don't disable if existing BPID is not within this port's list
-		 */
+		/* Don't disable if existing BPID is not within this port's list */
 		for (i = 0; i < nix->chan_cnt; i++)
 			if (bpid == nix->bpid[i])
 				found = true;
@@ -566,8 +546,7 @@ roc_nix_fc_npa_bp_cfg(struct roc_nix *roc_nix, uint64_t pool_id, uint8_t ena,
 			return;
 
 		if (roc_npa_aura_bp_configure(pool_id, 0, 0, 0, false))
-			plt_err("Disabling backpressue failed on aura 0x%" PRIx64,
-				pool_id);
+			plt_err("Disabling backpressue failed on aura 0x%" PRIx64, pool_id);
 	}
 
 	return;
@@ -585,7 +564,7 @@ roc_nix_pfc_mode_set(struct roc_nix *roc_nix, struct roc_nix_pfc_cfg *pfc_cfg)
 	int rc = -ENOSPC;
 
 	if (roc_nix_is_lbk(roc_nix)) {
-		rc = NIX_ERR_OP_NOTSUP;
+		rc =  NIX_ERR_OP_NOTSUP;
 		goto exit;
 	}
 
@@ -654,8 +633,7 @@ roc_nix_chan_count_get(struct roc_nix *roc_nix)
  *	-ve value on error
  */
 int
-roc_nix_bpids_alloc(struct roc_nix *roc_nix, uint8_t type, uint8_t bp_cnt,
-		    uint16_t *bpids)
+roc_nix_bpids_alloc(struct roc_nix *roc_nix, uint8_t type, uint8_t bp_cnt, uint16_t *bpids)
 {
 	struct nix *nix = roc_nix_to_nix_priv(roc_nix);
 	struct mbox *mbox = mbox_get(nix->dev.mbox);
@@ -664,8 +642,7 @@ roc_nix_bpids_alloc(struct roc_nix *roc_nix, uint8_t type, uint8_t bp_cnt,
 	int rc = -EINVAL;
 
 	/* Use this api for unreserved interface types */
-	if ((type < ROC_NIX_INTF_TYPE_RSVD) ||
-	    (bp_cnt > ROC_NIX_MAX_BPID_CNT) || !bpids)
+	if ((type < ROC_NIX_INTF_TYPE_RSVD) || (bp_cnt > ROC_NIX_MAX_BPID_CNT) || !bpids)
 		goto exit;
 
 	rc = -ENOSPC;
@@ -713,8 +690,7 @@ exit:
 }
 
 int
-roc_nix_rx_chan_cfg_get(struct roc_nix *roc_nix, uint16_t chan, bool is_cpt,
-			uint64_t *cfg)
+roc_nix_rx_chan_cfg_get(struct roc_nix *roc_nix, uint16_t chan, bool is_cpt, uint64_t *cfg)
 {
 	struct nix *nix = roc_nix_to_nix_priv(roc_nix);
 	struct mbox *mbox = mbox_get(nix->dev.mbox);
@@ -740,8 +716,7 @@ exit:
 }
 
 int
-roc_nix_rx_chan_cfg_set(struct roc_nix *roc_nix, uint16_t chan, bool is_cpt,
-			uint64_t val)
+roc_nix_rx_chan_cfg_set(struct roc_nix *roc_nix, uint16_t chan, bool is_cpt, uint64_t val)
 {
 	struct nix *nix = roc_nix_to_nix_priv(roc_nix);
 	struct mbox *mbox = mbox_get(nix->dev.mbox);
@@ -772,8 +747,7 @@ exit:
 #define NIX_BPID3_OFF 44
 
 int
-roc_nix_chan_bpid_set(struct roc_nix *roc_nix, uint16_t chan, uint64_t bpid,
-		      int ena, bool cpt_chan)
+roc_nix_chan_bpid_set(struct roc_nix *roc_nix, uint16_t chan, uint64_t bpid, int ena, bool cpt_chan)
 {
 	uint64_t cfg;
 	int rc;
@@ -793,16 +767,13 @@ roc_nix_chan_bpid_set(struct roc_nix *roc_nix, uint16_t chan, uint64_t bpid,
 
 		if (!(cfg & BIT_ULL(NIX_BPID1_ENA))) {
 			cfg &= ~GENMASK_ULL(NIX_BPID1_OFF + 8, NIX_BPID1_OFF);
-			cfg |= (((uint64_t)bpid << NIX_BPID1_OFF) |
-				BIT_ULL(NIX_BPID1_ENA));
+			cfg |= (((uint64_t)bpid << NIX_BPID1_OFF) | BIT_ULL(NIX_BPID1_ENA));
 		} else if (!(cfg & BIT_ULL(NIX_BPID2_ENA))) {
 			cfg &= ~GENMASK_ULL(NIX_BPID2_OFF + 8, NIX_BPID2_OFF);
-			cfg |= (((uint64_t)bpid << NIX_BPID2_OFF) |
-				BIT_ULL(NIX_BPID2_ENA));
+			cfg |= (((uint64_t)bpid << NIX_BPID2_OFF) | BIT_ULL(NIX_BPID2_ENA));
 		} else if (!(cfg & BIT_ULL(NIX_BPID3_ENA))) {
 			cfg &= ~GENMASK_ULL(NIX_BPID3_OFF + 8, NIX_BPID3_OFF);
-			cfg |= (((uint64_t)bpid << NIX_BPID3_OFF) |
-				BIT_ULL(NIX_BPID3_ENA));
+			cfg |= (((uint64_t)bpid << NIX_BPID3_OFF) | BIT_ULL(NIX_BPID3_ENA));
 		} else {
 			plt_nix_dbg("Exceed maximum BPIDs");
 			return -ENOSPC;
@@ -811,12 +782,10 @@ roc_nix_chan_bpid_set(struct roc_nix *roc_nix, uint16_t chan, uint64_t bpid,
 		if (((cfg >> NIX_BPID1_OFF) & GENMASK_ULL(8, 0)) == bpid) {
 			cfg &= ~(GENMASK_ULL(NIX_BPID1_OFF + 8, NIX_BPID1_OFF) |
 				 BIT_ULL(NIX_BPID1_ENA));
-		} else if (((cfg >> NIX_BPID2_OFF) & GENMASK_ULL(8, 0)) ==
-			   bpid) {
+		} else if (((cfg >> NIX_BPID2_OFF) & GENMASK_ULL(8, 0)) == bpid) {
 			cfg &= ~(GENMASK_ULL(NIX_BPID2_OFF + 8, NIX_BPID2_OFF) |
 				 BIT_ULL(NIX_BPID2_ENA));
-		} else if (((cfg >> NIX_BPID3_OFF) & GENMASK_ULL(8, 0)) ==
-			   bpid) {
+		} else if (((cfg >> NIX_BPID3_OFF) & GENMASK_ULL(8, 0)) == bpid) {
 			cfg &= ~(GENMASK_ULL(NIX_BPID3_OFF + 8, NIX_BPID3_OFF) |
 				 BIT_ULL(NIX_BPID3_ENA));
 		} else {

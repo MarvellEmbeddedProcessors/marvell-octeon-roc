@@ -128,8 +128,7 @@ rvu_device_lookup(const char *dirname, uint32_t *part, uint32_t *pass)
 		goto error;
 
 	/* Get subsystem_device id */
-	ret = snprintf(filename, sizeof(filename), "%s/subsystem_device",
-		       dirname);
+	ret = snprintf(filename, sizeof(filename), "%s/subsystem_device", dirname);
 	if (ret >= sizeof(filename))
 		goto error;
 

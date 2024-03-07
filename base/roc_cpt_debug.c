@@ -88,7 +88,7 @@ cpt_af_reg_read(struct roc_cpt *roc_cpt, uint64_t reg, uint64_t *val)
 
 	ret = mbox_process_msg(dev->mbox, (void *)&msg);
 	if (ret) {
-		ret = -EIO;
+		ret =  -EIO;
 		goto exit;
 	}
 

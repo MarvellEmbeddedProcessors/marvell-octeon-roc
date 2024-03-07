@@ -189,9 +189,8 @@ mbox_wait_for_zero(struct mbox *mbox, int devid)
 {
 	uint64_t data;
 
-	data = plt_read64(
-		(volatile void *)(mbox->reg_base +
-				  (mbox->trigger | (devid << mbox->tr_shift))));
+	data = plt_read64((volatile void *)(mbox->reg_base +
+				(mbox->trigger | (devid << mbox->tr_shift))));
 
 	/* If data is non-zero wait for ~1ms and return to caller
 	 * whether data has changed to zero or not after the wait.
@@ -201,9 +200,8 @@ mbox_wait_for_zero(struct mbox *mbox, int devid)
 	else
 		return true;
 
-	data = plt_read64(
-		(volatile void *)(mbox->reg_base +
-				  (mbox->trigger | (devid << mbox->tr_shift))));
+	data = plt_read64((volatile void *)(mbox->reg_base +
+				(mbox->trigger | (devid << mbox->tr_shift))));
 	return data == 0;
 }
 
@@ -235,8 +233,7 @@ mbox_msg_send_data(struct mbox *mbox, int devid, uint8_t data)
 	 * to the shared memory
 	 */
 	plt_write64(data, (volatile void *)(mbox->reg_base +
-					    (mbox->trigger |
-					     (devid << mbox->tr_shift))));
+				(mbox->trigger | (devid << mbox->tr_shift))));
 }
 
 /**
