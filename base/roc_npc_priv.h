@@ -498,6 +498,5 @@ void npc_aged_flows_bitmap_free(struct roc_npc *roc_npc);
 int npc_aging_ctrl_thread_create(struct roc_npc *roc_npc, const struct roc_npc_action_age *age,
 				 struct roc_npc_flow *flow);
 void npc_aging_ctrl_thread_destroy(struct roc_npc *roc_npc);
-int npc_free_mcast_list(struct npc *npc, uint32_t mce_index);
 int npc_rss_free_grp_get(struct npc *npc, uint32_t *pos);
 #endif /* _ROC_NPC_PRIV_H_ */
