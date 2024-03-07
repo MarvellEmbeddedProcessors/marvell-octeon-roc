@@ -31,6 +31,7 @@
 /* HW structure definition */
 #include "hw/cpt.h"
 #include "hw/dpi.h"
+#include "hw/ml.h"
 #include "hw/nix.h"
 #include "hw/npa.h"
 #include "hw/npc.h"
@@ -109,6 +110,9 @@
 /* NIX Inline dev */
 #include "roc_nix_inl_dp.h"
 #include "roc_nix_inl.h"
+
+/* ML */
+#include "roc_ml.h"
 
 /* MACsec */
 #include "roc_mcs.h"
