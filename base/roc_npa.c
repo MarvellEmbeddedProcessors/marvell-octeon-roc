@@ -400,7 +400,7 @@ bitmap_ctzll(uint64_t slab)
 	if (slab == 0)
 		return 0;
 
-	return __builtin_ctzll(slab);
+	return plt_ctz64(slab);
 }
 
 static int
@@ -1273,7 +1273,7 @@ npa_lf_fini(void)
 		return NPA_ERR_ALLOC;
 
 	/* Not the last PCI device */
-	if (__atomic_sub_fetch(&idev->npa_refcnt, 1, __ATOMIC_SEQ_CST) != 0)
+	if (__atomic_fetch_sub(&idev->npa_refcnt, 1, __ATOMIC_SEQ_CST) - 1 != 0)
 		return 0;
 
 	npa_unregister_irqs(idev->npa);

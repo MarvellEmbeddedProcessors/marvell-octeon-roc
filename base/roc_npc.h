@@ -70,7 +70,6 @@ struct roc_ether_addr {
 
 struct roc_ether_hdr {
 	struct roc_ether_addr d_addr; /**< Destination address. */
-	PLT_STD_C11
 	union {
 		struct roc_ether_addr s_addr; /**< Source address. */
 		struct {
@@ -80,7 +79,6 @@ struct roc_ether_hdr {
 	uint16_t ether_type; /**< Frame type. */
 } __plt_aligned(2);
 
-PLT_STD_C11
 struct roc_npc_flow_item_eth {
 	union {
 		struct {
@@ -104,7 +102,6 @@ struct roc_vlan_hdr {
 	uint16_t eth_proto; /**< Ethernet type of encapsulated frame. */
 } __plt_packed;
 
-PLT_STD_C11
 struct roc_npc_flow_item_vlan {
 	union {
 		struct {
@@ -127,6 +124,13 @@ struct roc_ipv6_hdr {
 	uint8_t dst_addr[16]; /**< IP address of destination host(s). */
 } __plt_packed;
 
+struct roc_ipv6_fragment_ext {
+	uint8_t next_header; /**< Next header type */
+	uint8_t reserved;    /**< Reserved */
+	uint16_t frag_data;  /**< All fragmentation data */
+	uint32_t id;	     /**< Packet ID */
+} __plt_packed;
+
 struct roc_ipv6_routing_ext {
 	uint8_t next_hdr;	/**< Protocol, next header. */
 	uint8_t hdr_len;	/**< Header length. */
@@ -141,13 +145,6 @@ struct roc_ipv6_routing_ext {
 		};
 	};
 	/* Next are 128-bit IPv6 address fields to describe segments. */
-} __plt_packed;
-
-struct roc_ipv6_fragment_ext {
-	uint8_t next_header; /**< Next header type */
-	uint8_t reserved;    /**< Reserved */
-	uint16_t frag_data;  /**< All fragmentation data */
-	uint32_t id;	     /**< Packet ID */
 } __plt_packed;
 
 struct roc_flow_item_ipv6_ext {
@@ -387,7 +384,7 @@ struct roc_npc_flow_age {
 	uint32_t aged_flows_cnt;
 	uint32_t start_id;
 	uint32_t end_id;
-	pthread_t aged_flows_poll_thread;
+	plt_thread_t aged_flows_poll_thread;
 	struct plt_bitmap *aged_flows;
 	void *age_mem;
 	bool aged_flows_get_thread_exit;

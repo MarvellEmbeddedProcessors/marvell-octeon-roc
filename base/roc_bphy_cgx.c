@@ -175,7 +175,7 @@ roc_bphy_cgx_dev_id(struct roc_bphy_cgx *roc_cgx)
 {
 	uint64_t cgx_id;
 
-	if (roc_model_is_cnf10kb() || roc_model_is_cnf10ka())
+	if (roc_model_is_cnf10kb())
 		cgx_id = GENMASK_ULL(27, 24);
 	else if (roc_model_is_cn10k())
 		cgx_id = GENMASK_ULL(26, 24);
@@ -238,7 +238,7 @@ roc_bphy_cgx_start_stop_rxtx(struct roc_bphy_cgx *roc_cgx, unsigned int lmac,
 	if (!roc_bphy_cgx_lmac_exists(roc_cgx, lmac))
 		return -ENODEV;
 
-	if (roc_model_is_cnf10kb() || roc_model_is_cnf10ka()) {
+	if (roc_model_is_cnf10kb()) {
 		reg = CGX_MTI_MAC100X_COMMAND_CONFIG;
 		rx_field = CGX_MTI_MAC100X_COMMAND_CONFIG_RX_ENA;
 		tx_field = CGX_MTI_MAC100X_COMMAND_CONFIG_TX_ENA;
