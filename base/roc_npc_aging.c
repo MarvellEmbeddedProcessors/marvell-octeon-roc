@@ -133,7 +133,7 @@ exit:
 	return rc;
 }
 
-void *
+uint32_t
 npc_aged_flows_get(void *args)
 {
 	uint64_t hit_status[MCAM_ARR_SIZE] = {0};
@@ -181,7 +181,7 @@ npc_aged_flows_get(void *args)
 		rc = npc_mcam_get_hit_status(npc, mcam_ids, start_id, end_id,
 					     hit_status, true);
 		if (rc)
-			return NULL;
+			return 0;
 
 		plt_seqcount_write_begin(&flow_age->seq_cnt);
 		flow_age->aged_flows_cnt = 0;
@@ -200,7 +200,7 @@ lbl_sleep:
 		sleep(flow_age->aging_poll_freq);
 	}
 
-	return NULL;
+	return 0;
 }
 
 void
@@ -285,8 +285,8 @@ npc_aging_ctrl_thread_create(struct roc_npc *roc_npc,
 
 		flow_age->aged_flows_get_thread_exit = false;
 		if (plt_thread_create_control(&flow_age->aged_flows_poll_thread,
-					      "Aged Flows Get Ctrl Thread",
-					      npc_aged_flows_get, roc_npc) != 0) {
+					   "Aged Flows Get Ctrl Thread",
+					   npc_aged_flows_get, roc_npc) != 0) {
 			plt_err("Failed to create thread for age flows");
 			npc_aged_flows_bitmap_free(roc_npc);
 			errcode = NPC_ERR_ACTION_NOTSUP;
@@ -304,7 +304,7 @@ npc_aging_ctrl_thread_destroy(struct roc_npc *roc_npc)
 
 	flow_age = &roc_npc->flow_age;
 	flow_age->aged_flows_get_thread_exit = true;
-	pthread_join(flow_age->aged_flows_poll_thread, NULL);
+	plt_thread_join(flow_age->aged_flows_poll_thread, NULL);
 	npc_aged_flows_bitmap_free(roc_npc);
 }
 

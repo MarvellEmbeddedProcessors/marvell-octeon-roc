@@ -1561,7 +1561,7 @@ roc_npc_sdp_channel_get(struct roc_npc *roc_npc, uint16_t *chan_base, uint16_t *
 	num_chan = nix->rx_chan_cnt - 1;
 	if (num_chan) {
 		range = *chan_base ^ (*chan_base + num_chan);
-		num_bits = (sizeof(uint32_t) * 8) - __builtin_clz(range) - 1;
+		num_bits = (sizeof(uint32_t) * 8) - plt_clz32(range) - 1;
 		/* Set mask for (15 - numbits) MSB bits */
 		*chan_mask = (uint16_t)~GENMASK(num_bits, 0);
 		*chan_mask &= 0xFFF;
@@ -1804,7 +1804,8 @@ roc_npc_flow_destroy(struct roc_npc *roc_npc, struct roc_npc_flow *flow)
 	if (flow->has_age_action)
 		npc_age_flow_list_entry_delete(roc_npc, flow);
 
-	if (roc_npc->flow_age.age_flow_refcnt == 0 && roc_npc->flow_age.aged_flows_poll_thread)
+	if (roc_npc->flow_age.age_flow_refcnt == 0 &&
+		plt_thread_is_valid(roc_npc->flow_age.aged_flows_poll_thread))
 		npc_aging_ctrl_thread_destroy(roc_npc);
 #endif
 

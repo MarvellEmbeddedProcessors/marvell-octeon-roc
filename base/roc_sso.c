@@ -600,7 +600,7 @@ sso_hwgrp_init_xaq_aura(struct dev *dev, struct roc_sso_xaq_data *xaq,
 
 	xaq->nb_xae = nb_xae;
 
-	/** SSO will reserve upto 0x4 XAQ buffers per group when GetWork engine
+	/** SSO will reserve up to 0x4 XAQ buffers per group when GetWork engine
 	 * is inactive and it might prefetch an additional 0x3 buffers due to
 	 * pipelining.
 	 */

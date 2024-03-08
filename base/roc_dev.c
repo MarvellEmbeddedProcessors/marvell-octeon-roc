@@ -18,7 +18,7 @@
 #define ROC_PCI_SRIOV_TOTAL_VF 0x0e /* Total VFs */
 
 /* VF Mbox handler thread name */
-#define MBOX_HANDLER_NAME_MAX_LEN 25
+#define MBOX_HANDLER_NAME_MAX_LEN RTE_THREAD_INTERNAL_NAME_SIZE
 
 /* VF interrupt message pending bits - mbox or flr */
 #define ROC_DEV_MBOX_PEND BIT_ULL(0)
@@ -1129,7 +1129,7 @@ vf_flr_handle_msg(void *param, dev_intr_t *flr)
 	}
 }
 
-static void *
+static uint32_t
 pf_vf_mbox_thread_main(void *arg)
 {
 	struct dev *dev = arg;
@@ -1173,7 +1173,7 @@ pf_vf_mbox_thread_main(void *arg)
 
 	pthread_mutex_unlock(&dev->sync.mutex);
 
-	return NULL;
+	return 0;
 }
 #endif
 
@@ -1215,7 +1215,7 @@ dev_active_vfs(struct dev *dev)
 	int i, count = 0;
 
 	for (i = 0; i < MAX_VFPF_DWORD_BITS; i++)
-		count += __builtin_popcount(dev->active_vfs[i]);
+		count += plt_popcount32(dev->active_vfs[i]);
 
 	return count;
 }
@@ -1522,7 +1522,7 @@ dev_init(struct dev *dev, struct plt_pci_device *pci_dev)
 		pthread_cond_init(&dev->sync.pfvf_msg_cond, NULL);
 		pthread_mutex_init(&dev->sync.mutex, NULL);
 
-		snprintf(name, MBOX_HANDLER_NAME_MAX_LEN, "pf%d_vf_msg_hndlr", dev->pf);
+		snprintf(name, MBOX_HANDLER_NAME_MAX_LEN, "mbox_pf%d", dev->pf);
 		dev->sync.start_thread = true;
 		rc = plt_thread_create_control(&dev->sync.pfvf_msg_thread, name,
 				pf_vf_mbox_thread_main, dev);

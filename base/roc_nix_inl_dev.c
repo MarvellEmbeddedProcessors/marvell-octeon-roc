@@ -761,9 +761,9 @@ inl_outb_soft_exp_poll(struct nix_inl_dev *inl_dev, uint32_t ring_idx)
 }
 
 #ifdef OCT_ROC_USE_NIX_INL_OUTB_POLL_THRED
-static void *
+static uint32_t
 #else
-void *
+uint32_t
 #endif
 nix_inl_outb_poll_thread(void *args)
 {

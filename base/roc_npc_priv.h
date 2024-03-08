@@ -492,7 +492,7 @@ int npc_mcam_init(struct npc *npc, struct roc_npc_flow *flow, int mcam_id);
 int npc_mcam_move(struct mbox *mbox, uint16_t old_ent, uint16_t new_ent);
 void npc_age_flow_list_entry_add(struct roc_npc *npc, struct roc_npc_flow *flow);
 void npc_age_flow_list_entry_delete(struct roc_npc *npc, struct roc_npc_flow *flow);
-void *npc_aged_flows_get(void *args);
+uint32_t npc_aged_flows_get(void *args);
 int npc_aged_flows_bitmap_alloc(struct roc_npc *roc_npc);
 void npc_aged_flows_bitmap_free(struct roc_npc *roc_npc);
 int npc_aging_ctrl_thread_create(struct roc_npc *roc_npc, const struct roc_npc_action_age *age,
