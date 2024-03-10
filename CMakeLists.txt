@@ -88,6 +88,7 @@ set(OCT_ROC_HEADERS
   base/roc_dpi.h
   base/roc_dpi_priv.h
   base/roc_errata.h
+  base/roc_eswitch.h
   base/roc_features.h
   base/roc_hash.h
   base/roc_idev.h
@@ -101,6 +102,8 @@ set(OCT_ROC_HEADERS
   base/roc_mbox_priv.h
   base/roc_mcs.h
   base/roc_mcs_priv.h
+  base/roc_ml.h
+  base/roc_ml_priv.h
   base/roc_model.h
   base/roc_nix.h
   base/roc_nix_inl.h

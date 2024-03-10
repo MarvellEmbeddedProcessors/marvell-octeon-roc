@@ -1410,7 +1410,9 @@ dev_cache_line_size_valid(void)
 int
 dev_init(struct dev *dev, struct plt_pci_device *pci_dev)
 {
+#ifdef OCT_ROC_USE_MBOX_THREAD
 	char name[MBOX_HANDLER_NAME_MAX_LEN];
+#endif
 	int direction, up_direction, rc;
 	uintptr_t bar2, bar4, mbox;
 	uintptr_t vf_mbase = 0;

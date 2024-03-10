@@ -37,7 +37,7 @@ roc_plt_lmt_validate(void)
 		/* Last LMT line is reserved for control specific operation and can be
 		 * use from any EAL or non EAL cores.
 		 */
-		if ((RTE_MAX_LCORE << ROC_LMT_LINES_PER_CORE_LOG2) >
+		if ((PLT_MAX_LCORE << ROC_LMT_LINES_PER_CORE_LOG2) >
 		    (ROC_NUM_LMT_LINES - 1))
 			return 0;
 	}
