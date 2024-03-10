@@ -250,7 +250,7 @@ dev_irq_register(struct plt_intr_handle *intr_handle, plt_intr_callback_fn cb,
 	PLT_SET_USED(data);
 	PLT_SET_USED(vec);
 
-	return -ENOTSUP;
+	return 0;
 }
 
 void
@@ -268,7 +268,7 @@ dev_irqs_disable(struct plt_intr_handle *intr_handle)
 {
 	PLT_SET_USED(intr_handle);
 
-	return -ENOTSUP;
+	return 0;
 }
 
 #endif /* __linux__  && OCT_ROC_USE_MSIX_INTERRUPTS */

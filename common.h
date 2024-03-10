@@ -54,10 +54,7 @@ typedef struct oct_plt_spinlock_s *oct_plt_spinlock_t;
 
 #define PLT_TAILQ_FOREACH_SAFE TAILQ_FOREACH_SAFE
 
-#define PLT_ETHER_ADDR_LEN 6 /**< Length of Ethernet address. */
 #define plt_iova_t	 oct_plt_iova_t
-
-#define PLT_MAX_ETHPORTS  32
 
 #define plt_mmap       mmap
 #define PLT_PROT_READ  PROT_READ

@@ -370,11 +370,6 @@ typedef uint64_t plt_iova_t;
 
 #endif
 
-/* Core Id */
-//#define plt_lcore_id() PLT_PER_THREAD(oxk_thread_id)
-
-/* Control thread */
-#define plt_is_ctrl_thread() !!(PLT_PER_THREAD(oxk_thread_lmt_id) & BIT(31))
 
 /* Barrier */
 #if defined(HAVE_CN10K_A0_WORKAROUNDS)
@@ -421,7 +416,8 @@ typedef uint64_t plt_iova_t;
 
 #define plt_atomic_thread_fence __atomic_thread_fence
 
-#define plt_thread_t pthread_t
+#define plt_thread_t    pthread_t
+#define plt_thread_join pthread_join
 
 /* Struct describing a Universal Unique Identifier */
 typedef unsigned char plt_uuid_t[16];
@@ -441,7 +437,10 @@ typedef unsigned char plt_uuid_t[16];
  */
 #define PLT_MAX_ETHPORTS 32
 
-#define PLT_ETHER_ADDR_LEN 6
+#define PLT_ETHER_ADDR_LEN 6 /**< Length of Ethernet address. */
+
+#define LCORE_ID_ANY       64
+#define PLT_MAX_LCORE      32
 
 /** Externs */
 

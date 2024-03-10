@@ -192,7 +192,7 @@ roc_ree_af_reg_read(struct roc_ree_vf *vf, uint64_t reg, uint64_t *val)
 		return ret;
 
 	off = mbox->rx_start +
-	      RTE_ALIGN(sizeof(struct mbox_hdr), MBOX_MSG_ALIGN);
+	      PLT_ALIGN(sizeof(struct mbox_hdr), MBOX_MSG_ALIGN);
 	msg = (struct ree_rd_wr_reg_msg *)((uintptr_t)mdev->mbase + off);
 
 	*val = msg->val;
@@ -603,7 +603,7 @@ roc_ree_dev_init(struct roc_ree_vf *vf)
 	}
 
 	/* Don't exceed the limits set per VF */
-	nb_queues = RTE_MIN(nb_queues, REE_MAX_QUEUES_PER_VF);
+	nb_queues = PLT_MIN(nb_queues, REE_MAX_QUEUES_PER_VF);
 
 	if (nb_queues == 0) {
 		plt_err("No free queues available on the device");
@@ -621,7 +621,7 @@ roc_ree_dev_init(struct roc_ree_vf *vf)
 		goto fail;
 	}
 	/* Don't exceed the limits set per VF */
-	max_matches = RTE_MIN(max_matches, REE_MAX_MATCHES_PER_VF);
+	max_matches = PLT_MIN(max_matches, REE_MAX_MATCHES_PER_VF);
 	if (max_matches == 0) {
 		plt_err("Could not determine the maximum matches supported");
 		goto fail;

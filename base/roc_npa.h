@@ -33,7 +33,7 @@
 /* 16 CASP instructions can be outstanding in CN9k, but we use only 15
  * outstanding CASPs as we run out of registers.
  */
-#define ROC_CN9K_NPA_BULK_ALLOC_MAX_PTRS 30
+#define ROC_CN9K_NPA_BULK_ALLOC_MAX_PTRS 16
 
 /*
  * Generate 64bit handle to have optimized alloc and free aura operation.
@@ -557,6 +557,7 @@ roc_npa_aura_bulk_alloc(uint64_t aura_handle, uint64_t *buf, unsigned int num,
 	       NPA_LF_AURA_OP_ALLOCX(0);
 
 	switch (num) {
+#ifdef OCT_ROC_BULK_ALLOC
 	case 30:
 		asm volatile(
 			".arch_extension lse\n"
@@ -621,6 +622,7 @@ roc_npa_aura_bulk_alloc(uint64_t aura_handle, uint64_t *buf, unsigned int num,
 			  "x15", "x16", "x17", "x18", "x19", "x20", "x21",
 			  "x22", "x23", "v18", "v19", "v20", "v21", "v22");
 		break;
+#endif
 	case 16:
 		asm volatile(
 			".arch_extension lse\n"
