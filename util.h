@@ -21,6 +21,7 @@
 #define PLT_USE_PMCCNTR 0
 #endif
 
+extern uint32_t oct_plt_cache_line_size;
 extern __attribute__((const)) int __plt_log2_NaN(void);
 
 #define PLT_LOG2_CONST(n)                                                                          \
@@ -91,13 +92,9 @@ extern __attribute__((const)) int __plt_log2_NaN(void);
 	 (n) & (BIT_ULL(0))  ? 0 :                                                                 \
 				     __plt_log2_NaN())
 
-#ifdef ROC_PLATFORM_O9
-#define PLT_CACHE_LINE_SIZE	 128
-#else
-#define PLT_CACHE_LINE_SIZE	 64
-#endif
+#define PLT_CACHE_LINE_SIZE	 oct_plt_cache_line_size
 
-#define PLT_CACHE_LINE_SIZE_LOG2 PLT_LOG2_CONST(128)
+#define PLT_CACHE_LINE_SIZE_LOG2 PLT_LOG2_CONST(PLT_CACHE_LINE_SIZE)
 /** Cache line mask. */
 #define PLT_CACHE_LINE_MASK (PLT_CACHE_LINE_SIZE - 1)
 
@@ -118,7 +115,7 @@ extern __attribute__((const)) int __plt_log2_NaN(void);
 #define __plt_aligned(x) __attribute__((__aligned__(x)))
 #endif
 #ifndef __plt_cache_aligned
-#define __plt_cache_aligned __attribute__((__aligned__(PLT_CACHE_LINE_SIZE)))
+#define __plt_cache_aligned __attribute__((__aligned__(128)))
 #endif
 
 #ifndef __plt_roc_aligned

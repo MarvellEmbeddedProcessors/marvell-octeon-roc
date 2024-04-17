@@ -194,6 +194,8 @@ extern oct_plt_log_class_t oct_plt_logtype_bphy;
 extern oct_plt_log_class_t oct_plt_logtype_iomem;
 extern oct_plt_log_class_t oct_plt_logtype_ml;
 
+extern uint32_t oct_plt_cache_line_size;
+
 enum oct_pci_intr_handle_type
 {
   PLT_INTR_HANDLE_UNKNOWN = 0,
@@ -268,6 +270,7 @@ typedef void (*oct_plt_spinlock_lock_fn_t) (oct_plt_spinlock_t * p);
 typedef void (*oct_plt_spinlock_unlock_fn_t) (oct_plt_spinlock_t * p);
 typedef int (*oct_plt_spinlock_trylock_fn_t) (oct_plt_spinlock_t * p);
 typedef uint64_t (*oct_plt_get_thread_index_fn_t)(void);
+typedef uint64_t (*oct_plt_get_cache_line_size_fn_t)(void);
 
 typedef struct oct_plt_init_param 
 {
@@ -283,6 +286,7 @@ typedef struct oct_plt_init_param
   oct_plt_spinlock_unlock_fn_t oct_plt_spinlock_unlock;
   oct_plt_spinlock_trylock_fn_t oct_plt_spinlock_trylock;
   oct_plt_get_thread_index_fn_t oct_plt_get_thread_index;
+  oct_plt_get_cache_line_size_fn_t oct_plt_get_cache_line_size;
 } oct_plt_init_param_t;
 __plt_internal int oct_plt_init (const oct_plt_init_param_t *);
 
