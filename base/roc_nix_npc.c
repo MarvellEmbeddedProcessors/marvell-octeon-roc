@@ -14,7 +14,7 @@ roc_nix_npc_promisc_ena_dis(struct roc_nix *roc_nix, int enable)
 	struct nix_rx_mode *req;
 	int rc = -ENOSPC;
 
-	if (roc_nix_is_vf_or_sdp(roc_nix)) {
+	if (roc_nix_is_sdp(roc_nix) || roc_nix_is_lbk(roc_nix)) {
 		rc = NIX_ERR_PARAM;
 		goto exit;
 	}
@@ -23,8 +23,11 @@ roc_nix_npc_promisc_ena_dis(struct roc_nix *roc_nix, int enable)
 	if (req == NULL)
 		goto exit;
 
-	if (enable)
+	if (enable) {
 		req->mode = NIX_RX_MODE_UCAST | NIX_RX_MODE_PROMISC;
+		if (dev_is_vf(&nix->dev) != 0)
+			req->mode |= NIX_RX_MODE_USE_MCE;
+	}
 
 	rc = mbox_process(mbox);
 exit:
