@@ -94,7 +94,7 @@ extern __attribute__((const)) int __plt_log2_NaN(void);
 
 #define PLT_CACHE_LINE_SIZE	 oct_plt_cache_line_size
 
-#define PLT_CACHE_LINE_SIZE_LOG2 PLT_LOG2_CONST(PLT_CACHE_LINE_SIZE)
+#define PLT_CACHE_LINE_SIZE_LOG2 PLT_LOG2(PLT_CACHE_LINE_SIZE)
 /** Cache line mask. */
 #define PLT_CACHE_LINE_MASK (PLT_CACHE_LINE_SIZE - 1)
 
