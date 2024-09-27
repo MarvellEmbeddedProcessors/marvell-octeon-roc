@@ -8,8 +8,33 @@
 #define ROC_ESWITCH_VLAN_TPID 0x8100
 #define ROC_ESWITCH_LBK_CHAN  63
 
+typedef enum roc_eswitch_repte_notify_msg_type {
+	ROC_ESWITCH_REPTE_STATE = 0,
+	ROC_ESWITCH_REPTE_MTU,
+} roc_eswitch_repte_notify_msg_type_t;
+
+struct roc_eswitch_repte_state {
+	bool enable;
+	uint16_t hw_func;
+};
+
+struct roc_eswitch_repte_mtu {
+	uint16_t mtu;
+	uint16_t rep_id;
+	uint16_t hw_func;
+};
+
+struct roc_eswitch_repte_notify_msg {
+	roc_eswitch_repte_notify_msg_type_t type;
+	union {
+		struct roc_eswitch_repte_state state;
+		struct roc_eswitch_repte_mtu mtu;
+	};
+};
+
 /* Process representee notification callback */
-typedef int (*process_repte_notify_t)(void *roc_nix, uint16_t pf_func, bool enable);
+typedef int (*process_repte_notify_t)(void *roc_nix,
+				      struct roc_eswitch_repte_notify_msg *notify_msg);
 
 /* NPC */
 int __roc_api roc_eswitch_npc_mcam_rx_rule(struct roc_npc *roc_npc, struct roc_npc_flow *flow,
