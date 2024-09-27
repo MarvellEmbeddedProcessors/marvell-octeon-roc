@@ -6,9 +6,23 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <stdarg.h>
 
 #include "roc_api.h"
 #include "roc_priv.h"
+
+static inline void
+dpi_dump(FILE *file, const char *fmt, ...)
+{
+	va_list args;
+
+	va_start(args, fmt);
+	if (file == NULL)
+		vfprintf(stdout, fmt, args);
+	else
+		vfprintf(file, fmt, args);
+	va_end(args);
+}
 
 #define DPI_PF_MBOX_SYSFS_ENTRY "dpi_device_config"
 
@@ -31,6 +45,32 @@ send_msg_to_pf(struct plt_pci_addr *pci_addr, const char *value, int size)
 		return -EACCES;
 
 	res = write(fd, value, size);
+	close(fd);
+	if (res < 0)
+		return -EACCES;
+
+	return 0;
+}
+
+static inline int
+recv_msg_from_pf(struct plt_pci_addr *pci_addr, char *value, int size)
+{
+	char buf[255] = {0};
+	int res, fd;
+
+	res = snprintf(
+		buf, sizeof(buf), "/sys/bus/pci/devices/" PCI_PRI_FMT "/%s",
+		pci_addr->domain, pci_addr->bus, DPI_PF_DBDF_DEVICE & 0x7,
+		DPI_PF_DBDF_FUNCTION & 0x7, DPI_PF_MBOX_SYSFS_ENTRY);
+
+	if ((res < 0) || ((size_t)res > sizeof(buf)))
+		return -ERANGE;
+
+	fd = open(buf, O_RDONLY);
+	if (fd < 0)
+		return -EACCES;
+
+	res = read(fd, value, size);
 	close(fd);
 	if (res < 0)
 		return -EACCES;
@@ -125,12 +165,13 @@ roc_dpi_configure_v2(struct roc_dpi *roc_dpi, uint32_t chunk_sz, uint64_t aura, 
 	mbox_msg.s.aura = aura;
 	mbox_msg.s.sso_pf_func = idev_sso_pffunc_get();
 	mbox_msg.s.npa_pf_func = idev_npa_pffunc_get();
+	mbox_msg.s.wqecsoff = idev_dma_cs_offset_get();
+	if (mbox_msg.s.wqecsoff)
+		mbox_msg.s.wqecs = 1;
 
-	rc = send_msg_to_pf(&pci_dev->addr, (const char *)&mbox_msg,
-			    sizeof(dpi_mbox_msg_t));
+	rc = send_msg_to_pf(&pci_dev->addr, (const char *)&mbox_msg, sizeof(dpi_mbox_msg_t));
 	if (rc < 0)
-		plt_err("Failed to send mbox message %d to DPI PF, err %d",
-			mbox_msg.s.cmd, rc);
+		plt_err("Failed to send mbox message %d to DPI PF, err %d", mbox_msg.s.cmd, rc);
 
 	return rc;
 }
@@ -173,4 +214,31 @@ roc_dpi_dev_fini(struct roc_dpi *roc_dpi)
 		plt_err("Failed to send mbox message %d to DPI PF, err %d", mbox_msg.s.cmd, rc);
 
 	return rc;
+}
+
+void
+roc_dpi_dev_dump(struct roc_dpi *dpi, FILE *file)
+{
+	struct plt_pci_device *pci_dev = dpi->pci_dev;
+	char buff[16384];
+	int rc;
+
+	dpi_dump(file, "VF %d DPI_VDMA_EN     \t0x%" PRIx64 "\n", dpi->vfid,
+		 plt_read64(dpi->rbase + DPI_VDMA_EN));
+	dpi_dump(file, "VF %d DPI_VDMA_DBELL  \t0x%" PRIx64 "\n", dpi->vfid,
+		 plt_read64(dpi->rbase + DPI_VDMA_DBELL));
+	dpi_dump(file, "VF %d DPI_VDMA_SADDR  \t0x%" PRIx64 "\n", dpi->vfid,
+		 plt_read64(dpi->rbase + DPI_VDMA_SADDR));
+	dpi_dump(file, "VF %d DPI_VDMA_COUNTS \t0x%" PRIx64 "\n", dpi->vfid,
+		 plt_read64(dpi->rbase + DPI_VDMA_COUNTS));
+	dpi_dump(file, "VF %d DPI_VDMA_NADDR  \t0x%" PRIx64 "\n", dpi->vfid,
+		 plt_read64(dpi->rbase + DPI_VDMA_NADDR));
+	dpi_dump(file, "VF %d DPI_VDMA_IWBUSY \t0x%" PRIx64 "\n", dpi->vfid,
+		 plt_read64(dpi->rbase + DPI_VDMA_IWBUSY));
+	rc = recv_msg_from_pf(&pci_dev->addr, buff, 16384);
+	if (rc < 0) {
+		plt_err("Failed to receive mbox message from DPI PF, err %d", rc);
+		return;
+	}
+	dpi_dump(file, "%s\n", buff);
 }
