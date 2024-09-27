@@ -85,6 +85,7 @@ INTERNAL {
 	roc_dpi_configure_v2;
 	roc_dpi_dev_fini;
 	roc_dpi_dev_init;
+	roc_dpi_dev_dump;
 	roc_dpi_disable;
 	roc_dpi_enable;
 	roc_error_msg_get;

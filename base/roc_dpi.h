@@ -13,6 +13,7 @@ struct roc_dpi {
 
 int __roc_api roc_dpi_dev_init(struct roc_dpi *roc_dpi, uint8_t offset);
 int __roc_api roc_dpi_dev_fini(struct roc_dpi *roc_dpi);
+void __roc_api roc_dpi_dev_dump(struct roc_dpi *roc_dpi, FILE *file);
 
 int __roc_api roc_dpi_configure(struct roc_dpi *dpi, uint32_t chunk_sz, uint64_t aura,
 				uint64_t chunk_base);
