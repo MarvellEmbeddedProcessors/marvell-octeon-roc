@@ -672,7 +672,7 @@ npc_mcam_alloc_and_write(struct npc *npc, struct roc_npc_flow *flow, struct npc_
 	}
 
 	if (flow->nix_intf == NIX_INTF_TX) {
-		uint16_t pf_func = (flow->npc_action >> 4) & 0xffff;
+		uint16_t pf_func = flow->tx_pf_func;
 
 		if (flow->has_rep)
 			pf_func = flow->rep_pf_func;
@@ -754,7 +754,8 @@ npc_mcam_alloc_and_write(struct npc *npc, struct roc_npc_flow *flow, struct npc_
 			npc_mcam_set_channel(flow, req, inl_dev->channel, inl_dev->chan_mask,
 					     false);
 		} else if (flow->has_rep) {
-			pf_func = flow->rep_pf_func;
+			pf_func = (flow->rep_act_pf_func == 0) ? flow->rep_pf_func :
+								 flow->rep_act_pf_func;
 			req->entry_data.action &= ~(GENMASK(19, 4));
 			req->entry_data.action |= (uint64_t)pf_func << 4;
 			flow->npc_action &= ~(GENMASK(19, 4));

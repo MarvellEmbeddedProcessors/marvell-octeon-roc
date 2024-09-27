@@ -323,6 +323,7 @@ struct roc_npc_flow {
 	struct roc_npc_flow_dump_data dump_data[ROC_NPC_MAX_FLOW_PATTERNS];
 	uint16_t num_patterns;
 	struct roc_npc_spi_to_sa_action_info spi_to_sa_info;
+	uint16_t tx_pf_func;
 	bool is_validate;
 	uint16_t match_id;
 	uint8_t is_inline_dev;
@@ -332,6 +333,8 @@ struct roc_npc_flow {
 	uint32_t timeout;
 	bool has_age_action;
 	uint16_t rep_pf_func;
+	uint16_t rep_act_pf_func;
+	bool rep_act_rep;
 	uint16_t rep_channel;
 	struct mbox *rep_mbox;
 	bool has_rep;
@@ -415,6 +418,9 @@ struct roc_npc {
 	struct roc_npc_flow_age flow_age;
 	struct roc_npc *rep_npc;
 	uint16_t rep_pf_func;
+	uint16_t rep_rx_channel;
+	uint16_t rep_act_pf_func;
+	bool rep_act_rep;
 	int rep_port_id;
 
 #define ROC_NPC_MEM_SZ (6 * 1024)
