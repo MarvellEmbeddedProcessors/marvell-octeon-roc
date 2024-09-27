@@ -699,6 +699,16 @@ plt_is_power_of_2(uint32_t n)
 }
 
 /**
+ * Checks if a pointer is aligned to a given power-of-two value
+ *
+ */
+static inline int
+plt_is_aligned (void *p, uint32_t a)
+{
+	return ((uintptr_t)p & (a - 1)) == 0;
+}
+
+/**
  * Combines 32b inputs most significant set bits into the least
  * significant bits to construct a value with the same MSBs as x
  * but all 1's under it.
