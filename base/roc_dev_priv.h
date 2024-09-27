@@ -37,7 +37,7 @@ typedef void (*q_err_cb_t)(void *roc_nix, void *data);
 typedef void (*link_status_get_t)(void *roc_nix,
 				  struct cgx_link_user_info *link);
 /* Representee notification callback */
-typedef int (*repte_notify_t)(void *roc_nix, uint16_t pf_func, bool enable);
+typedef int (*repte_notify_t)(void *roc_nix, void *notify_msg);
 
 struct dev_ops {
 	link_info_t link_status_update;
