@@ -794,9 +794,12 @@ npc_parse_actions(struct roc_npc *roc_npc, const struct roc_npc_attr *attr,
 
 		if (req_act & ROC_NPC_ACTION_TYPE_DROP) {
 			flow->npc_action = NIX_TX_ACTIONOP_DROP;
-		} else if ((req_act & ROC_NPC_ACTION_TYPE_COUNT) ||
-			   vlan_insert_action) {
+		} else if ((req_act & ROC_NPC_ACTION_TYPE_COUNT) || vlan_insert_action) {
 			flow->npc_action = NIX_TX_ACTIONOP_UCAST_DEFAULT;
+			if (flow->rep_act_rep) {
+				flow->npc_action = NIX_TX_ACTIONOP_UCAST_CHAN;
+				flow->npc_action |= (uint64_t)0x3f << 12;
+			}
 		} else {
 			plt_err("Unsupported action for egress");
 			errcode = NPC_ERR_ACTION_NOTSUP;
@@ -808,7 +811,9 @@ npc_parse_actions(struct roc_npc *roc_npc, const struct roc_npc_attr *attr,
 			flow->mcast_channels[1] = npc->channel;
 		}
 
-		goto set_pf_func;
+		/* PF func who is sending the packet */
+		flow->tx_pf_func = pf_func;
+		goto done;
 	} else {
 		if (vlan_insert_action) {
 			errcode = NPC_ERR_ACTION_NOTSUP;
@@ -887,10 +892,10 @@ npc_parse_actions(struct roc_npc *roc_npc, const struct roc_npc_attr *attr,
 	if (mark)
 		flow->npc_action |= (uint64_t)mark << 40;
 
-set_pf_func:
 	/* Ideally AF must ensure that correct pf_func is set */
 	flow->npc_action |= (uint64_t)pf_func << 4;
 
+done:
 	return 0;
 
 err_exit:
@@ -1611,13 +1616,21 @@ roc_npc_flow_create(struct roc_npc *roc_npc, const struct roc_npc_attr *attr,
 
 	flow->port_id = -1;
 	if (roc_npc->rep_npc) {
-		flow->rep_channel = roc_nix_to_nix_priv(roc_npc->rep_npc->roc_nix)->rx_chan_base;
+		flow->rep_channel =
+			(roc_npc->rep_rx_channel == 0) ?
+				roc_nix_to_nix_priv(roc_npc->rep_npc->roc_nix)->rx_chan_base :
+				roc_npc->rep_rx_channel;
 		flow->rep_pf_func = roc_npc->rep_pf_func;
+		flow->rep_act_pf_func = roc_npc->rep_act_pf_func;
+		flow->rep_act_rep = roc_npc->rep_act_rep;
 		flow->rep_mbox = roc_npc_to_npc_priv(roc_npc->rep_npc)->mbox;
 		flow->has_rep = true;
 		flow->is_rep_vf = !roc_nix_is_pf(roc_npc->rep_npc->roc_nix);
 		flow->port_id = roc_npc->rep_port_id;
 		flow->rep_npc = roc_npc_to_npc_priv(roc_npc->rep_npc);
+		roc_npc->rep_act_rep = false;
+		roc_npc->rep_act_pf_func = 0;
+		roc_npc->rep_rx_channel = 0;
 	}
 
 	parse_state.dst_pf_func = dst_pf_func;
