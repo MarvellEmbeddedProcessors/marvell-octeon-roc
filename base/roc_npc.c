@@ -1057,9 +1057,9 @@ npc_rss_free_grp_get(struct npc *npc, uint32_t *pos)
 }
 
 int
-npc_rss_action_configure(struct roc_npc *roc_npc,
-			 const struct roc_npc_action_rss *rss, uint8_t *alg_idx,
-			 uint32_t *rss_grp, uint32_t mcam_id)
+npc_rss_action_configure(struct roc_npc *roc_npc, const struct roc_npc_action_rss *rss,
+			 uint8_t *alg_idx, uint32_t *rss_grp, uint32_t mcam_id,
+			 uint16_t rss_repte_pf_func)
 {
 	struct npc *npc = roc_npc_to_npc_priv(roc_npc);
 	struct roc_nix *roc_nix = roc_npc->roc_nix;
@@ -1102,7 +1102,7 @@ npc_rss_action_configure(struct roc_npc *roc_npc,
 	if (rc < 0 || rss_grp_idx == 0)
 		return -ENOSPC;
 
-	for (i = 0; i < rss->queue_num; i++) {
+	for (i = 0; (i < rss->queue_num) && !rss_repte_pf_func; i++) {
 		if (rss->queue[i] >= nix->nb_rx_queues) {
 			plt_err("queue id > max number of queues");
 			return -EINVAL;
@@ -1130,10 +1130,9 @@ npc_rss_action_configure(struct roc_npc *roc_npc,
 
 	rem = nix->reta_sz % rss->queue_num;
 	if (rem)
-		memcpy(&reta[i * rss->queue_num], rss->queue,
-		       rem * sizeof(uint16_t));
+		memcpy(&reta[i * rss->queue_num], rss->queue, rem * sizeof(uint16_t));
 
-	rc = roc_nix_rss_reta_set(roc_nix, *rss_grp, reta);
+	rc = nix_rss_reta_pffunc_set(roc_nix, *rss_grp, reta, rss_repte_pf_func);
 	if (rc) {
 		plt_err("Failed to init rss table rc = %d", rc);
 		return rc;
@@ -1141,8 +1140,8 @@ npc_rss_action_configure(struct roc_npc *roc_npc,
 
 	flowkey_cfg = roc_npc->flowkey_cfg_state;
 
-	rc = roc_nix_rss_flowkey_set(roc_nix, &flowkey_algx, flowkey_cfg,
-				     *rss_grp, mcam_id);
+	rc = nix_rss_flowkey_pffunc_set(roc_nix, &flowkey_algx, flowkey_cfg, *rss_grp, mcam_id,
+					rss_repte_pf_func);
 	if (rc) {
 		plt_err("Failed to set rss hash function rc = %d", rc);
 		return rc;
@@ -1174,7 +1173,8 @@ npc_rss_action_program(struct roc_npc *roc_npc,
 	for (; actions->type != ROC_NPC_ACTION_TYPE_END; actions++) {
 		if (actions->type == ROC_NPC_ACTION_TYPE_RSS) {
 			rss = (const struct roc_npc_action_rss *)actions->conf;
-			rc = npc_rss_action_configure(npc, rss, &alg_idx, &rss_grp, flow->mcam_id);
+			rc = npc_rss_action_configure(npc, rss, &alg_idx, &rss_grp, flow->mcam_id,
+						      actions->rss_repte_pf_func);
 			if (rc)
 				return rc;
 
@@ -1682,6 +1682,7 @@ roc_npc_flow_create(struct roc_npc *roc_npc, const struct roc_npc_attr *attr,
 		goto set_rss_failed;
 	}
 	roc_npc->rep_npc = NULL;
+	roc_npc->rep_act_pf_func = 0;
 
 #ifdef OCT_ROC_USE_NPC_AGE
 	if (flow->has_age_action)
@@ -1706,6 +1707,7 @@ roc_npc_flow_create(struct roc_npc *roc_npc, const struct roc_npc_attr *attr,
 
 set_rss_failed:
 	roc_npc->rep_npc = NULL;
+	roc_npc->rep_act_pf_func = 0;
 	if (flow->use_pre_alloc == 0) {
 		rc = roc_npc_mcam_free_entry(roc_npc, flow->mcam_id);
 		if (rc != 0) {
@@ -1718,6 +1720,7 @@ set_rss_failed:
 	}
 err_exit:
 	roc_npc->rep_npc = NULL;
+	roc_npc->rep_act_pf_func = 0;
 	plt_free(flow);
 	return NULL;
 }
