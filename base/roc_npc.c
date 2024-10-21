@@ -391,8 +391,10 @@ roc_npc_fini(struct roc_npc *roc_npc)
 	struct npc *npc = roc_npc_to_npc_priv(roc_npc);
 	int rc;
 
+#ifdef OCT_ROC_USE_NPC_AGE
 	if (!roc_npc->flow_age.aged_flows_get_thread_exit)
 		npc_aging_ctrl_thread_destroy(roc_npc);
+#endif
 
 	rc = npc_flow_free_all_resources(npc);
 	if (rc) {
