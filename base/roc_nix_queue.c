@@ -1193,7 +1193,11 @@ roc_nix_cn20k_cq_init(struct roc_nix *roc_nix, struct roc_nix_cq *cq)
 	if (rc)
 		goto free_mem;
 
+#ifdef OCT_ROC_USE_TELEMETRY
 	return nix_tel_node_add_cq(cq);
+#else
+	return 0;
+#endif
 
 free_mem:
 	plt_free(cq->desc_base);
