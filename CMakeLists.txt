@@ -96,6 +96,7 @@ set(OCT_ROC_HEADERS
   base/roc_ie.h
   base/roc_ie_on.h
   base/roc_ie_ot.h
+  base/roc_ie_ow.h
   base/roc_io.h
   base/roc_io_generic.h
   base/roc_mbox.h
