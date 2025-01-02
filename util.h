@@ -416,6 +416,8 @@ typedef uint64_t plt_iova_t;
 #define plt_thread_t    pthread_t
 #define plt_thread_join pthread_join
 
+#define __plt_atomic
+
 /* Struct describing a Universal Unique Identifier */
 typedef unsigned char plt_uuid_t[16];
 
