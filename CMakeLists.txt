@@ -20,6 +20,7 @@ set(OCT_ROC_SRCS
   base/roc_hash.c
   base/roc_idev.c
   base/roc_ie_ot.c
+  base/roc_ie_ow.c
   base/roc_irq.c
   base/roc_mbox.c
   base/roc_model.c
