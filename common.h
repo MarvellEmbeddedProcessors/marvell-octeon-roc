@@ -95,6 +95,11 @@ typedef struct oct_plt_spinlock_s *oct_plt_spinlock_t;
 #define plt_free		     g_param.oct_plt_free
 #define plt_realloc		     oct_plt_realloc
 
+#define plt_irq_register	     g_param.oct_plt_irq_register
+#define plt_irq_unregister	     g_param.oct_plt_irq_unregister
+#define plt_irq_reconfigure	     g_param.oct_plt_irq_reconfigure
+#define plt_irq_disable		     g_param.oct_plt_irq_disable
+
 #define plt_sysfs_value_parse oct_plt_sysfs_value_parse
 /* We dont have a fencing func which takes args, use gcc inbuilt */
 #define plt_atomic_thread_fence __atomic_thread_fence
@@ -195,12 +200,20 @@ extern oct_plt_log_class_t oct_plt_logtype_iomem;
 extern oct_plt_log_class_t oct_plt_logtype_ml;
 
 extern uint32_t oct_plt_cache_line_size;
+typedef uint32_t oct_pci_dev_handle_t;
 
 enum oct_pci_intr_handle_type
 {
   PLT_INTR_HANDLE_UNKNOWN = 0,
   PLT_INTR_HANDLE_VFIO_MSIX,
   PLT_INTR_HANDLE_MAX
+};
+
+enum oct_msix_rsrc_op_t
+{
+  OCT_MSIX_RSRC_NOP = 0,
+  OCT_MSIX_RSRC_ALLOC,
+  OCT_MSIX_RSRC_FREE
 };
 
 struct oct_pci_intr_handle
@@ -214,6 +227,7 @@ struct oct_pci_intr_handle
   uint8_t efd_counter_size;
   int efds[1024];
   int *intr_vec;
+  oct_pci_dev_handle_t pci_handle;
 };
 
 struct oct_pci_id
@@ -242,8 +256,6 @@ typedef struct pci_mem_rsrc
   void *addr;
 } oct_pci_mem_rsrc_t;
 
-typedef uint32_t oct_pci_dev_handle_t;
-
 typedef struct oct_pci_device
 {
   oct_pci_mem_rsrc_t mem_resource[MAX_VFIO_PCI_BAR_REGIONS];
@@ -255,6 +267,15 @@ typedef struct oct_pci_device
   oct_pci_addr_t addr;
   oct_pci_dev_handle_t pci_handle;
 } oct_pci_device_t;
+
+typedef void (*oct_msix_handler_fn_t)(void *dev);
+
+typedef struct
+{
+  oct_msix_handler_fn_t fn;
+  void *data;
+  int vec;
+} oct_msix_handler_info_t;
 
 struct oct_plt_memzone;
 typedef oct_plt_log_class_t (*oct_plt_log_reg_class_fn_t) (char *class, char *subclass);
@@ -271,6 +292,13 @@ typedef void (*oct_plt_spinlock_unlock_fn_t) (oct_plt_spinlock_t * p);
 typedef int (*oct_plt_spinlock_trylock_fn_t) (oct_plt_spinlock_t * p);
 typedef uint64_t (*oct_plt_get_thread_index_fn_t)(void);
 typedef uint64_t (*oct_plt_get_cache_line_size_fn_t)(void);
+typedef void (plt_msix_handler_function_t)(void *data);
+typedef int (*oct_plt_irq_register_fn_t)(struct plt_intr_handle *intr_handle, plt_intr_callback_fn cb,
+					 void *data, unsigned int vec);
+typedef void (*oct_plt_irq_unregister_fn_t)(struct plt_intr_handle *intr_handle, plt_intr_callback_fn cb,
+					    void *data, unsigned int vec);
+typedef int (*oct_plt_irq_reconfigure_fn_t)(struct plt_intr_handle *intr_handle, uint16_t max_intr);
+typedef int (*oct_plt_irq_disable_fn_t)(struct plt_intr_handle *intr_handle);
 
 typedef struct oct_plt_init_param 
 {
@@ -287,6 +315,10 @@ typedef struct oct_plt_init_param
   oct_plt_spinlock_trylock_fn_t oct_plt_spinlock_trylock;
   oct_plt_get_thread_index_fn_t oct_plt_get_thread_index;
   oct_plt_get_cache_line_size_fn_t oct_plt_get_cache_line_size;
+  oct_plt_irq_register_fn_t oct_plt_irq_register;
+  oct_plt_irq_unregister_fn_t oct_plt_irq_unregister;
+  oct_plt_irq_reconfigure_fn_t oct_plt_irq_reconfigure;
+  oct_plt_irq_disable_fn_t oct_plt_irq_disable;
 } oct_plt_init_param_t;
 __plt_internal int oct_plt_init (const oct_plt_init_param_t *);
 
