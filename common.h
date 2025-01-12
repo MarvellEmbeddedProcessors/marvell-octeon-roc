@@ -251,7 +251,7 @@ typedef struct oct_pci_device
   struct oct_pci_intr_handle *intr_handle;
   uint16_t max_vfs;
   uint16_t index;
-  uint8_t name[32];
+  uint8_t name[48];
   oct_pci_addr_t addr;
   oct_pci_dev_handle_t pci_handle;
 } oct_pci_device_t;
