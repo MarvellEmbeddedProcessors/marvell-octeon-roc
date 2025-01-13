@@ -130,11 +130,19 @@ extern __attribute__((const)) int __plt_log2_NaN(void);
 
 /* cpu model type for inline assembly */
 #if defined(__ARM_FEATURE_SVE2)
-#define PLT_CPU_FEATURE_PREAMBLE ".cpu generic+crc+lse+sve2\n"
+#define PLT_CPU_FEATURE_PREAMBLE                                               \
+	".arch_extension crc\n"                                                \
+	".arch_extension lse\n"                                                \
+	".arch_extension sve2\n"
 #elif defined(__ARM_FEATURE_SVE)
-#define PLT_CPU_FEATURE_PREAMBLE ".cpu generic+crc+lse+sve\n"
+#define PLT_CPU_FEATURE_PREAMBLE                                               \
+	".arch_extension crc\n"                                                \
+	".arch_extension lse\n"                                                \
+	".arch_extension sve\n"
 #else
-#define PLT_CPU_FEATURE_PREAMBLE ".cpu generic+crc+lse\n"
+#define PLT_CPU_FEATURE_PREAMBLE                                               \
+	".arch_extension crc\n"                                                \
+	".arch_extension lse\n"
 #endif
 
 /** C extension macro for environments lacking C11 features. */
