@@ -13,6 +13,7 @@ struct oct_plt_init_param;
 extern struct oct_plt_init_param g_param;
 typedef struct oct_plt_memzone
 {
+  char name[PLT_MEMZONE_NAMESIZE];
   uint32_t index;
   union
   {
@@ -37,14 +38,6 @@ typedef struct oct_plt_memzone_list
 
 #define plt_memzone_reserve_cache_align(name, sz)                             \
   g_param.oct_plt_memzone_reserve_aligned (name, sz, 0, 0, 128)
-
-inline void *
-oct_plt_realloc (void *addr, uint32_t size, uint32_t align)
-{
-  assert (0);
-
-  return 0;
-}
 
 static inline const void *
 plt_lmt_region_reserve_aligned (const char *name, size_t len, uint32_t align)
