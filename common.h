@@ -65,7 +65,7 @@ typedef struct oct_plt_spinlock_s *oct_plt_spinlock_t;
 #define plt_tsc_hz	       oct_plt_get_tsc_hz
 #define plt_tsc_cycles()       oct_cpu_time_now ()
 #define plt_delay_ms	       oct_plt_delay_ms
-#define plt_delay_us	       oct_plt_delay_us
+#define plt_delay_us	       g_param.oct_plt_delay_us
 #define plt_spinlock_t	       oct_plt_spinlock_t
 #define plt_spinlock_init      g_param.oct_plt_spinlock_init
 #define plt_spinlock_lock      g_param.oct_plt_spinlock_lock
@@ -93,7 +93,7 @@ typedef struct oct_plt_spinlock_s *oct_plt_spinlock_t;
 #define plt_strlcpy		     oct_plt_strlcpy
 #define plt_zmalloc(sz, align)	     g_param.oct_plt_zmalloc (sz, align)
 #define plt_free		     g_param.oct_plt_free
-#define plt_realloc		     oct_plt_realloc
+#define plt_realloc		     g_param.oct_plt_realloc
 
 #define plt_irq_register	     g_param.oct_plt_irq_register
 #define plt_irq_unregister	     g_param.oct_plt_irq_unregister
@@ -282,6 +282,7 @@ typedef oct_plt_log_class_t (*oct_plt_log_reg_class_fn_t) (char *class, char *su
 typedef void (*oct_plt_log_fn_t) (oct_plt_log_level_t level, oct_plt_log_class_t class, char *fmt, ...);
 typedef void (*oct_plt_free_fn_t) (void *add);
 typedef void * (*oct_plt_zmalloc_fn_t) (uint32_t size, uint32_t align);
+typedef void * (*oct_plt_realloc_fn_t) (void *addr, uint32_t size, uint32_t align);
 typedef int (*oct_plt_memzone_free_fn_t) (const struct oct_plt_memzone *name);
 typedef struct oct_plt_memzone * (*oct_plt_memzone_lookup_fn_t) (const char *name);
 typedef struct oct_plt_memzone * (*oct_plt_memzone_reserve_aligned_fn_t) (const char *name, uint64_t len, uint8_t socket,
@@ -299,6 +300,7 @@ typedef void (*oct_plt_irq_unregister_fn_t)(struct plt_intr_handle *intr_handle,
 					    void *data, unsigned int vec);
 typedef int (*oct_plt_irq_reconfigure_fn_t)(struct plt_intr_handle *intr_handle, uint16_t max_intr);
 typedef int (*oct_plt_irq_disable_fn_t)(struct plt_intr_handle *intr_handle);
+typedef void (*oct_plt_delay_us_fn_t)(unsigned int);
 
 typedef struct oct_plt_init_param 
 {
@@ -306,6 +308,7 @@ typedef struct oct_plt_init_param
   oct_plt_log_fn_t oct_plt_log;
   oct_plt_free_fn_t oct_plt_free; 
   oct_plt_zmalloc_fn_t oct_plt_zmalloc; 
+  oct_plt_realloc_fn_t oct_plt_realloc;
   oct_plt_memzone_free_fn_t oct_plt_memzone_free; 
   oct_plt_memzone_lookup_fn_t oct_plt_memzone_lookup; 
   oct_plt_memzone_reserve_aligned_fn_t oct_plt_memzone_reserve_aligned;
@@ -319,6 +322,7 @@ typedef struct oct_plt_init_param
   oct_plt_irq_unregister_fn_t oct_plt_irq_unregister;
   oct_plt_irq_reconfigure_fn_t oct_plt_irq_reconfigure;
   oct_plt_irq_disable_fn_t oct_plt_irq_disable;
+  oct_plt_delay_us_fn_t oct_plt_delay_us;
 } oct_plt_init_param_t;
 __plt_internal int oct_plt_init (const oct_plt_init_param_t *);
 
@@ -440,11 +444,11 @@ oct_plt_write64_relaxed (uint64_t value, volatile void *addr)
 static inline __attribute__((__always_inline__))void
 oct_plt_delay_ms (unsigned msec)
 {
-  usleep (msec * 1e3);
+  g_param.oct_plt_delay_us (msec * 1e3);
 }
 
 static inline __attribute__((__always_inline__))void
-oct_plt_delay_us (unsigned usec)
+oct_delay_us (unsigned usec)
 {
   usleep (usec);
 }

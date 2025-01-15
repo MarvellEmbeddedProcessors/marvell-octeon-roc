@@ -29,11 +29,14 @@ oct_plt_init (const oct_plt_init_param_t *param)
 {
   if (!param->oct_plt_log_reg_class || !param->oct_plt_log ||
 	!param->oct_plt_free || !param->oct_plt_zmalloc ||
-       	!param->oct_plt_memzone_free || !param->oct_plt_memzone_lookup ||
-       	!param->oct_plt_get_thread_index || !param->oct_plt_spinlock_init ||
-       	!param->oct_plt_memzone_reserve_aligned ||
-        !param->oct_plt_spinlock_lock || !param->oct_plt_spinlock_unlock ||
-        !param->oct_plt_spinlock_trylock)
+	!param->oct_plt_realloc ||
+	!param->oct_plt_memzone_free || !param->oct_plt_memzone_lookup ||
+	!param->oct_plt_memzone_reserve_aligned ||
+	!param->oct_plt_get_thread_index || !param->oct_plt_spinlock_init ||
+	!param->oct_plt_spinlock_lock || !param->oct_plt_spinlock_unlock ||
+	!param->oct_plt_spinlock_trylock || !param->oct_plt_irq_register ||
+	!param->oct_plt_irq_unregister || !param->oct_plt_irq_reconfigure ||
+	!param->oct_plt_irq_disable)
 	  return -1;
 
   g_param = *param;
@@ -70,6 +73,9 @@ oct_plt_init (const oct_plt_init_param_t *param)
 	  oct_plt_cache_line_size = param->oct_plt_get_cache_line_size();
   else
 	  oct_plt_cache_line_size = 64;
+
+  if (!param->oct_plt_delay_us)
+	  g_param.oct_plt_delay_us = oct_delay_us;
 
   return 0;
 }
