@@ -72,9 +72,13 @@ typedef struct oct_plt_spinlock_s *oct_plt_spinlock_t;
 #define plt_spinlock_unlock    g_param.oct_plt_spinlock_unlock
 #define plt_spinlock_trylock   g_param.oct_plt_spinlock_trylock
 
+/** Formatting string for PCI device identifier: Ex: 0000:00:01.0 */
+#define PCI_PRI_FMT "%.4" PRIx32 ":%.2" PRIx8 ":%.2" PRIx8 ".%" PRIx8
+
 #define MAX_VFIO_PCI_BAR_REGIONS     6 /* GENERIC MAPPABLE BAR REGIONS ONLY */
 #define PLT_MAX_RXTX_INTR_VEC_ID     1024
 #define PLT_INTR_VEC_RXTX_OFFSET     1
+#define plt_pci_addr		     oct_pci_addr
 #define plt_pci_device		     oct_pci_device
 
 #define plt_intr_callback_register   oct_plt_intr_callback_register
