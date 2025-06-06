@@ -17,6 +17,7 @@ set(OCT_ROC_SRCS
   base/roc_cpt.c
   base/roc_cpt_debug.c
   base/roc_dev.c
+  base/roc_dpi.c
   base/roc_hash.c
   base/roc_idev.c
   base/roc_ie_ot.c
