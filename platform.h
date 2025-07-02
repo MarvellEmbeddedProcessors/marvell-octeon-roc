@@ -6,6 +6,8 @@
 #ifndef included_oct_roc_platform_h
 #define included_oct_roc_platform_h
 
+#include <pthread.h>
+#include <limits.h>
 #include <inttypes.h>
 #include <assert.h>
 
