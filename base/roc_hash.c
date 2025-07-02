@@ -3,6 +3,7 @@
  */
 
 #include "roc_api.h"
+#include <endian.h>
 
 #define lrot32(bits, word) (((word) << (bits)) | ((word) >> (32 - (bits))))
 #define rrot32(bits, word) lrot32(32 - (bits), word)
