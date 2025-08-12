@@ -121,4 +121,7 @@
 /* Eswitch */
 #include "roc_eswitch.h"
 
+/* RVU LF */
+#include "roc_rvu_lf.h"
+
 #endif /* _ROC_API_H_ */
