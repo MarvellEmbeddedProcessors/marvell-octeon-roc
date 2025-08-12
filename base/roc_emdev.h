@@ -21,12 +21,41 @@ struct roc_emdev {
 	uint8_t reserved[ROC_EMDEV_MEM_SZ] __plt_cache_aligned;
 };
 
+struct roc_emdev_psw_aq_qp {
+	uint32_t qid;
+	uint32_t nb_desc;
+	/* End of input params */
+	uint64_t *notify_q_base;
+	uint64_t *ack_q_base;
+	uint32_t qmask;
+	uint32_t q_sz;
+	uintptr_t notify_q_pi_dbell;
+	uintptr_t notify_q_ci_dbell;
+	uintptr_t ack_q_pi_dbell;
+	uintptr_t ack_q_ci_dbell;
+	struct roc_emdev *roc_emdev;
+};
 struct roc_emdev_apinotif_handle {
 	uint32_t addr;
 	uint64_t data;
 	uint8_t be;
 	bool is_read;
 };
+
+/**
+ * Virtio defines
+ */
+/* Use BAR 0 */
+#define ROC_EMDEV_VIRTIO_BAR 0
+
+/* VIRTIO PCI config area */
+#define ROC_EMDEV_VIRTIO_PCI_COMMON_CFG_OFF 0
+
+/* VIRTIO PCI common config area ``struct virtio_pci_common_cfg`` */
+#define ROC_EMDEV_VIRTIO_PCI_COMMON_CFG_LEN 64
+
+/* VIRTIO PCI NET/CRYPTO device config area */
+#define ROC_EMDEV_VIRTIO_PCI_DEV_CFG_LEN 64
 
 typedef int (*roc_emdev_apinotif_cb_t)(uint16_t epf_func, struct roc_emdev_apinotif_handle *desc,
 				       void *args);
@@ -36,4 +65,12 @@ typedef int (*roc_emdev_flrnotif_cb_t)(uint16_t epf_func, void *args);
 int __roc_api roc_emdev_init(struct roc_emdev *roc_emdev);
 int __roc_api roc_emdev_fini(struct roc_emdev *roc_emdev);
 
+int __roc_api roc_emdev_setup(struct roc_emdev *roc_emdev);
+int __roc_api roc_emdev_release(struct roc_emdev *roc_emdev);
+
+int __roc_api roc_emdev_psw_epfvf_config(struct roc_emdev *roc_emdev, uint16_t evf_id,
+					 uint16_t notify_qbase, bool enable);
+void __roc_api roc_emdev_flrnotif_cb_register(struct roc_emdev *roc_emdev,
+					      roc_emdev_flrnotif_cb_t cb, void *cb_args);
+void __roc_api roc_emdev_flrnotif_cb_unregister(struct roc_emdev *roc_emdev);
 #endif /* __INCLUDE_ROC_EMDEV_H__ */
