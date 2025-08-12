@@ -93,6 +93,7 @@ INTERNAL {
 	roc_dpi_enable;
 	roc_dpi_wait_queue_idle;
 	roc_dpi_reset;
+	roc_dpi_lf_dump;
 	roc_dpi_lf_pffunc_cfg;
 	roc_dpi_lf_ring_init;
 	roc_dpi_lf_ring_fini;
