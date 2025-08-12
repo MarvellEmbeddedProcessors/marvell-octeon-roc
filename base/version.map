@@ -126,6 +126,7 @@ INTERNAL {
 	roc_emdev_psw_outb_q_dump;
 	roc_emdev_psw_anq_desc_dump;
 	roc_emdev_psw_nq_desc_dump;
+	roc_emdev_psw_mbox_int_trigger;
 	roc_emdev_apinotif_cb_register;
 	roc_emdev_apinotif_cb_unregister;
 	roc_emdev_flrnotif_cb_register;

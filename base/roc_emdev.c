@@ -959,3 +959,21 @@ exit:
 	mbox_put(mbox);
 	return rc;
 }
+
+void
+roc_emdev_psw_mbox_int_trigger(struct roc_emdev *roc_emdev, uint16_t evf_id)
+{
+	struct emdev *emdev = roc_emdev_to_emdev_priv(roc_emdev);
+	struct emdev_epfvf *epfvf;
+	struct psw_lf *psw_lf;
+	uintptr_t rbase;
+	uint64_t wdata;
+
+	epfvf = &emdev->epfvfs[evf_id];
+	psw_lf = &emdev->psw_lfs[0];
+	rbase = psw_lf->rbase;
+
+	wdata = epfvf->epf_func;
+
+	roc_atomic64_cas(wdata, 1, PLT_PTR_CAST(rbase + PSW_LF_OP_MBOXX(1)));
+}
