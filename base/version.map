@@ -105,6 +105,7 @@ INTERNAL {
 	roc_dpi_lf_chan_tbl_ena_dis;
 	roc_dpi_lf_chan_tbl_update;
 	roc_emdev_dpi_lf_base_get;
+	roc_emdev_epf_func_get;
 	roc_emdev_init;
 	roc_emdev_irqs_register;
 	roc_emdev_irqs_unregister;
