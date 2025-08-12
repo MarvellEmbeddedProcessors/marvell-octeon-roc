@@ -6,6 +6,11 @@
 
 enum roc_emdev_type { ROC_EMDEV_TYPE_VIRTIO = 1, ROC_EMDEV_TYPE_NVME, ROC_EMDEV_TYPE_MAX };
 
+enum roc_emdev_qp_type {
+	ROC_EMDEV_QP_TYPE_CTRL = 1,
+	ROC_EMDEV_QP_TYPE_DATA = 2,
+};
+
 enum roc_emdev_dpi_lf_ring_type {
 	ROC_EMDEV_DPI_LF_RING_INB = 0,
 	ROC_EMDEV_DPI_LF_RING_OUTB = 1,
@@ -58,6 +63,80 @@ struct roc_emdev_psw_nq_qp {
 	bool enable;
 };
 
+struct roc_emdev_psw_inb_q {
+	uint32_t qid;
+	uint16_t evf_id;
+	uint16_t pasid;
+	uint16_t pasid_en;
+	struct roc_emdev_psw_hib_q {
+		uintptr_t q_base_addr; /* Base address of the queue in Host */
+		uint64_t pround;
+		uint16_t msix_vec_num;
+		bool msix_en;
+	} hib;
+
+	struct roc_emdev_psw_shib_q {
+		uintptr_t q_base_addr;	    /* Aligned address of the shadow queue in Octeon */
+		uintptr_t real_q_base_addr; /* Base address of the shadow queue */
+	} shib;
+
+	uint32_t nb_desc;
+	uint16_t pi_init;
+	uint16_t ci_init;
+	/* End of input params */
+	struct roc_emdev *roc_emdev;
+	/* Write data for LDADD/CASP ops for HIQ, SHIQ */
+	uint64_t wdata;
+	/* Shadow queue doorbells */
+	uintptr_t pi_dbell;
+	uintptr_t ci_dbell;
+};
+
+struct roc_emdev_psw_outb_q {
+	uint32_t qid;
+	uint16_t evf_id;
+	uint16_t pasid;
+	uint16_t pasid_en;
+	/* Control Queue or Data Queue */
+	enum roc_emdev_qp_type qp_type;
+	struct roc_emdev_psw_hob_q {
+		uintptr_t q_base_addr; /* Base address of the queue in Host */
+		uint64_t pround;
+		uint16_t notify_qid; /* Notify queue id with associated PSW LF */
+	} hob;
+
+	struct roc_emdev_psw_shob_q {
+		uintptr_t q_base_addr;	    /* Aligned address of the shadow queue in Octeon */
+		uintptr_t real_q_base_addr; /* Base address of the shadow queue */
+	} shob;
+
+	uint32_t nb_desc;
+	uint16_t pi_init;
+	uint16_t ci_init;
+	/* End of input params */
+	struct roc_emdev *roc_emdev;
+	/* Write data for LDADD/CASP ops for HoQ, SHoQ */
+	uint64_t wdata;
+	/* Shadow queue doorbells */
+	uintptr_t pi_dbell;
+	uintptr_t ci_dbell;
+};
+
+struct roc_emdev_psw_dbl_desc {
+	uint16_t epffunc;
+	uint16_t index;
+	uint8_t hoqid;
+};
+
+struct roc_emdev_psw_ack_dbl_desc {
+	uint16_t write_cnt;
+	uint16_t index;
+	uint16_t epffunc;
+	uint8_t hiqid;
+	uint8_t msgovrd;
+	uint8_t intrpt;
+};
+
 struct roc_emdev_apinotif_handle {
 	uint32_t addr;
 	uint64_t data;
@@ -65,7 +144,12 @@ struct roc_emdev_apinotif_handle {
 	bool is_read;
 };
 
-#define ROC_EMDEV_DPI_Q_SZ 4096u
+#define ROC_PSW_VFS_MAX		 128
+#define ROC_PSW_OUTB_QUEUES_MAX	 4096
+#define ROC_PSW_NOTIF_QUEUES_MAX 64
+#define ROC_EMDEV_DPI_Q_SZ	 4096u
+
+#define ROC_EMDEV_PSW_BURST_SZ 64
 
 /**
  * Virtio defines
@@ -106,6 +190,14 @@ int __roc_api roc_emdev_psw_aq_qp_fini(struct roc_emdev_psw_aq_qp *anq);
 
 int __roc_api roc_emdev_psw_nq_qp_init(struct roc_emdev *roc_emdev, struct roc_emdev_psw_nq_qp *nq);
 int __roc_api roc_emdev_psw_nq_qp_fini(struct roc_emdev_psw_nq_qp *nq);
+
+int __roc_api roc_emdev_psw_inb_q_init(struct roc_emdev *roc_emdev,
+				       struct roc_emdev_psw_inb_q *inbq);
+int __roc_api roc_emdev_psw_inb_q_fini(struct roc_emdev_psw_inb_q *inbq);
+
+int __roc_api roc_emdev_psw_outb_q_init(struct roc_emdev *roc_emdev,
+					struct roc_emdev_psw_outb_q *outbq);
+int __roc_api roc_emdev_psw_outb_q_fini(struct roc_emdev_psw_outb_q *outbq);
 
 int __roc_api roc_emdev_apinotif_cb_register(struct roc_emdev *roc_emdev,
 					     roc_emdev_apinotif_cb_t cb, void *cb_args);
