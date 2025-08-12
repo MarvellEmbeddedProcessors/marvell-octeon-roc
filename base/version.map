@@ -92,6 +92,16 @@ INTERNAL {
 	roc_dpi_disable;
 	roc_dpi_enable;
 	roc_dpi_wait_queue_idle;
+	roc_dpi_reset;
+	roc_dpi_lf_pffunc_cfg;
+	roc_dpi_lf_ring_init;
+	roc_dpi_lf_ring_fini;
+	roc_dpi_lf_ring_chan_cfg;
+	roc_dpi_lf_chan_tbl_alloc;
+	roc_dpi_lf_chan_tbl_free;
+	roc_dpi_lf_chan_tbl_select;
+	roc_dpi_lf_chan_tbl_ena_dis;
+	roc_dpi_lf_chan_tbl_update;
 	roc_error_msg_get;
 	roc_eswitch_is_repte_pfs_vf;
 	roc_eswitch_nix_process_repte_notify_cb_register;
