@@ -4,6 +4,8 @@
 #include "roc_api.h"
 #include "roc_priv.h"
 
+#define ROC_EMDEV_API_Q_SZ 4096
+
 /* VIRTIO PCI NOTIFY area BAR offset */
 #define ROC_EMDEV_VIRTIO_NOTIFY_AREA_OFF    256
 #define ROC_EMDEV_VIRTIO_NOTIFY_AREA_STRIDE 8
@@ -449,6 +451,46 @@ exit:
 }
 
 static int
+emdev_aq_qp_init(struct roc_emdev *roc_emdev)
+{
+	struct emdev *emdev = roc_emdev_to_emdev_priv(roc_emdev);
+	struct roc_emdev_psw_aq_qp *aq_qp;
+	int rc, i;
+
+	for (i = 0; i < emdev->nb_psw_lfs; i++) {
+		aq_qp = &emdev->aq_qps[i];
+		aq_qp->qid = 0;
+		aq_qp->nb_desc = ROC_EMDEV_API_Q_SZ;
+
+		rc = roc_emdev_psw_aq_qp_init(roc_emdev, aq_qp);
+		if (rc) {
+			plt_err("Failed to setup PSW AQ QP, rc=%d", rc);
+			return rc;
+		}
+	}
+
+	return 0;
+}
+
+static int
+emdev_aq_qp_fini(struct roc_emdev *roc_emdev)
+{
+	struct emdev *emdev = roc_emdev_to_emdev_priv(roc_emdev);
+	struct roc_emdev_psw_aq_qp *aq_qp;
+	int rc = 0, i;
+
+	for (i = 0; i < emdev->nb_psw_lfs; i++) {
+		aq_qp = &emdev->aq_qps[i];
+
+		rc |= roc_emdev_psw_aq_qp_fini(aq_qp);
+		if (rc)
+			plt_err("Failed to cleanup PSW AQ QP, rc=%d", rc);
+	}
+
+	return rc;
+}
+
+static int
 emdev_dpi_chan_tbl_config(struct emdev *emdev)
 {
 	struct roc_dpi_lf *lf;
@@ -745,9 +787,16 @@ roc_emdev_setup(struct roc_emdev *roc_emdev)
 	if (rc)
 		goto free_psw_rsrc;
 
+	/* Setup PSW AQ QP */
+	rc = emdev_aq_qp_init(roc_emdev);
+	if (rc)
+		goto cleanup_fid;
+
 	roc_emdev->emul_type = emdev->emul_type;
 
 	return 0;
+cleanup_fid:
+	rc |= psw_virtio_fid_table_release(emdev);
 free_psw_rsrc:
 	/* Free PSW HIB, SHIB, HOB, SHOB queues per EPF_FUNC */
 	rc |= emdev_psw_rsrc_free(emdev);
@@ -768,6 +817,12 @@ roc_emdev_release(struct roc_emdev *roc_emdev)
 	struct emdev *emdev = roc_emdev_to_emdev_priv(roc_emdev);
 	int rc;
 
+	/* Cleanup PSW AQ QP */
+	rc = emdev_aq_qp_fini(roc_emdev);
+	if (rc)
+		return rc;
+
+	/* Remove FID entries */
 	rc = psw_virtio_fid_table_release(emdev);
 	if (rc)
 		return rc;
@@ -794,6 +849,27 @@ roc_emdev_release(struct roc_emdev *roc_emdev)
 	emdev->nq_qps = NULL;
 	emdev->psw_lfs = NULL;
 
+	return 0;
+}
+
+int
+roc_emdev_apinotif_cb_register(struct roc_emdev *roc_emdev, roc_emdev_apinotif_cb_t cb,
+			       void *cb_args)
+{
+	struct emdev *emdev = roc_emdev_to_emdev_priv(roc_emdev);
+
+	emdev->apinotif_cb = cb;
+	emdev->apinotif_cb_args = cb_args;
+	return 0;
+}
+
+int
+roc_emdev_apinotif_cb_unregister(struct roc_emdev *roc_emdev)
+{
+	struct emdev *emdev = roc_emdev_to_emdev_priv(roc_emdev);
+
+	emdev->apinotif_cb = NULL;
+	emdev->apinotif_cb_args = NULL;
 	return 0;
 }
 

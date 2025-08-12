@@ -111,6 +111,12 @@ INTERNAL {
 	roc_emdev_fini;
 	roc_emdev_setup;
 	roc_emdev_release;
+	roc_emdev_psw_aq_qp_init;
+	roc_emdev_psw_aq_qp_fini;
+	roc_emdev_psw_nq_qp_init;
+	roc_emdev_psw_nq_qp_fini;
+	roc_emdev_apinotif_cb_register;
+	roc_emdev_apinotif_cb_unregister;
 	roc_emdev_flrnotif_cb_register;
 	roc_emdev_flrnotif_cb_unregister;
 	roc_emdev_psw_epfvf_config;
