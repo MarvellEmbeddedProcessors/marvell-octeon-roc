@@ -233,6 +233,249 @@ roc_emdev_psw_nq_qp_fini(struct roc_emdev_psw_nq_qp *nq)
 
 	return 0;
 }
+
+int
+roc_emdev_psw_inb_q_init(struct roc_emdev *roc_emdev, struct roc_emdev_psw_inb_q *inbq)
+{
+	struct emdev *emdev = roc_emdev_to_emdev_priv(roc_emdev);
+	union psw_hib_queue_config_u hib_q_cfg;
+	union psw_shib_queue_config_u shib_q_cfg;
+	union psw_queue_config_u q_cfg_base;
+	union psw_pcie_attr_u pattr;
+	struct emdev_epfvf *epfvf;
+	struct psw_lf *psw_lf;
+	uint16_t evf_id;
+	uintptr_t rbase;
+	uint64_t wdata;
+
+	/* Check if EVF id is within range of EPF/VFs attached */
+	evf_id = inbq->evf_id;
+	if (evf_id > emdev->nb_epfvfs)
+		return -EINVAL;
+
+	epfvf = &emdev->epfvfs[evf_id];
+	/* Check if QID is within range of inbound queues attached */
+	if (inbq->qid >= epfvf->nb_inb_qs)
+		return -EINVAL;
+
+	psw_lf = &emdev->psw_lfs[0];
+	rbase = psw_lf->rbase;
+	wdata = epfvf->epf_func | inbq->qid << 16;
+
+	/* Initialize Shadow inbound queue */
+	memset(&q_cfg_base, 0, sizeof(q_cfg_base));
+	q_cfg_base.s.base_addr = (uint64_t)inbq->shib.q_base_addr >> 6;
+	q_cfg_base.s.log2ds = plt_log2_u32(emdev->hdesc_sz) - 3;
+	q_cfg_base.s.log2qs = plt_log2_u32(inbq->nb_desc) - 1;
+	q_cfg_base.s.pround = inbq->hib.pround;
+	q_cfg_base.s.pi = inbq->pi_init;
+	q_cfg_base.s.ci = inbq->ci_init;
+	q_cfg_base.s.enable = 1;
+
+	memset(&shib_q_cfg, 0, sizeof(shib_q_cfg));
+
+	roc_atomic64_cas(wdata, q_cfg_base.u[1], PLT_PTR_CAST(rbase + PSW_LF_OP_SHIQCX(1)));
+	roc_atomic64_cas(wdata, q_cfg_base.u[2], PLT_PTR_CAST(rbase + PSW_LF_OP_SHIQCX(2)));
+	roc_atomic64_cas(wdata, q_cfg_base.u[3], PLT_PTR_CAST(rbase + PSW_LF_OP_SHIQCX(3)));
+	roc_atomic64_cas(wdata, shib_q_cfg.u[0], PLT_PTR_CAST(rbase + PSW_LF_OP_SHIQCX(4)));
+	roc_atomic64_cas(wdata, shib_q_cfg.u[1], PLT_PTR_CAST(rbase + PSW_LF_OP_SHIQCX(5)));
+	roc_atomic64_cas(wdata, shib_q_cfg.u[2], PLT_PTR_CAST(rbase + PSW_LF_OP_SHIQCX(6)));
+	roc_atomic64_cas(wdata, shib_q_cfg.u[3], PLT_PTR_CAST(rbase + PSW_LF_OP_SHIQCX(7)));
+	/* Enable queue */
+	roc_atomic64_cas(wdata, q_cfg_base.u[0], PLT_PTR_CAST(rbase + PSW_LF_OP_SHIQCX(0)));
+
+	/* Initialize Host inbound queue */
+	memset(&q_cfg_base, 0, sizeof(q_cfg_base));
+	q_cfg_base.s.base_addr = inbq->hib.q_base_addr >> 6;
+	q_cfg_base.s.log2ds = plt_log2_u32(emdev->hdesc_sz) - 3;
+	q_cfg_base.s.log2qs = plt_log2_u32(inbq->nb_desc) - 1;
+	q_cfg_base.s.pi = inbq->pi_init;
+	q_cfg_base.s.ci = inbq->ci_init;
+	q_cfg_base.s.enable = 1;
+
+	memset(&hib_q_cfg, 0, sizeof(hib_q_cfg));
+	memset(&pattr, 0, sizeof(pattr));
+	pattr.s.pasid = inbq->pasid;
+	pattr.s.pasid_ctrl = inbq->pasid_en;
+	hib_q_cfg.u[0] = pattr.u;
+	hib_q_cfg.s.msg_type = inbq->hib.msix_en ? 1 : 0;
+	hib_q_cfg.s.msix_vec_num = inbq->hib.msix_vec_num;
+
+	roc_atomic64_cas(wdata, q_cfg_base.u[1], PLT_PTR_CAST(rbase + PSW_LF_OP_HIQCX(1)));
+	roc_atomic64_cas(wdata, q_cfg_base.u[2], PLT_PTR_CAST(rbase + PSW_LF_OP_HIQCX(2)));
+	roc_atomic64_cas(wdata, q_cfg_base.u[3], PLT_PTR_CAST(rbase + PSW_LF_OP_HIQCX(3)));
+	roc_atomic64_cas(wdata, hib_q_cfg.u[0], PLT_PTR_CAST(rbase + PSW_LF_OP_HIQCX(4)));
+	roc_atomic64_cas(wdata, hib_q_cfg.u[1], PLT_PTR_CAST(rbase + PSW_LF_OP_HIQCX(5)));
+	roc_atomic64_cas(wdata, hib_q_cfg.u[2], PLT_PTR_CAST(rbase + PSW_LF_OP_HIQCX(6)));
+	roc_atomic64_cas(wdata, hib_q_cfg.u[3], PLT_PTR_CAST(rbase + PSW_LF_OP_HIQCX(7)));
+	/* Enable queue */
+	roc_atomic64_cas(wdata, q_cfg_base.u[0], PLT_PTR_CAST(rbase + PSW_LF_OP_HIQCX(0)));
+
+	epfvf->inb_qs[inbq->qid] = inbq;
+	inbq->wdata = wdata;
+	inbq->roc_emdev = roc_emdev;
+	return 0;
+}
+
+int
+roc_emdev_psw_inb_q_fini(struct roc_emdev_psw_inb_q *inbq)
+{
+	struct emdev *emdev = roc_emdev_to_emdev_priv(inbq->roc_emdev);
+	struct emdev_epfvf *epfvf;
+	struct psw_lf *psw_lf;
+	uint64_t wdata, data;
+	uint16_t evf_id;
+	uintptr_t rbase;
+
+	/* Check if EVF id is within range of EPF/VFs attached */
+	evf_id = inbq->evf_id;
+	if (evf_id > emdev->nb_epfvfs)
+		return -EINVAL;
+
+	epfvf = &emdev->epfvfs[evf_id];
+	/* Check if QID is within range of inbound queues attached */
+	if (inbq->qid >= epfvf->nb_inb_qs)
+		return -EINVAL;
+
+	psw_lf = &emdev->psw_lfs[0];
+	rbase = psw_lf->rbase;
+	wdata = inbq->wdata;
+
+	/* Disable Shadow inbound queue */
+	data = roc_atomic64_add_sync(wdata, PLT_PTR_CAST(rbase + PSW_LF_OP_SHIQCX(0)));
+	data &= ~BIT_ULL(0);
+	roc_atomic64_cas(wdata, data, PLT_PTR_CAST(rbase + PSW_LF_OP_SHIQCX(0)));
+
+	/* Disable Host inbound queue */
+	data = roc_atomic64_add_sync(wdata, PLT_PTR_CAST(rbase + PSW_LF_OP_HIQCX(0)));
+	data &= ~BIT_ULL(0);
+	roc_atomic64_cas(wdata, data, PLT_PTR_CAST(rbase + PSW_LF_OP_HIQCX(0)));
+
+	epfvf->inb_qs[inbq->qid] = NULL;
+	return 0;
+}
+
+int
+roc_emdev_psw_outb_q_init(struct roc_emdev *roc_emdev, struct roc_emdev_psw_outb_q *outbq)
+{
+	struct emdev *emdev = roc_emdev_to_emdev_priv(roc_emdev);
+	union psw_hob_queue_config_u hob_q_cfg;
+	union psw_shob_queue_config_u shob_q_cfg;
+	union psw_queue_config_u q_cfg_base;
+	union psw_pcie_attr_u pattr;
+	struct emdev_epfvf *epfvf;
+	struct psw_lf *psw_lf;
+	uintptr_t rbase;
+	uint16_t evf_id;
+	uint64_t wdata;
+
+	/* Check if EVF id is within range of EPF/VFs attached */
+	evf_id = outbq->evf_id;
+	if (evf_id > emdev->nb_epfvfs)
+		return -EINVAL;
+
+	epfvf = &emdev->epfvfs[evf_id];
+	/* Check if QID is within range of outbound queues attached */
+	if (outbq->qid >= epfvf->nb_outb_qs)
+		return -EINVAL;
+
+	/* Use PSW LF of appropriate notify queue */
+	psw_lf = &emdev->psw_lfs[epfvf->psw_lfid];
+	rbase = psw_lf->rbase;
+	wdata = epfvf->epf_func | outbq->qid << 16;
+
+	/* Initialize Host outbound queue */
+	memset(&q_cfg_base, 0, sizeof(q_cfg_base));
+	q_cfg_base.s.base_addr = (uint64_t)outbq->hob.q_base_addr >> 6;
+	q_cfg_base.s.log2ds = plt_log2_u32(emdev->hdesc_sz) - 3;
+	q_cfg_base.s.log2qs = plt_log2_u32(outbq->nb_desc) - 1;
+	q_cfg_base.s.pround = outbq->hob.pround;
+	q_cfg_base.s.pi = outbq->pi_init;
+	q_cfg_base.s.ci = outbq->ci_init;
+	q_cfg_base.s.enable = 1;
+
+	memset(&hob_q_cfg, 0, sizeof(hob_q_cfg));
+	memset(&pattr, 0, sizeof(pattr));
+	pattr.s.pasid = outbq->pasid;
+	pattr.s.pasid_ctrl = outbq->pasid_en;
+	hob_q_cfg.u[0] = pattr.u;
+	hob_q_cfg.s.notif_qnum = outbq->hob.notify_qid;
+
+	roc_atomic64_cas(wdata, q_cfg_base.u[1], PLT_PTR_CAST(rbase + PSW_LF_OP_HOQCX(1)));
+	roc_atomic64_cas(wdata, q_cfg_base.u[2], PLT_PTR_CAST(rbase + PSW_LF_OP_HOQCX(2)));
+	roc_atomic64_cas(wdata, q_cfg_base.u[3], PLT_PTR_CAST(rbase + PSW_LF_OP_HOQCX(3)));
+	roc_atomic64_cas(wdata, hob_q_cfg.u[0], PLT_PTR_CAST(rbase + PSW_LF_OP_HOQCX(4)));
+	roc_atomic64_cas(wdata, hob_q_cfg.u[1], PLT_PTR_CAST(rbase + PSW_LF_OP_HOQCX(5)));
+	roc_atomic64_cas(wdata, hob_q_cfg.u[2], PLT_PTR_CAST(rbase + PSW_LF_OP_HOQCX(6)));
+	roc_atomic64_cas(wdata, hob_q_cfg.u[3], PLT_PTR_CAST(rbase + PSW_LF_OP_HOQCX(7)));
+	/* Enable queue */
+	roc_atomic64_cas(wdata, q_cfg_base.u[0], PLT_PTR_CAST(rbase + PSW_LF_OP_HOQCX(0)));
+
+	/* Initialize Shadow outbound queue */
+	memset(&q_cfg_base, 0, sizeof(q_cfg_base));
+	q_cfg_base.s.base_addr = outbq->shob.q_base_addr >> 6;
+	q_cfg_base.s.log2ds = plt_log2_u32(emdev->hdesc_sz) - 3;
+	q_cfg_base.s.log2qs = plt_log2_u32(outbq->nb_desc) - 1;
+	q_cfg_base.s.enable = 1;
+	q_cfg_base.s.pi = outbq->pi_init;
+	q_cfg_base.s.ci = outbq->ci_init;
+
+	memset(&shob_q_cfg, 0, sizeof(shob_q_cfg));
+
+	roc_atomic64_cas(wdata, q_cfg_base.u[1], PLT_PTR_CAST(rbase + PSW_LF_OP_SHOQCX(1)));
+	roc_atomic64_cas(wdata, q_cfg_base.u[2], PLT_PTR_CAST(rbase + PSW_LF_OP_SHOQCX(2)));
+	roc_atomic64_cas(wdata, q_cfg_base.u[3], PLT_PTR_CAST(rbase + PSW_LF_OP_SHOQCX(3)));
+	roc_atomic64_cas(wdata, shob_q_cfg.u[0], PLT_PTR_CAST(rbase + PSW_LF_OP_SHOQCX(4)));
+	roc_atomic64_cas(wdata, shob_q_cfg.u[1], PLT_PTR_CAST(rbase + PSW_LF_OP_SHOQCX(5)));
+	roc_atomic64_cas(wdata, shob_q_cfg.u[2], PLT_PTR_CAST(rbase + PSW_LF_OP_SHOQCX(6)));
+	roc_atomic64_cas(wdata, shob_q_cfg.u[3], PLT_PTR_CAST(rbase + PSW_LF_OP_SHOQCX(7)));
+	/* Enable queue */
+	roc_atomic64_cas(wdata, q_cfg_base.u[0], PLT_PTR_CAST(rbase + PSW_LF_OP_SHOQCX(0)));
+
+	epfvf->outb_qs[outbq->qid] = outbq;
+	outbq->wdata = wdata;
+	outbq->roc_emdev = roc_emdev;
+	return 0;
+}
+
+int
+roc_emdev_psw_outb_q_fini(struct roc_emdev_psw_outb_q *outbq)
+{
+	struct emdev *emdev = roc_emdev_to_emdev_priv(outbq->roc_emdev);
+	struct emdev_epfvf *epfvf;
+	struct psw_lf *psw_lf;
+	uint64_t data, wdata;
+	uint16_t evf_id;
+	uintptr_t rbase;
+
+	/* Check if EVF id is within range of EPF/VFs attached */
+	evf_id = outbq->evf_id;
+	if (evf_id > emdev->nb_epfvfs)
+		return -EINVAL;
+
+	epfvf = &emdev->epfvfs[evf_id];
+	/* Check if QID is within range of outbound queues attached */
+	if (outbq->qid >= epfvf->nb_outb_qs)
+		return -EINVAL;
+
+	psw_lf = &emdev->psw_lfs[epfvf->psw_lfid];
+	rbase = psw_lf->rbase;
+	wdata = outbq->wdata;
+
+	/* Disable Host outbound queue */
+	data = roc_atomic64_add_sync(wdata, PLT_PTR_CAST(rbase + PSW_LF_OP_HOQCX(0)));
+	data &= ~BIT_ULL(0);
+	roc_atomic64_cas(wdata, data, PLT_PTR_CAST(rbase + PSW_LF_OP_HOQCX(0)));
+
+	/* Disable Shadow outbound queue */
+	data = roc_atomic64_add_sync(wdata, PLT_PTR_CAST(rbase + PSW_LF_OP_SHOQCX(0)));
+	data &= ~BIT_ULL(0);
+	roc_atomic64_cas(wdata, data, PLT_PTR_CAST(rbase + PSW_LF_OP_SHOQCX(0)));
+
+	epfvf->outb_qs[outbq->qid] = NULL;
+	return 0;
+}
+
 int
 roc_emdev_psw_epfvf_config(struct roc_emdev *roc_emdev, uint16_t evf_id, uint16_t notify_qbase,
 			   bool enable)
