@@ -177,6 +177,127 @@ emdev_lf_detach(struct emdev *emdev)
 	return rc;
 }
 
+static int
+psw_virtio_fid_table_setup(struct emdev *emdev)
+{
+	struct mbox *mbox = mbox_get(emdev->dev.mbox);
+	struct psw_fid_free_entry_req *free_req;
+	struct psw_fid_alloc_entry_req *req;
+	struct psw_fid_alloc_entry_rsp *rsp;
+	struct psw_epf_dbl_cfg_req *dbl_req;
+	const struct psw_fid_entry *entry;
+	size_t size;
+	int rc, i;
+
+	for (i = 0; i < (int)PLT_DIM(psw_fid_base[ROC_EMDEV_TYPE_VIRTIO]); i++) {
+		entry = &psw_fid_base[ROC_EMDEV_TYPE_VIRTIO][i];
+		/* Allocate entry for common config and device config */
+		req = mbox_alloc_msg_psw_fid_alloc_entry(mbox);
+		if (!req)
+			return -ENOMEM;
+
+		/* Matches this EPF and all its VF's */
+		req->evf_id = 0;
+		req->evfm1_mask = 0x0;
+		req->bar = entry->bar;
+		req->base_addr = entry->offset >> 3;
+
+		/* For VIRTIO notify area, size would be calculated based on stride and number of
+		 * queues allocated.
+		 */
+		if (!entry->size)
+			size = PLT_ALIGN(emdev->nb_inb_qs * entry->stride, 2);
+		else
+			size = entry->size;
+		size = plt_align32pow2(size);
+		/* Check if size and base conflicts with previous entry */
+		if (i >= 1) {
+			if (emdev->fid_entries[i - 1].offset + emdev->fid_entries[i - 1].size >
+			    entry->offset) {
+				plt_err("FID entry[%d] conflicts with previous entry", i);
+				rc = -EINVAL;
+				goto error;
+			}
+		}
+
+		req->base_mask = (~(size - 1)) >> 3;
+		req->log2size = plt_log2_u32(size);
+		/* Stride is in multiple of 8 bytes */
+		req->log2stride = plt_log2_u32(entry->stride / 8);
+		req->psw_type = entry->psw_type;
+		req->read_mask = entry->read_mask;
+		req->read_en = entry->read_en;
+
+		plt_emdev_dbg("fid[%u]: Base_addr=%x base_mask=%x", i, req->base_addr,
+			      req->base_mask);
+
+		rc = mbox_process_msg(mbox, (void **)&rsp);
+		if (rc) {
+			plt_err("Failed to allocate PSW FID entry, rc=%d", rc);
+			goto error;
+		}
+
+		/* Store fid entry for future use */
+		emdev->fid_entries[i] = *entry;
+		emdev->fid_entries[i].size = size;
+		emdev->fid_entries[i].fid_idx = rsp->fid_idx;
+		emdev->nb_fid_entries++;
+	}
+	dbl_req = mbox_alloc_msg_psw_epf_dbl_cfg(mbox);
+	if (!dbl_req)
+		goto error;
+	dbl_req->pi.mask = 0xffff;
+	dbl_req->pi.les = 0;
+	dbl_req->pi.rotate = 16;
+	dbl_req->pi.tglen = 1;
+
+	dbl_req->ci.mask = 0xffff;
+	dbl_req->ci.les = 0;
+	dbl_req->ci.tglen = 0;
+	rc = mbox_process(mbox);
+	if (rc) {
+		plt_err("Failed to configure epf doorbell, rc=%d", rc);
+		goto error;
+	}
+
+	mbox_put(mbox);
+	return 0;
+error:
+	/* Release allocated FID entries */
+	for (i = 0; i < emdev->nb_fid_entries; i++) {
+		free_req = mbox_alloc_msg_psw_fid_free_entry(mbox);
+		if (!req)
+			break;
+		free_req->fid_idx = emdev->fid_entries[i].fid_idx;
+		rc |= mbox_process(mbox);
+	}
+	emdev->nb_fid_entries = 0;
+	mbox_put(mbox);
+	return rc;
+}
+
+static int
+psw_virtio_fid_table_release(struct emdev *emdev)
+{
+	int rc = 0;
+	struct mbox *mbox = mbox_get(emdev->dev.mbox);
+	struct psw_fid_free_entry_req *req;
+	int i;
+
+	for (i = 0; i < emdev->nb_fid_entries; i++) {
+		req = mbox_alloc_msg_psw_fid_free_entry(mbox);
+		if (!req)
+			break;
+		req->fid_idx = emdev->fid_entries[i].fid_idx;
+		rc |= mbox_process(mbox);
+	}
+
+	emdev->nb_fid_entries = 0;
+	mbox_put(mbox);
+
+	return rc;
+}
+
 int
 roc_emdev_init(struct roc_emdev *roc_emdev)
 {
@@ -210,6 +331,121 @@ roc_emdev_fini(struct roc_emdev *roc_emdev)
 
 	/* Finalize base device */
 	return dev_fini(&emdev->dev, emdev->pci_dev);
+}
+
+static int
+emdev_psw_rsrc_alloc(struct emdev *emdev, uint16_t nb_inb_qs, uint16_t nb_outb_qs)
+{
+	struct mbox *mbox = mbox_get(emdev->dev.mbox);
+	struct psw_gid_free_req *free_req;
+	struct psw_gid_alloc_req *req;
+	struct emdev_epfvf *epfvf;
+	uint16_t nb_epfvfs;
+	int rc, i;
+
+	nb_epfvfs = emdev->nb_epfvfs;
+	/* Allocate memory for EPFVF */
+	emdev->epfvfs = plt_zmalloc(sizeof(struct emdev_epfvf) * nb_epfvfs, 0);
+	if (!emdev->epfvfs)
+		return -ENOMEM;
+
+	/* Allocate queue resources per EPFVF */
+	for (i = 0; i < nb_epfvfs; i++) {
+		epfvf = &emdev->epfvfs[i];
+		epfvf->evf_id = i;
+		epfvf->epf_func = PSW_EPFFUNC(0, emdev->epf_id, i);
+
+		/* Allocate inbound and outbound queue holders */
+		rc = -ENOMEM;
+		epfvf->inb_qs = plt_zmalloc(sizeof(struct roc_emdev_psw_inb_q *) * nb_inb_qs, 0);
+		if (!epfvf->inb_qs)
+			goto error_q_alloc;
+
+		epfvf->outb_qs = plt_zmalloc(sizeof(struct roc_emdev_psw_outb_q *) * nb_outb_qs, 0);
+		if (!epfvf->outb_qs)
+			goto error_q_alloc;
+
+		/* Allocate PSW inbound and outbound queues */
+		req = mbox_alloc_msg_psw_gid_alloc(mbox);
+		if (!req)
+			return -ENOMEM;
+
+		req->evf_id = epfvf->evf_id;
+		req->nb_inb_qs = nb_inb_qs;
+		req->nb_outb_qs = nb_outb_qs;
+		req->nb_mid = PLT_MAX(nb_inb_qs, nb_outb_qs);
+		req->rid_base = 0;
+
+		rc = mbox_process(mbox);
+		if (rc) {
+			plt_err("Failed to allocate PSW queues, rc=%d", rc);
+			goto error_q_alloc;
+		}
+
+		plt_emdev_dbg("GID alloc done, nb_inb_qs : %u nb_outb_qs: %u", nb_inb_qs,
+			      nb_outb_qs);
+
+		epfvf->nb_inb_qs = nb_inb_qs;
+		epfvf->nb_outb_qs = nb_outb_qs;
+		epfvf->nb_rids = req->nb_mid;
+	}
+
+	mbox_put(mbox);
+	return 0;
+error_q_alloc:
+	/* Clean up allocated resources */
+	for (i = 0; i < nb_epfvfs; i++) {
+		free_req = mbox_alloc_msg_psw_gid_free(mbox);
+		if (!free_req)
+			break;
+		free_req->evf_id = emdev->epfvfs[i].evf_id;
+		free_req->nb_rids = epfvf->nb_rids;
+		free_req->rid_base = 0;
+		rc |= mbox_process(mbox);
+
+		plt_free(emdev->epfvfs[i].inb_qs);
+		plt_free(emdev->epfvfs[i].outb_qs);
+	}
+	plt_free(emdev->epfvfs);
+	emdev->epfvfs = NULL;
+	mbox_put(mbox);
+	return rc;
+}
+
+static int
+emdev_psw_rsrc_free(struct emdev *emdev)
+{
+	struct mbox *mbox = mbox_get(emdev->dev.mbox);
+	struct psw_gid_free_req *req;
+	struct emdev_epfvf *epfvf;
+	uint16_t nb_epfvfs;
+	int rc, i;
+
+	nb_epfvfs = emdev->nb_epfvfs;
+
+	/* Free queue resources per EPFVF */
+	for (i = 0; i < nb_epfvfs; i++) {
+		epfvf = &emdev->epfvfs[i];
+
+		req = mbox_alloc_msg_psw_gid_free(mbox);
+		if (!req)
+			return -ENOMEM;
+
+		req->evf_id = epfvf->evf_id;
+		req->nb_rids = epfvf->nb_rids;
+		req->rid_base = 0;
+		rc = mbox_process(mbox);
+		if (rc) {
+			plt_err("Failed to free PSW queues, rc=%d", rc);
+			goto exit;
+		}
+	}
+
+	plt_free(emdev->epfvfs);
+	emdev->epfvfs = NULL;
+exit:
+	mbox_put(mbox);
+	return rc;
 }
 
 static int
@@ -494,9 +730,29 @@ roc_emdev_setup(struct roc_emdev *roc_emdev)
 	if (rc)
 		goto detach_lf;
 
+	/* Allocate PSW HIB, SHIB, HOB, SHOB queues per EPF_FUNC */
+	rc = emdev_psw_rsrc_alloc(emdev, nb_inb_qs, nb_outb_qs);
+	if (rc)
+		goto dpi_lf_release;
+
+	/* Setup PSW FID table based on device type */
+	rc = -ENOTSUP;
+	if (emdev->emul_type == ROC_EMDEV_TYPE_VIRTIO) {
+		rc = psw_virtio_fid_table_setup(emdev);
+		emdev->hdesc_sz = 16UL; /* Fix Hard Coding */
+	}
+
+	if (rc)
+		goto free_psw_rsrc;
+
 	roc_emdev->emul_type = emdev->emul_type;
 
 	return 0;
+free_psw_rsrc:
+	/* Free PSW HIB, SHIB, HOB, SHOB queues per EPF_FUNC */
+	rc |= emdev_psw_rsrc_free(emdev);
+dpi_lf_release:
+	rc |= emdev_dpi_release(emdev);
 detach_lf:
 	rc |= emdev_lf_detach(emdev);
 free_mem:
@@ -511,6 +767,15 @@ roc_emdev_release(struct roc_emdev *roc_emdev)
 {
 	struct emdev *emdev = roc_emdev_to_emdev_priv(roc_emdev);
 	int rc;
+
+	rc = psw_virtio_fid_table_release(emdev);
+	if (rc)
+		return rc;
+
+	/* Free PSW HIB, SHIB, HOB, SHOB queues per EPF_FUNC */
+	rc = emdev_psw_rsrc_free(emdev);
+	if (rc)
+		return rc;
 
 	/* DPI LF cleanup */
 	rc = emdev_dpi_release(emdev);
