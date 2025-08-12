@@ -114,12 +114,18 @@ INTERNAL {
 	roc_emdev_release;
 	roc_emdev_psw_aq_qp_init;
 	roc_emdev_psw_aq_qp_fini;
+	roc_emdev_psw_aq_qp_dump;
 	roc_emdev_psw_nq_qp_init;
 	roc_emdev_psw_nq_qp_fini;
+	roc_emdev_psw_nq_qp_dump;
 	roc_emdev_psw_inb_q_init;
 	roc_emdev_psw_inb_q_fini;
+	roc_emdev_psw_inb_q_dump;
 	roc_emdev_psw_outb_q_init;
 	roc_emdev_psw_outb_q_fini;
+	roc_emdev_psw_outb_q_dump;
+	roc_emdev_psw_anq_desc_dump;
+	roc_emdev_psw_nq_desc_dump;
 	roc_emdev_apinotif_cb_register;
 	roc_emdev_apinotif_cb_unregister;
 	roc_emdev_flrnotif_cb_register;
