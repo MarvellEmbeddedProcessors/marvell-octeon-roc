@@ -916,6 +916,16 @@ roc_emdev_dpi_lf_base_get(struct roc_emdev *roc_emdev)
 	return emdev->dpi_lfs;
 }
 
+uint16_t
+roc_emdev_epf_func_get(struct roc_emdev *roc_emdev, uint16_t vf_id)
+{
+	struct emdev *emdev = roc_emdev_to_emdev_priv(roc_emdev);
+	uint16_t port;
+
+	port = emdev->epf_id > 7 ? 1 : 0;
+	return PSW_EPFFUNC(port, emdev->epf_id, vf_id);
+}
+
 void
 roc_emdev_flrnotif_cb_register(struct roc_emdev *roc_emdev, roc_emdev_flrnotif_cb_t cb,
 			       void *cb_args)
