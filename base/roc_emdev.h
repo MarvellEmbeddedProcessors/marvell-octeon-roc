@@ -206,6 +206,7 @@ int __roc_api roc_emdev_irqs_register(struct roc_emdev *roc_emdev);
 void __roc_api roc_emdev_irqs_unregister(struct roc_emdev *roc_emdev);
 int __roc_api roc_emdev_mbox_msix_cfg(struct roc_emdev *roc_emdev, uint16_t evf_id,
 				      uint16_t mbox_msix);
+void __roc_api roc_emdev_psw_mbox_int_trigger(struct roc_emdev *roc_emdev, uint16_t evf_id);
 
 /* Debug APIs */
 int __roc_api roc_emdev_psw_anq_desc_dump(FILE *file, void *data);
