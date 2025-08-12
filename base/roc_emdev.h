@@ -82,5 +82,7 @@ void __roc_api roc_emdev_flrnotif_cb_register(struct roc_emdev *roc_emdev,
 					      roc_emdev_flrnotif_cb_t cb, void *cb_args);
 void __roc_api roc_emdev_flrnotif_cb_unregister(struct roc_emdev *roc_emdev);
 struct roc_dpi_lf *__roc_api roc_emdev_dpi_lf_base_get(struct roc_emdev *roc_emdev);
+int __roc_api roc_emdev_irqs_register(struct roc_emdev *roc_emdev);
+void __roc_api roc_emdev_irqs_unregister(struct roc_emdev *roc_emdev);
 
 #endif /* __INCLUDE_ROC_EMDEV_H__ */

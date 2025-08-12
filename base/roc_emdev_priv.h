@@ -135,4 +135,7 @@ roc_emdev_to_emdev_priv(struct roc_emdev *roc_emdev)
 	return (struct emdev *)&roc_emdev->reserved[0];
 }
 
+int emdev_lf_register_irqs(struct emdev *emdev);
+int emdev_lf_unregister_irqs(struct emdev *emdev);
+
 #endif /* __INCLUDE_ROC_EMDEV_PRIV_H__ */
