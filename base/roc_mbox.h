@@ -417,7 +417,25 @@ struct mbox_msghdr {
 	M(DPI_LF_CHAN_TBL_ENA_DIS, 0xc00a, dpi_lf_chan_tbl_ena_dis, dpi_lf_chan_tbl_ena_dis_req,   \
 	  msg_rsp)                                                                                 \
 	M(DPI_LF_CHAN_TBL_UPDATE, 0xc00b, dpi_lf_chan_tbl_update, dpi_lf_chan_tbl_update_req,      \
-	  msg_rsp)
+	  msg_rsp)                                                                                 \
+	/* PSW mbox IDs (range 0x1200 - 0x13FF) */                                                 \
+	M(PSW_ATTACH_RESOURCES, 0x1200, psw_attach_resources, psw_rsrc_attach_req, msg_rsp)        \
+	M(PSW_DETACH_RESOURCES, 0x1201, psw_detach_resources, psw_rsrc_detach_req, msg_rsp)        \
+	M(PSW_FREE_RSRC_CNT, 0x1202, psw_free_rsrc_cnt, msg_req, psw_free_rsrcs_rsp)               \
+	M(PSW_MSIX_OFFSET, 0x1203, psw_msix_offset, msg_req, psw_msix_offset_rsp)                  \
+	M(PSW_CAPS_GET, 0x1204, psw_caps_get, msg_req, psw_caps_get_rsp)                           \
+	M(PSW_GID_ALLOC, 0x1205, psw_gid_alloc, psw_gid_alloc_req, msg_rsp)                        \
+	M(PSW_GID_FREE, 0x1206, psw_gid_free, psw_gid_free_req, msg_rsp)                           \
+	M(PSW_FID_ALLOC_ENTRY, 0x1207, psw_fid_alloc_entry, psw_fid_alloc_entry_req,               \
+	  psw_fid_alloc_entry_rsp)                                                                 \
+	M(PSW_FID_FREE_ENTRY, 0x1208, psw_fid_free_entry, psw_fid_free_entry_req, msg_rsp)         \
+	M(PSW_EPF_DBL_CFG, 0x1209, psw_epf_dbl_cfg, psw_epf_dbl_cfg_req, msg_rsp)                  \
+	M(PSW_EPFVF_MAP_CFG, 0x120A, psw_epfvf_map_cfg, psw_epfvf_map_cfg_req, msg_rsp)            \
+	M(PSW_EPFVF_PCIE_CFG, 0x120B, psw_epfvf_pcie_cfg, psw_epfvf_pcie_cfg_req, msg_rsp)         \
+	M(PSW_TPT_CFG, 0x120C, psw_tpt_cfg, psw_tpt_cfg_req, psw_tpt_cfg_rsp)                      \
+	M(PSW_TST_ADD_ENTRY, 0x120D, psw_tst_add_entry, psw_tst_add_entry_req,                     \
+	  psw_tst_add_entry_rsp)                                                                   \
+	M(PSW_TST_MODIFY_ENTRY, 0x1210, psw_tst_modify_entry, psw_tst_modify_entry_req, msg_rsp)
 
 /* Messages initiated by AF (range 0xC00 - 0xDFF) */
 #define MBOX_UP_CGX_MESSAGES                                                   \
@@ -427,6 +445,9 @@ struct mbox_msghdr {
 #define MBOX_UP_MCS_MESSAGES M(MCS_INTR_NOTIFY, 0xE00, mcs_intr_notify, mcs_intr_info, msg_rsp)
 
 #define MBOX_UP_REP_MESSAGES M(REP_EVENT_UP_NOTIFY, 0xEF0, rep_event_up_notify, rep_event, msg_rsp)
+
+#define MBOX_UP_PSW_MESSAGES                                                                       \
+	M(PSW_HOST_FLR_NOTIFY, 0xF00, psw_host_flr_notify, psw_host_flr_info, msg_rsp)
 
 enum {
 #define M(_name, _id, _1, _2, _3) MBOX_MSG_##_name = _id,
@@ -3391,6 +3412,250 @@ struct rep_event {
 #define RVU_EVENT_RX_MODE_CHANGE BIT_ULL(3)
 	uint16_t __io event;
 	struct rep_evt_data evt_data;
+};
+
+#define PSW_QS_PER_REQ 256
+
+/* PSW mbox message formats */
+struct psw_rsrc_attach_req {
+	struct mbox_msghdr hdr;
+	uint8_t __io modify : 1;
+	uint16_t __io pswlfs;
+};
+
+struct psw_rsrc_detach_req {
+	struct mbox_msghdr hdr;
+	uint8_t __io partial : 1;
+	uint8_t __io pswlfs : 1;
+};
+
+struct psw_free_rsrcs_rsp {
+	struct mbox_msghdr hdr;
+	uint8_t __io psw;
+};
+
+struct psw_msix_offset_rsp {
+	struct mbox_msghdr hdr;
+	uint16_t __io pswlfs;
+	uint16_t __io pswlf_msixoff[MAX_RVU_BLKLF_CNT];
+};
+
+struct psw_caps_get_rsp {
+	struct mbox_msghdr hdr;
+	/* Host pf func ID of requested RVU pcifunc */
+	uint8_t __io epf_id;
+	uint8_t __io rsvd[7];
+	/* PSW_AF_CONST0 includes, mevf, mdbl, mmsix and nepf */
+	uint64_t __io const0;
+	/* PSW_AF_CONST1 includes, mqueues, fidentrynum, gidbucketnum
+	 * and gidentrynum
+	 */
+	uint64_t __io const1;
+	/* PSW_AF_CONST2 includes, shared_size, TPT entries, PST and TST
+	 * entries and number of LFs.
+	 */
+	uint64_t __io const2;
+#define PSW_TYPE_COUNT 9
+	/* PSW_AF_FID_TYPE(0..8)_CONST, includes pfoffset and vfoffset
+	 * for each psw type
+	 */
+	uint64_t __io fid_type_const[PSW_TYPE_COUNT];
+	uint64_t __io rsvd1[7];
+};
+
+/**
+ * Setups up GID table and provides resources
+ * for the requested number of queues.
+ *
+ * Ideally nb_inb_qs == nb_outb_qs
+ * GID_ENTRY[X]: PF_FUNC = EPF_FUNC, RID = 0, QID = A1;
+ * GID_ENTRY[X+1]: PF_FUNC = EPF_FUNC, RID = 1, QID = A2;
+ * GID_ENTRY[X+2]: PF_FUNC = EPF_FUNC, RID = 2, QID = A3;
+ * ...
+ * ...
+ * GID_ENTRY[X + nb_inb_qs - 1]: PF_FUNC = EPF_FUNC, RID = nb_inb_qs - 1, QID = AN;
+ */
+struct psw_gid_alloc_req {
+	struct mbox_msghdr hdr;
+	uint16_t __io evf_id;	  /* Host PF_FUNC */
+	uint16_t __io nb_inb_qs;  /* Number of inbound queues */
+	uint16_t __io nb_outb_qs; /* Number of outbound queues */
+	uint16_t __io nb_mid;	  /* Number of MSIX ID's */
+	uint16_t __io rid_base;	  /* Base RID */
+	uint16_t __io rsvd1[3];
+	uint64_t __io rsvd2[2];
+};
+
+/**
+ * Frees up GID table all entries for requested epf_func.
+ * and releases the associated HIB, SHIB, HOB, SHOB.
+ */
+
+struct psw_gid_free_req {
+	struct mbox_msghdr hdr;
+	uint16_t __io evf_id; /* Host VF ID */
+	uint16_t __io nb_rids;
+	uint16_t __io rid_base;
+	uint16_t __io rsvd1;
+	uint64_t __io rsvd2;
+};
+
+/**
+ * Allocates a FID entry for the requested epf_func
+ * and populates PSW_AF_FID_INDX, PSW_AF_FID_BASEX, PSW_AF_FID_ATTRX
+ * and returns the index.
+ */
+struct psw_fid_alloc_entry_req {
+	struct mbox_msghdr hdr;
+	uint16_t __io evf_id;	  /* Host VF ID */
+	uint16_t __io evfm1_mask; /* Mask for Host PF_FUNC */
+	uint16_t __io bar;	  /* BAR number */
+	uint16_t __io rsvd1;
+	uint32_t __io base_addr; /* Base address */
+	uint32_t __io base_mask; /* Mask for base address */
+	uint8_t __io read_en;	 /* Read enable */
+	uint8_t __io read_mask;
+
+	/* Indirection */
+	uint8_t __io log2size;	 /* Log2 of size of address area */
+	uint8_t __io log2stride; /* Log2 of stride */
+	uint32_t __io offset;
+	uint8_t __io psw_type; /* PSW type */
+	uint8_t __io rsvd2[3];
+	uint32_t __io rsvd3;
+};
+
+struct psw_fid_alloc_entry_rsp {
+	struct mbox_msghdr hdr;
+	uint16_t __io fid_idx;
+	uint16_t __io rsvd[3];
+};
+
+/**
+ * Frees up FID table entry
+ */
+struct psw_fid_free_entry_req {
+	struct mbox_msghdr hdr;
+	uint16_t __io fid_idx;
+	uint16_t __io rsvd1[3];
+	uint64_t __io rsvd2;
+};
+
+struct psw_epf_dbl_cfg {
+	uint16_t __io mask;  /* mask on 8 bytes doorbell value */
+	uint8_t __io les;    /* Little endian swap */
+	uint8_t __io tglen;  /* toggle enable */
+	uint8_t __io rotate; /* Bit rotate right */
+	uint8_t __io rsvd[3];
+};
+
+struct psw_epf_dbl_cfg_req {
+	struct mbox_msghdr hdr;
+	struct psw_epf_dbl_cfg pi;
+	struct psw_epf_dbl_cfg ci;
+	uint64_t __io rsvd;
+};
+
+/**
+ * Setups PSW_AF_EPF(0..15)_EVF(0..127)_MAP
+ * PSW_AF_EPF(0..15)_MAP
+ */
+
+struct psw_epfvf_map_cfg_req {
+	struct mbox_msghdr hdr;
+	uint16_t __io evf_id; /* Host VF_ID */
+	uint16_t __io lf_id;  /* PSW LF slot id */
+	uint8_t __io enable;  /* Enable or disable EPFVF mapping */
+	uint8_t __io rsvd1[3];
+	uint64_t __io rsvd2;
+};
+
+/**
+ * Setups PSW_AF_EPF(0..15)_EVF(0..127)_PCIE_CFG
+ * PSW_AF_EPF(0..15)_PCIE_CFG
+ */
+
+struct psw_epfvf_pcie_cfg_req {
+	struct mbox_msghdr hdr;
+	uint16_t __io evf_id;	    /* Host VF_ID */
+	uint8_t __io msix_enable;   /* Enable or disable MSIX */
+	uint8_t __io master_enable; /* Enable or disable master */
+	uint32_t __io rsvd1;
+	uint64_t __io rsvd2;
+};
+
+struct psw_lf_reset_req {
+	struct mbox_msghdr hdr;
+	uint16_t __io lf_id; /* PSW lf slot id */
+	uint16_t __io rsvd[3];
+};
+
+/* Adds, modifies or removes a entry in timer profile table. */
+struct psw_tpt_cfg_req {
+	struct mbox_msghdr hdr;
+#define PSW_TPT_ENTRY_ADD    0x1
+#define PSW_TPT_ENTRY_MODIFY 0x2
+#define PSW_TPT_ENTRY_REMOVE 0x3
+	/* Operation to be performed on tpt entry */
+	uint8_t __io op;
+	/* Timer profile table(TPT) entry ID in case of MODIFY and REMOVE */
+	uint8_t __io tpt_id;
+	/* Number of timer ticks between polling structure transfers */
+	uint16_t __io target;
+	/* Profile start delay */
+	uint8_t __io start_dly;
+	uint8_t __io rsvd1[3];
+	uint64_t __io rsvd2;
+};
+
+struct psw_tpt_cfg_rsp {
+	struct mbox_msghdr hdr;
+	/* Allocated Timer profile table entry ID in case of op:ADD */
+	uint16_t __io tpt_id;
+	uint16_t __io rsvd[3];
+};
+
+struct psw_timed_poll_s {
+	uint64_t __io w0;
+	uint64_t __io w1;
+	uint64_t __io w2;
+	uint64_t __io w3;
+};
+
+/* Adds a entry in timer select table. */
+struct psw_tst_add_entry_req {
+	struct mbox_msghdr hdr;
+	/* Timer profile table(TPT) entry ID to be used for a tst */
+	uint8_t __io tpt_id;
+	uint8_t __io rsvd1[7];
+	struct psw_timed_poll_s entry;
+	uint64_t __io rsvd2;
+};
+
+struct psw_tst_add_entry_rsp {
+	struct mbox_msghdr hdr;
+	/* Allocated Timer select table entry ID i ncase of op:ADD */
+	uint16_t __io tst_id;
+	uint16_t __io rsvd[3];
+};
+
+/* Modifies or removes a entry in timer select table. */
+struct psw_tst_modify_entry_req {
+	struct mbox_msghdr hdr;
+	uint8_t __io enable;
+	/* Timer profile table(TPT) entry ID to be used for a tst */
+	uint8_t __io tpt_id;
+	/* Timer select table entry ID in case of MODIFY and REMOVE */
+	uint16_t __io tst_id;
+	uint32_t __io rsvd1;
+	uint64_t __io rsvd2;
+};
+
+struct psw_host_flr_info {
+	struct mbox_msghdr hdr;
+	uint16_t __io epffunc;
+	uint16_t __io rsvd1[3];
+	uint64_t __io rsvd2;
 };
 
 #endif /* __ROC_MBOX_H__ */

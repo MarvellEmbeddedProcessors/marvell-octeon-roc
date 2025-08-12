@@ -163,6 +163,7 @@
 #define RVU_BLOCK_ADDR_NDC0    (0xcull)
 #define RVU_BLOCK_ADDR_NDC1    (0xdull)
 #define RVU_BLOCK_ADDR_NDC2    (0xeull)
+#define RVU_BLOCK_ADDR_PSW     (0x1cull)
 #define RVU_BLOCK_ADDR_R_END   (0x1full)
 #define RVU_BLOCK_ADDR_R_START (0x14ull)
 #define RVU_BLOCK_ADDR_REE0    (0x14ull)
