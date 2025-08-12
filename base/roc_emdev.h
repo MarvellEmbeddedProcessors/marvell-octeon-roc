@@ -41,6 +41,23 @@ struct roc_emdev_psw_aq_qp {
 	uintptr_t ack_q_ci_dbell;
 	struct roc_emdev *roc_emdev;
 };
+
+struct roc_emdev_psw_nq_qp {
+	uint32_t qid;
+	uint32_t nb_desc;
+	/* End of input params */
+	uint64_t *notify_q_base;
+	uint64_t *ack_q_base;
+	uint32_t qmask;
+	uint32_t q_sz;
+	uintptr_t notify_q_pi_dbell;
+	uintptr_t notify_q_ci_dbell;
+	uintptr_t ack_q_pi_dbell;
+	uintptr_t ack_q_ci_dbell;
+	struct roc_emdev *roc_emdev;
+	bool enable;
+};
+
 struct roc_emdev_apinotif_handle {
 	uint32_t addr;
 	uint64_t data;
@@ -82,6 +99,17 @@ void __roc_api roc_emdev_flrnotif_cb_register(struct roc_emdev *roc_emdev,
 					      roc_emdev_flrnotif_cb_t cb, void *cb_args);
 void __roc_api roc_emdev_flrnotif_cb_unregister(struct roc_emdev *roc_emdev);
 struct roc_dpi_lf *__roc_api roc_emdev_dpi_lf_base_get(struct roc_emdev *roc_emdev);
+
+int __roc_api roc_emdev_psw_aq_qp_init(struct roc_emdev *roc_emdev,
+				       struct roc_emdev_psw_aq_qp *anq);
+int __roc_api roc_emdev_psw_aq_qp_fini(struct roc_emdev_psw_aq_qp *anq);
+
+int __roc_api roc_emdev_psw_nq_qp_init(struct roc_emdev *roc_emdev, struct roc_emdev_psw_nq_qp *nq);
+int __roc_api roc_emdev_psw_nq_qp_fini(struct roc_emdev_psw_nq_qp *nq);
+
+int __roc_api roc_emdev_apinotif_cb_register(struct roc_emdev *roc_emdev,
+					     roc_emdev_apinotif_cb_t cb, void *cb_args);
+int __roc_api roc_emdev_apinotif_cb_unregister(struct roc_emdev *roc_emdev);
 int __roc_api roc_emdev_irqs_register(struct roc_emdev *roc_emdev);
 void __roc_api roc_emdev_irqs_unregister(struct roc_emdev *roc_emdev);
 

@@ -5,6 +5,129 @@
 #include "roc_api.h"
 #include "roc_priv.h"
 
+#define ANQ_DESC_SZ(x)		  (x * PSW_ANQ_DESC_SZ)
+#define ANQ_DESC_PTR_OFF(b, i, o) (uint64_t *)(((uintptr_t)b) + ANQ_DESC_SZ(i) + (o))
+
+#define AAQ_DESC_SZ(x)		  (x * PSW_AAQ_DESC_SZ)
+#define AAQ_DESC_PTR_OFF(b, i, o) (uint64_t *)(((uintptr_t)b) + AAQ_DESC_SZ(i) + (o))
+
+static inline int
+emdev_lf_aq_ack_desc_enqueue(struct psw_lf *lf, uint64_t data, uint8_t be, uint16_t etag,
+			     uint16_t epffunc, bool rd_err)
+{
+	struct emdev *emdev = lf->emdev;
+	struct roc_emdev_psw_aq_qp *aq_qp;
+	uint64_t desc_data;
+	void *ack_q_base;
+	uint16_t off;
+
+	PLT_SET_USED(rd_err);
+
+	aq_qp = &emdev->aq_qps[lf->lf_id];
+	ack_q_base = aq_qp->ack_q_base;
+	off = plt_read64(aq_qp->ack_q_pi_dbell);
+
+	desc_data = PSW_ACK_DESC_TYPE_DATA << 1;
+	desc_data |= 1 << 8;
+	desc_data |= epffunc << 16;
+	desc_data |= (uint64_t)etag << 32;
+	desc_data |= be << 8;
+
+	*AAQ_DESC_PTR_OFF(ack_q_base, off, 0) = desc_data;
+	*AAQ_DESC_PTR_OFF(ack_q_base, off, 8) = data;
+
+	off = (off + 1) & aq_qp->qmask;
+	plt_write64(off, aq_qp->ack_q_pi_dbell);
+
+	return 0;
+}
+
+static int
+emdev_lf_apinotif_process_desc(struct psw_lf *lf)
+{
+	struct roc_emdev_apinotif_handle handle;
+	struct roc_emdev_psw_aq_qp *aq_qp;
+	struct emdev *emdev = lf->emdev;
+	uint64_t desc_data, data;
+	uint16_t epf_func, etag;
+	void *notify_q_base;
+	uint8_t dtype, be;
+	uint16_t ci, pi;
+	uint32_t addr;
+	bool rd_err;
+	int rc = 0;
+
+	aq_qp = &emdev->aq_qps[lf->lf_id];
+
+	notify_q_base = aq_qp->notify_q_base;
+	ci = plt_read64(aq_qp->notify_q_ci_dbell);
+	pi = plt_read64(aq_qp->notify_q_pi_dbell);
+
+	/* Check if there is no descriptor to process */
+	if (ci == pi)
+		return 0;
+
+	while (ci != pi) {
+#ifdef CNXK_EMDEV_DEBUG
+		roc_emdev_psw_anq_desc_dump(NULL, ANQ_DESC_PTR_OFF(notify_q_base, ci, 0));
+#endif
+		desc_data = *ANQ_DESC_PTR_OFF(notify_q_base, ci, 0);
+		addr = desc_data >> 32;
+		epf_func = (desc_data >> 16) & 0xffff;
+		data = (desc_data >> 4) & 0xf;
+		dtype = (desc_data >> 1) & 0x7;
+		be = (desc_data >> 8) & 0xff;
+		ci = (ci + 1) & aq_qp->qmask;
+
+		handle.addr = addr;
+		handle.be = be;
+		switch (dtype) {
+		case PSW_NOTIF_DESC_TYPE_WRITE:
+			/* Next descriptor should be DATA descriptor */
+			desc_data = *ANQ_DESC_PTR_OFF(notify_q_base, ci, 0);
+			if (((desc_data >> 1) & 0x7) != PSW_NOTIF_DESC_TYPE_DATA) {
+				plt_err("Unexpected descriptor type: 0x%" PRIx64 " at ci=0x%x",
+					((desc_data >> 1) & 0x7), ci);
+				rc |= -EIO;
+				break;
+			}
+
+			data |= (desc_data & ~0xF);
+
+			handle.data = data;
+			handle.is_read = false;
+			if (emdev->apinotif_cb != NULL)
+				emdev->apinotif_cb(epf_func, &handle, emdev->apinotif_cb_args);
+
+			ci = (ci + 1) & aq_qp->qmask;
+			break;
+		case PSW_NOTIF_DESC_TYPE_READ:
+			/* Next descriptor should be TAG descriptor */
+			desc_data = *ANQ_DESC_PTR_OFF(notify_q_base, ci, 0);
+			if (((desc_data >> 1) & 0x7) != PSW_NOTIF_DESC_TYPE_TAG) {
+				plt_err("Unexpected descriptor type: 0x%" PRIx64 " at ci=0x%x",
+					((desc_data >> 1) & 0x7), ci);
+				rc |= -EIO;
+				break;
+			}
+
+			handle.is_read = true;
+			handle.data = 0x0ULL;
+			if (emdev->apinotif_cb != NULL)
+				rd_err = emdev->apinotif_cb(epf_func, &handle,
+							    emdev->apinotif_cb_args);
+
+			etag = (desc_data >> 4) & 0x3ff;
+			emdev_lf_aq_ack_desc_enqueue(lf, handle.data, handle.be, etag, epf_func,
+						     !!rd_err);
+			ci = (ci + 1) & aq_qp->qmask;
+			break;
+		}
+	}
+	plt_write64(ci, aq_qp->notify_q_ci_dbell);
+	return rc;
+}
+
 static void
 emdev_lf_apinotif_intr_enb_dis(struct psw_lf *lf, bool enb)
 {
@@ -26,6 +149,8 @@ emdev_lf_apinotif_irq(void *param)
 
 	/* Clear interrupt */
 	plt_write64(intr, lf->rbase + PSW_LF_APINOTIF_INT);
+
+	emdev_lf_apinotif_process_desc(lf);
 }
 
 static int
