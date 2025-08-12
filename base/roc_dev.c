@@ -603,6 +603,33 @@ pf_vf_mbox_send_up_msg(struct dev *dev, void *rec_msg)
 }
 
 static int
+mbox_up_handler_psw_host_flr_notify(struct dev *dev, struct psw_host_flr_info *req,
+				    struct msg_rsp *rsp)
+{
+	struct idev_cfg *idev;
+	struct emdev *emdev;
+	int rc = 0;
+
+	plt_base_dbg("mbox_up_handler_psw_host_flr_notify");
+	plt_base_dbg("pf:%d/vf:%d msg id 0x%x (%s) from: pf:%d/vf:%d", dev_get_pf(dev->pf_func),
+		     dev_get_vf(dev->pf_func), req->hdr.id, mbox_id2name(req->hdr.id),
+		     dev_get_pf(req->hdr.pcifunc), dev_get_vf(req->hdr.pcifunc));
+
+	idev = idev_get_cfg();
+	emdev = idev->emdev;
+	if (!emdev) {
+		rc = -EINVAL;
+		goto fail;
+	}
+	if (emdev->flrnotif_cb != NULL)
+		emdev->flrnotif_cb(req->epffunc, emdev->flrnotif_cb_args);
+
+fail:
+	rsp->hdr.rc = rc;
+	return rc;
+}
+
+static int
 mbox_up_handler_rep_event_up_notify(struct dev *dev, struct rep_event *req, struct msg_rsp *rsp)
 {
 	struct roc_eswitch_repte_notify_msg *notify_msg;
@@ -840,6 +867,7 @@ mbox_process_msgs_up(struct dev *dev, struct mbox_msghdr *req)
 		MBOX_UP_CGX_MESSAGES
 		MBOX_UP_MCS_MESSAGES
 		MBOX_UP_REP_MESSAGES
+		MBOX_UP_PSW_MESSAGES
 #undef M
 	}
 
@@ -1458,6 +1486,7 @@ dev_vf_hwcap_update(struct plt_pci_device *pci_dev, struct dev *dev)
 {
 	switch (pci_dev->id.device_id) {
 	case PCI_DEVID_CNXK_RVU_PF:
+	case PCI_DEVID_CNXK_RVU_PSW_PF:
 		break;
 	case PCI_DEVID_CNXK_RVU_SSO_TIM_VF:
 	case PCI_DEVID_CNXK_RVU_NPA_VF:

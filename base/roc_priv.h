@@ -55,4 +55,8 @@
 
 /* RVU LF */
 #include "roc_rvu_lf_priv.h"
+
+/* EMDEV */
+#include "roc_emdev_priv.h"
+
 #endif /* _ROC_PRIV_H_ */

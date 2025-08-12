@@ -9,6 +9,7 @@ INTERNAL {
 	cnxk_logtype_cpt;
 	cnxk_logtype_dpi;
 	cnxk_logtype_esw;
+	cnxk_logtype_emdev;
 	cnxk_logtype_mbox;
 	cnxk_logtype_ml;
 	cnxk_logtype_nix;
@@ -103,6 +104,8 @@ INTERNAL {
 	roc_dpi_lf_chan_tbl_select;
 	roc_dpi_lf_chan_tbl_ena_dis;
 	roc_dpi_lf_chan_tbl_update;
+	roc_emdev_init;
+	roc_emdev_fini;
 	roc_error_msg_get;
 	roc_eswitch_is_repte_pfs_vf;
 	roc_eswitch_nix_process_repte_notify_cb_register;

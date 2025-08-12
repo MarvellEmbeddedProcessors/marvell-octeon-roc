@@ -35,6 +35,7 @@
 #include "hw/nix.h"
 #include "hw/npa.h"
 #include "hw/npc.h"
+#include "hw/psw.h"
 #include "hw/ree.h"
 #include "hw/rvu.h"
 #include "hw/sdp.h"
@@ -123,5 +124,8 @@
 
 /* RVU LF */
 #include "roc_rvu_lf.h"
+
+/* EMDEV */
+#include "roc_emdev.h"
 
 #endif /* _ROC_API_H_ */

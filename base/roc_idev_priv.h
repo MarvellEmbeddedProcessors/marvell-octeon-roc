@@ -10,6 +10,7 @@ struct npa_lf;
 struct roc_bphy;
 struct roc_cpt;
 struct nix_inl_dev;
+struct emdev;
 
 struct idev_nix_inl_cfg {
 	uint64_t meta_aura;
@@ -43,6 +44,7 @@ struct idev_cfg {
 	struct idev_nix_inl_cfg inl_cfg;
 	struct roc_nix_list roc_nix_list;
 	struct idev_nix_inl_rx_inj_cfg inl_rx_inj_cfg;
+	struct emdev *emdev;
 	plt_spinlock_t nix_inl_dev_lock;
 	plt_spinlock_t npa_dev_lock;
 	uint8_t dma_cs_offset;
