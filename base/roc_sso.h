@@ -129,4 +129,8 @@ int __roc_api roc_sso_hwgrp_stats_get(struct roc_sso *roc_sso, uint16_t hwgrp,
 int __roc_api roc_sso_hws_stats_get(struct roc_sso *roc_sso, uint8_t hws,
 				    struct roc_sso_hws_stats *stats);
 
+/* Init callbacks */
+typedef int (*roc_sso_altaf_cb_t)(struct plt_pci_device *pci_dev);
+int __roc_api roc_sso_altaf_cb_register(roc_sso_altaf_cb_t cb);
+
 #endif /* _ROC_SSOW_H_ */

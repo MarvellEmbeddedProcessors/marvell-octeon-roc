@@ -66,4 +66,6 @@ void sso_unregister_irqs_priv(struct roc_sso *roc_sso,
 			      struct plt_intr_handle *handle, uint16_t nb_hws,
 			      uint16_t nb_hwgrp);
 
+void sso_altaf_init(struct plt_pci_device *pci_dev, struct mbox *mbox);
+
 #endif /* _ROC_SSO_PRIV_H_ */

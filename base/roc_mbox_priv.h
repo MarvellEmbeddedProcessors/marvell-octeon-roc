@@ -66,6 +66,7 @@ struct mbox {
 	struct mbox_dev *dev;
 	uint64_t intr_offset; /* Offset to interrupt register */
 	uint32_t rsp_tmo;
+	uint8_t use_altaf;
 };
 
 const char *mbox_id2name(uint16_t id);
@@ -168,25 +169,82 @@ mbox_put(struct mbox *mbox)
 	plt_spinlock_unlock(&mdev->mbox_lock);
 }
 
+static inline uint8_t
+mbox_msg_needs_altaf(uint16_t id)
+{
+	/* SSO/TIM mbox range */
+	return (id >= 0x600 && id <= 0x9FF);
+}
+
+static inline int
+msg_need_altaf(struct mbox *mbox, uint16_t id)
+{
+	struct mbox_hdr *tx_hdr;
+	struct mbox_dev *mdev;
+	uint8_t need_altaf;
+	int rc;
+
+	if (!mbox->use_altaf)
+		return 0;
+
+	mdev = &mbox->dev[0];
+	tx_hdr = (struct mbox_hdr *)((uintptr_t)mdev->mbase + mbox->tx_start);
+	need_altaf = mbox_msg_needs_altaf(id);
+
+	if (!need_altaf) {
+		if (tx_hdr->altaf_sig == MBOX_ALTAF_SIG) {
+			/* Can't mix altaf and non-altaf try to flush. */
+			if (mdev->msg_size != 0) {
+				rc = mbox_process(mbox);
+				if (rc)
+					return rc;
+			}
+		}
+
+		tx_hdr->altaf_sig = 0;
+		return 0;
+	}
+
+	if (tx_hdr->altaf_sig == MBOX_ALTAF_SIG)
+		return 0;
+
+	if (mdev->msg_size != 0) {
+		/* If we are here, it means we have some messages
+		 * and now we are trying to send an altaf message.
+		 * We need to flush the previous messages first.
+		 */
+		rc = mbox_process(mbox);
+		if (rc)
+			return rc;
+	}
+
+	tx_hdr->altaf_sig = MBOX_ALTAF_SIG;
+	return 0;
+}
+
 int send_ready_msg(struct mbox *mbox, uint16_t *pf_func /* out */);
 int reply_invalid_msg(struct mbox *mbox, int devid, uint16_t pf_func,
 		      uint16_t id);
 
-#define M(_name, _id, _fn_name, _req_type, _rsp_type)                          \
-	static inline struct _req_type *mbox_alloc_msg_##_fn_name(             \
-		struct mbox *mbox)                                             \
-	{                                                                      \
-		struct _req_type *req;                                         \
-		req = (struct _req_type *)mbox_alloc_msg_rsp(                  \
-			mbox, 0, sizeof(struct _req_type),                     \
-			sizeof(struct _rsp_type));                             \
-		if (!req)                                                      \
-			return NULL;                                           \
-		req->hdr.sig = MBOX_REQ_SIG;                                   \
-		req->hdr.id = _id;                                             \
-		plt_mbox_dbg("id=0x%x (%s)", req->hdr.id,                      \
-			     mbox_id2name(req->hdr.id));                       \
-		return req;                                                    \
+#define M(_name, _id, _fn_name, _req_type, _rsp_type)                                              \
+	static inline struct _req_type *mbox_alloc_msg_##_fn_name(struct mbox *mbox)               \
+	{                                                                                          \
+		struct _req_type *req;                                                             \
+		int rc;                                                                            \
+                                                                                                   \
+		rc = msg_need_altaf(mbox, _id);                                                    \
+		if (rc < 0) {                                                                      \
+			plt_err("Failed to enable altaf msg for %s", mbox_id2name(_id));           \
+			return NULL;                                                               \
+		}                                                                                  \
+		req = (struct _req_type *)mbox_alloc_msg_rsp(mbox, 0, sizeof(struct _req_type),    \
+							     sizeof(struct _rsp_type));            \
+		if (!req)                                                                          \
+			return NULL;                                                               \
+		req->hdr.sig = MBOX_REQ_SIG;                                                       \
+		req->hdr.id = _id;                                                                 \
+		plt_mbox_dbg("id=0x%x (%s)", req->hdr.id, mbox_id2name(req->hdr.id));              \
+		return req;                                                                        \
 	}
 
 MBOX_MESSAGES

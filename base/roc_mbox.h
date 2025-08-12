@@ -17,6 +17,9 @@
 struct mbox_hdr {
 	uint64_t __io msg_size; /* Total msgs size embedded */
 	uint16_t __io num_msgs; /* No of msgs embedded */
+	uint16_t __io rsvd;	/* Reserved, not used by PF/VF */
+#define MBOX_ALTAF_SIG (0xEE)
+	uint8_t __io altaf_sig; /* Signature to indicate messages is to altaf*/
 };
 
 /* Header which precedes every msg and is also part of it */

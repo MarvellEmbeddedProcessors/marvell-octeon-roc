@@ -106,6 +106,8 @@ INTERNAL {
 	roc_hash_sha1_gen;
 	roc_hash_sha256_gen;
 	roc_hash_sha512_gen;
+	roc_idev_altaf_get;
+	roc_idev_altaf_set;
 	roc_idev_cpt_get;
 	roc_idev_cpt_set;
 	roc_idev_lmt_base_addr_get;
@@ -514,6 +516,7 @@ INTERNAL {
 	roc_plt_init_cb_register;
 	roc_plt_lmt_validate;
 	roc_se_hmac_opad_ipad_gen;
+	roc_sso_altaf_cb_register;
 	roc_sso_dev_fini;
 	roc_sso_dev_init;
 	roc_sso_dump;
