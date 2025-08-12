@@ -27,6 +27,7 @@ struct idev_nix_inl_rx_inj_cfg {
 struct idev_cfg {
 	uint16_t sso_pf_func;
 	uint16_t npa_pf_func;
+	uint8_t use_altaf;
 	struct npa_lf *npa;
 	uint16_t npa_refcnt;
 	uint32_t max_pools;
@@ -63,6 +64,8 @@ void idev_sso_pffunc_set(uint16_t sso_pf_func);
 uint16_t idev_sso_pffunc_get(void);
 struct roc_sso *idev_sso_get(void);
 void idev_sso_set(struct roc_sso *sso);
+
+/* idev dma */
 void idev_dma_cs_offset_set(uint8_t offset);
 uint8_t idev_dma_cs_offset_get(void);
 

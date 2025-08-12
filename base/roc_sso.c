@@ -9,6 +9,18 @@
 #define SSO_XAQ_RSVD_CNT  (0x4)
 #define SSO_XAQ_SLACK	  (16)
 
+static roc_sso_altaf_cb_t lf_init_cb;
+
+int
+roc_sso_altaf_cb_register(roc_sso_altaf_cb_t cb)
+{
+	if (lf_init_cb != NULL)
+		return -EEXIST;
+
+	lf_init_cb = cb;
+	return 0;
+}
+
 /* Private functions. */
 int
 sso_lf_alloc(struct dev *dev, enum sso_lf_type lf_type, uint16_t nb_lf,
@@ -1304,6 +1316,16 @@ roc_sso_rsrc_fini(struct roc_sso *roc_sso)
 	roc_sso->nb_hws = 0;
 }
 
+void
+sso_altaf_init(struct plt_pci_device *pci_dev, struct mbox *mbox)
+{
+	if (!pci_dev || !mbox || lf_init_cb == NULL)
+		return;
+
+	lf_init_cb(pci_dev);
+	mbox->use_altaf = roc_idev_altaf_get();
+}
+
 int
 roc_sso_dev_init(struct roc_sso *roc_sso)
 {
@@ -1332,6 +1354,8 @@ roc_sso_dev_init(struct roc_sso *roc_sso)
 		plt_err("Failed to init roc device");
 		goto fail;
 	}
+
+	sso_altaf_init(pci_dev, sso->dev.mbox);
 
 	rc = sso_hw_info_get(roc_sso);
 	if (rc < 0) {

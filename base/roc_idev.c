@@ -44,6 +44,7 @@ idev_set_defaults(struct idev_cfg *idev)
 	TAILQ_INIT(&idev->roc_nix_list);
 	plt_spinlock_init(&idev->nix_inl_dev_lock);
 	plt_spinlock_init(&idev->npa_dev_lock);
+	__atomic_store_n(&idev->use_altaf, 0, __ATOMIC_RELEASE);
 	__atomic_store_n(&idev->npa_refcnt, 0, __ATOMIC_RELEASE);
 }
 
@@ -134,6 +135,27 @@ idev_npa_lf_active(struct dev *dev)
 		return 0;
 
 	return __atomic_load_n(&idev->npa_refcnt, __ATOMIC_ACQUIRE);
+}
+
+void
+roc_idev_altaf_set(bool enable)
+{
+	struct idev_cfg *idev;
+
+	idev = idev_get_cfg();
+	if (idev != NULL)
+		__atomic_store_n(&idev->use_altaf, enable, __ATOMIC_RELEASE);
+}
+
+uint8_t
+roc_idev_altaf_get(void)
+{
+	struct idev_cfg *idev;
+
+	idev = idev_get_cfg();
+	if (idev != NULL)
+		return __atomic_load_n(&idev->use_altaf, __ATOMIC_ACQUIRE);
+	return 0;
 }
 
 uint16_t

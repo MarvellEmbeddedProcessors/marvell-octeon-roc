@@ -522,6 +522,8 @@ nix_inl_sso_setup(struct nix_inl_dev *inl_dev)
 	uint16_t hwgrp[1] = {0};
 	int rc;
 
+	sso_altaf_init(inl_dev->pci_dev, dev->mbox);
+
 	/* Alloc SSOW LF */
 	rc = sso_lf_alloc(dev, SSO_LF_TYPE_HWS, 1, NULL);
 	if (rc) {

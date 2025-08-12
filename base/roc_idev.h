@@ -33,4 +33,7 @@ uint16_t __roc_api roc_idev_nix_inl_dev_pffunc_get(void);
 struct roc_rvu_lf *__roc_api roc_idev_rvu_lf_get(uint8_t rvu_lf_idx);
 void __roc_api roc_idev_rvu_lf_set(struct roc_rvu_lf *rvu);
 void __roc_api roc_idev_rvu_lf_free(struct roc_rvu_lf *rvu);
+
+void __roc_api roc_idev_altaf_set(bool enable);
+uint8_t __roc_api roc_idev_altaf_get(void);
 #endif /* _ROC_IDEV_H_ */

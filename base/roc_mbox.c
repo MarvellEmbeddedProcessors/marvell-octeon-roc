@@ -44,6 +44,7 @@ mbox_reset(struct mbox *mbox, int devid)
 	tx_hdr->num_msgs = 0;
 	rx_hdr->msg_size = 0;
 	rx_hdr->num_msgs = 0;
+	tx_hdr->altaf_sig = 0;
 }
 
 static int
@@ -357,12 +358,16 @@ mbox_get_rsp(struct mbox *mbox, int devid, void **msg)
 {
 	struct mbox_dev *mdev = &mbox->dev[devid];
 	struct mbox_msghdr *msghdr;
+	struct mbox_hdr *tx_hdr;
 	uint64_t offset;
 	int rc;
 
+	tx_hdr = (struct mbox_hdr *)((uintptr_t)mdev->mbase + mbox->tx_start);
 	rc = mbox_wait_for_rsp(mbox, devid);
-	if (rc < 0)
-		return -EIO;
+	if (rc < 0) {
+		rc = -EIO;
+		goto done;
+	}
 
 	plt_rmb();
 
@@ -374,7 +379,10 @@ mbox_get_rsp(struct mbox *mbox, int devid, void **msg)
 
 	mbox_debug_region("GET_RSP", mbox, devid, 0, msghdr->rc);
 
-	return msghdr->rc;
+	rc = msghdr->rc;
+done:
+	tx_hdr->altaf_sig = 0;
+	return rc;
 }
 
 /**
@@ -419,12 +427,16 @@ mbox_get_rsp_tmo(struct mbox *mbox, int devid, void **msg, uint32_t tmo)
 {
 	struct mbox_dev *mdev = &mbox->dev[devid];
 	struct mbox_msghdr *msghdr;
+	struct mbox_hdr *tx_hdr;
 	uint64_t offset;
 	int rc;
 
+	tx_hdr = (struct mbox_hdr *)((uintptr_t)mdev->mbase + mbox->tx_start);
 	rc = mbox_wait_for_rsp_tmo(mbox, devid, tmo);
-	if (rc != 1)
-		return -EIO;
+	if (rc != 1) {
+		rc = -EIO;
+		goto done;
+	}
 
 	plt_rmb();
 
@@ -434,7 +446,10 @@ mbox_get_rsp_tmo(struct mbox *mbox, int devid, void **msg, uint32_t tmo)
 	if (msg != NULL)
 		*msg = msghdr;
 
-	return msghdr->rc;
+	rc = msghdr->rc;
+done:
+	tx_hdr->altaf_sig = 0;
+	return rc;
 }
 
 static int
