@@ -109,6 +109,7 @@ INTERNAL {
 	roc_emdev_irqs_register;
 	roc_emdev_irqs_unregister;
 	roc_emdev_fini;
+	roc_emdev_mbox_msix_cfg;
 	roc_emdev_setup;
 	roc_emdev_release;
 	roc_emdev_psw_aq_qp_init;

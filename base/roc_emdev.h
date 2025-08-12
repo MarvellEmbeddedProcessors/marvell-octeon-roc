@@ -204,5 +204,7 @@ int __roc_api roc_emdev_apinotif_cb_register(struct roc_emdev *roc_emdev,
 int __roc_api roc_emdev_apinotif_cb_unregister(struct roc_emdev *roc_emdev);
 int __roc_api roc_emdev_irqs_register(struct roc_emdev *roc_emdev);
 void __roc_api roc_emdev_irqs_unregister(struct roc_emdev *roc_emdev);
+int __roc_api roc_emdev_mbox_msix_cfg(struct roc_emdev *roc_emdev, uint16_t evf_id,
+				      uint16_t mbox_msix);
 
 #endif /* __INCLUDE_ROC_EMDEV_H__ */

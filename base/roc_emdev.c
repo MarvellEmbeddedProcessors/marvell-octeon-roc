@@ -9,6 +9,11 @@
 /* VIRTIO PCI NOTIFY area BAR offset */
 #define ROC_EMDEV_VIRTIO_NOTIFY_AREA_OFF    256
 #define ROC_EMDEV_VIRTIO_NOTIFY_AREA_STRIDE 8
+#define ROC_EMDEV_VIRTIO_MSIX_OFFSET	    4096
+#define ROC_EMDEV_VIRTIO_PBA_OFFSET	    8192
+
+#define MBOX_MSIX_VECS 4
+#define MSIX_VEC_SZ    16
 
 #define PSW_EPFFUNC(port, epf, vf_id) \
 	((((port) & 0x1) << 14) | (((epf) & 0x7) << 9) | ((vf_id) & 0xFF))
@@ -35,6 +40,26 @@ const struct psw_fid_entry psw_fid_base[ROC_EMDEV_TYPE_MAX][PSW_VIRTIO_FID_ENTRY
 			.write_en = 1,
 			.read_mask = 0x1,
 			.stride = ROC_EMDEV_VIRTIO_NOTIFY_AREA_STRIDE,
+		},
+		/* VIRTIO PCI MSI-X area */
+		[PSW_VIRTIO_FID_MSIX] = {
+			.bar = ROC_EMDEV_VIRTIO_BAR,
+			.offset = ROC_EMDEV_VIRTIO_MSIX_OFFSET,
+			.psw_type = PSW_TYPES_MSIX,
+			.size = 0,
+			.write_en = 1,
+			.read_en = 1,
+			.read_mask = 0x0,
+		},
+		/* VIRTIO PCI PBA area */
+		[PSW_VIRTIO_FID_PBA] = {
+			.bar = ROC_EMDEV_VIRTIO_BAR,
+			.offset = ROC_EMDEV_VIRTIO_PBA_OFFSET,
+			.psw_type = PSW_TYPES_PBA,
+			.size = 0,
+			.write_en = 1,
+			.read_en = 1,
+			.read_mask = 0x0,
 		},
 	},
 };
@@ -204,13 +229,23 @@ psw_virtio_fid_table_setup(struct emdev *emdev)
 		req->bar = entry->bar;
 		req->base_addr = entry->offset >> 3;
 
+		switch (entry->psw_type) {
 		/* For VIRTIO notify area, size would be calculated based on stride and number of
 		 * queues allocated.
 		 */
-		if (!entry->size)
+		case PSW_TYPES_PIDBL:
 			size = PLT_ALIGN(emdev->nb_inb_qs * entry->stride, 2);
-		else
+			break;
+		case PSW_TYPES_MSIX:
+			size = (emdev->nb_inb_qs + MBOX_MSIX_VECS) * MSIX_VEC_SZ;
+			break;
+		case PSW_TYPES_PBA:
+			size = ((emdev->nb_inb_qs + MBOX_MSIX_VECS) / 8) + 1;
+			break;
+		default:
 			size = entry->size;
+			break;
+		}
 		size = plt_align32pow2(size);
 		/* Check if size and base conflicts with previous entry */
 		if (i >= 1) {
@@ -898,4 +933,29 @@ roc_emdev_flrnotif_cb_unregister(struct roc_emdev *roc_emdev)
 
 	emdev->flrnotif_cb = NULL;
 	emdev->flrnotif_cb_args = NULL;
+}
+
+int
+roc_emdev_mbox_msix_cfg(struct roc_emdev *roc_emdev, uint16_t evf_id, uint16_t mbox_msix)
+{
+	struct emdev *emdev = roc_emdev_to_emdev_priv(roc_emdev);
+	struct dev *dev = &emdev->dev;
+	struct mbox *mbox = mbox_get(dev->mbox);
+	struct psw_mbox_msix_cfg_req *req;
+	int rc = -ENOMEM;
+
+	req = mbox_alloc_msg_psw_mbox_msix_cfg(mbox);
+	if (req == NULL)
+		goto exit;
+
+	req->evf_id = evf_id;
+	req->mbox_msix = mbox_msix;
+
+	rc = mbox_process(mbox);
+	if (rc)
+		plt_err("Failed to set mbox msix, rc=%d", rc);
+
+exit:
+	mbox_put(mbox);
+	return rc;
 }

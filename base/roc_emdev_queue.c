@@ -5,6 +5,45 @@
 #include "roc_api.h"
 #include "roc_priv.h"
 
+/* Wait for Idle bit to be set by HW */
+static inline void
+q_wait_for_idle(uintptr_t rbase, uint16_t qid, uint64_t offset)
+{
+	int timeout = 20;
+	uint64_t data;
+
+	do {
+		data = plt_read64(rbase + offset);
+		if (data & BIT_ULL(3))
+			return;
+
+		plt_delay_ms(20);
+		if (timeout-- < 0) {
+			plt_emdev_dbg("PSW queue[%u] is still busy", qid);
+			return;
+		}
+	} while (1);
+}
+
+static inline void
+outb_inb_q_wait_for_idle(uintptr_t rbase, uint16_t qid, uint64_t offset, uint64_t wdata)
+{
+	int timeout = 20;
+	uint64_t data;
+
+	do {
+		data = roc_atomic64_add_sync(wdata, PLT_PTR_CAST(rbase + offset));
+		if (data & BIT_ULL(3))
+			return;
+
+		plt_delay_ms(20);
+		if (timeout-- < 0) {
+			plt_emdev_dbg("PSW queue[%u] is still busy", qid);
+			return;
+		}
+	} while (1);
+}
+
 int
 roc_emdev_psw_aq_qp_init(struct roc_emdev *roc_emdev, struct roc_emdev_psw_aq_qp *aq)
 {
@@ -104,11 +143,13 @@ roc_emdev_psw_aq_qp_fini(struct roc_emdev_psw_aq_qp *aq)
 	data = plt_read64(rbase + PSW_LF_ANQCX(0));
 	data &= ~BIT_ULL(0);
 	plt_write64(data, rbase + PSW_LF_ANQCX(0));
+	q_wait_for_idle(rbase, aq->qid, PSW_LF_ANQCX(7));
 
 	/* Disable API acknowledgment queue */
 	data = plt_read64(rbase + PSW_LF_AAQCX(0));
 	data &= ~BIT_ULL(0);
 	plt_write64(data, rbase + PSW_LF_AAQCX(0));
+	q_wait_for_idle(rbase, aq->qid, PSW_LF_AAQCX(7));
 
 	plt_free(aq->notify_q_base);
 	plt_free(aq->ack_q_base);
@@ -221,11 +262,13 @@ roc_emdev_psw_nq_qp_fini(struct roc_emdev_psw_nq_qp *nq)
 	data = plt_read64(rbase + PSW_LF_NX_QCX(nq_qid, 0));
 	data &= ~BIT_ULL(0);
 	plt_write64(data, rbase + PSW_LF_NX_QCX(nq_qid, 0));
+	q_wait_for_idle(rbase, nq_qid, PSW_LF_NX_QCX(nq_qid, 7));
 
 	/* Disable acknowledgment queue */
 	data = plt_read64(rbase + PSW_LF_AX_QCX(nq_qid, 0));
 	data &= ~BIT_ULL(0);
 	plt_write64(data, rbase + PSW_LF_AX_QCX(nq_qid, 0));
+	q_wait_for_idle(rbase, nq_qid, PSW_LF_AX_QCX(nq_qid, 7));
 
 	plt_free(nq->notify_q_base);
 	plt_free(nq->ack_q_base);
@@ -345,11 +388,13 @@ roc_emdev_psw_inb_q_fini(struct roc_emdev_psw_inb_q *inbq)
 	data = roc_atomic64_add_sync(wdata, PLT_PTR_CAST(rbase + PSW_LF_OP_SHIQCX(0)));
 	data &= ~BIT_ULL(0);
 	roc_atomic64_cas(wdata, data, PLT_PTR_CAST(rbase + PSW_LF_OP_SHIQCX(0)));
+	outb_inb_q_wait_for_idle(rbase, inbq->qid, PSW_LF_OP_SHIQCX(7), wdata);
 
 	/* Disable Host inbound queue */
 	data = roc_atomic64_add_sync(wdata, PLT_PTR_CAST(rbase + PSW_LF_OP_HIQCX(0)));
 	data &= ~BIT_ULL(0);
 	roc_atomic64_cas(wdata, data, PLT_PTR_CAST(rbase + PSW_LF_OP_HIQCX(0)));
+	outb_inb_q_wait_for_idle(rbase, inbq->qid, PSW_LF_OP_HIQCX(7), wdata);
 
 	epfvf->inb_qs[inbq->qid] = NULL;
 	return 0;
@@ -466,11 +511,13 @@ roc_emdev_psw_outb_q_fini(struct roc_emdev_psw_outb_q *outbq)
 	data = roc_atomic64_add_sync(wdata, PLT_PTR_CAST(rbase + PSW_LF_OP_HOQCX(0)));
 	data &= ~BIT_ULL(0);
 	roc_atomic64_cas(wdata, data, PLT_PTR_CAST(rbase + PSW_LF_OP_HOQCX(0)));
+	outb_inb_q_wait_for_idle(rbase, outbq->qid, PSW_LF_OP_HOQCX(7), wdata);
 
 	/* Disable Shadow outbound queue */
 	data = roc_atomic64_add_sync(wdata, PLT_PTR_CAST(rbase + PSW_LF_OP_SHOQCX(0)));
 	data &= ~BIT_ULL(0);
 	roc_atomic64_cas(wdata, data, PLT_PTR_CAST(rbase + PSW_LF_OP_SHOQCX(0)));
+	outb_inb_q_wait_for_idle(rbase, outbq->qid, PSW_LF_OP_SHOQCX(7), wdata);
 
 	epfvf->outb_qs[outbq->qid] = NULL;
 	return 0;
