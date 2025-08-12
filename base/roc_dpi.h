@@ -90,5 +90,6 @@ int __roc_api roc_dpi_lf_chan_tbl_select(struct roc_dpi_lf *lf);
 int __roc_api roc_dpi_lf_chan_tbl_ena_dis(struct roc_dpi_lf *lf, bool ena);
 int __roc_api roc_dpi_lf_chan_tbl_update(struct roc_dpi_lf *lf, uint64_t *config, uint16_t offset,
 					 uint16_t entries);
+int __roc_api roc_dpi_lf_dump(struct roc_dpi_lf *lf, FILE *file);
 
 #endif
