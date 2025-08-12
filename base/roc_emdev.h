@@ -6,6 +6,12 @@
 
 enum roc_emdev_type { ROC_EMDEV_TYPE_VIRTIO = 1, ROC_EMDEV_TYPE_NVME, ROC_EMDEV_TYPE_MAX };
 
+enum roc_emdev_dpi_lf_ring_type {
+	ROC_EMDEV_DPI_LF_RING_INB = 0,
+	ROC_EMDEV_DPI_LF_RING_OUTB = 1,
+	ROC_EMDEV_DPI_LF_RING_MAX,
+};
+
 struct roc_emdev {
 	struct plt_pci_device *pci_dev;
 	uint16_t nb_epfvfs;
@@ -42,6 +48,8 @@ struct roc_emdev_apinotif_handle {
 	bool is_read;
 };
 
+#define ROC_EMDEV_DPI_Q_SZ 4096u
+
 /**
  * Virtio defines
  */
@@ -73,4 +81,6 @@ int __roc_api roc_emdev_psw_epfvf_config(struct roc_emdev *roc_emdev, uint16_t e
 void __roc_api roc_emdev_flrnotif_cb_register(struct roc_emdev *roc_emdev,
 					      roc_emdev_flrnotif_cb_t cb, void *cb_args);
 void __roc_api roc_emdev_flrnotif_cb_unregister(struct roc_emdev *roc_emdev);
+struct roc_dpi_lf *__roc_api roc_emdev_dpi_lf_base_get(struct roc_emdev *roc_emdev);
+
 #endif /* __INCLUDE_ROC_EMDEV_H__ */
