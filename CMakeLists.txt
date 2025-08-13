@@ -18,6 +18,11 @@ set(OCT_ROC_SRCS
   base/roc_cpt_debug.c
   base/roc_dev.c
   base/roc_dpi.c
+  base/roc_dpi_debug.c
+  base/roc_emdev.c
+  base/roc_emdev_debug.c
+  base/roc_emdev_irq.c
+  base/roc_emdev_queue.c
   base/roc_hash.c
   base/roc_idev.c
   base/roc_ie_ot.c
@@ -56,6 +61,7 @@ set(OCT_ROC_SRCS
   base/roc_npc_parse.c
   base/roc_npc_utils.c
   base/roc_platform.c
+  base/roc_rvu_lf.c
   base/roc_se.c
   base/roc_sso.c
   base/roc_sso_debug.c
@@ -89,6 +95,8 @@ set(OCT_ROC_HEADERS
   base/roc_dev_priv.h
   base/roc_dpi.h
   base/roc_dpi_priv.h
+  base/roc_emdev.h
+  base/roc_emdev_priv.h
   base/roc_errata.h
   base/roc_eswitch.h
   base/roc_features.h
@@ -99,6 +107,7 @@ set(OCT_ROC_HEADERS
   base/roc_ie_on.h
   base/roc_ie_ot.h
   base/roc_ie_ow.h
+  base/roc_ie_ot_tls.h
   base/roc_io.h
   base/roc_io_generic.h
   base/roc_mbox.h
@@ -123,6 +132,8 @@ set(OCT_ROC_HEADERS
   base/roc_priv.h
   base/roc_ree.h
   base/roc_ree_priv.h
+  base/roc_rvu_lf.h
+  base/roc_rvu_lf_priv.h
   base/roc_se.h
   base/roc_sso.h
   base/roc_sso_dp.h
@@ -137,6 +148,7 @@ set(OCT_ROC_HEADERS
   base/hw/nix.h
   base/hw/npa.h
   base/hw/npc.h
+  base/hw/psw.h
   base/hw/ree.h
   base/hw/rvu.h
   base/hw/sdp.h

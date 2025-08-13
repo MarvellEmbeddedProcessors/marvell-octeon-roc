@@ -428,6 +428,8 @@ typedef uint64_t plt_iova_t;
 
 #define __plt_atomic
 
+#define plt_trace_point_is_enabled(x) 0
+
 /* Struct describing a Universal Unique Identifier */
 typedef unsigned char plt_uuid_t[16];
 
