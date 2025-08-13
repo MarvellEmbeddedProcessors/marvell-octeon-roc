@@ -74,6 +74,7 @@ typedef struct oct_plt_spinlock_s *oct_plt_spinlock_t;
 
 /** Formatting string for PCI device identifier: Ex: 0000:00:01.0 */
 #define PCI_PRI_FMT "%.4" PRIx32 ":%.2" PRIx8 ":%.2" PRIx8 ".%" PRIx8
+#define PCI_PRI_STR_SIZE sizeof("XXXXXXXX:XX:XX.X")
 
 #define MAX_VFIO_PCI_BAR_REGIONS     6 /* GENERIC MAPPABLE BAR REGIONS ONLY */
 #define PLT_MAX_RXTX_INTR_VEC_ID     1024
@@ -155,6 +156,7 @@ typedef struct oct_plt_spinlock_s *oct_plt_spinlock_t;
 #define plt_bphy_dbg(fmt, ...)	oct_plt_dbg (bphy, fmt, ##__VA_ARGS__)
 #define plt_iomem_dbg(fmt, ...) oct_plt_dbg (iomem, fmt, ##__VA_ARGS__)
 #define plt_ml_dbg(fmt, ...)	oct_plt_dbg (ml, fmt, ##__VA_ARGS__)
+#define plt_emdev_dbg(fmt, ...)	oct_plt_dbg (emdev, fmt, ##__VA_ARGS__)
 
 #define ISB() __asm__ volatile("isb" : : : "memory")
 
@@ -207,6 +209,8 @@ extern oct_plt_log_class_t oct_plt_logtype_ep;
 extern oct_plt_log_class_t oct_plt_logtype_bphy;
 extern oct_plt_log_class_t oct_plt_logtype_iomem;
 extern oct_plt_log_class_t oct_plt_logtype_ml;
+extern oct_plt_log_class_t oct_plt_logtype_ml;
+extern oct_plt_log_class_t oct_plt_logtype_emdev;
 
 extern uint32_t oct_plt_cache_line_size;
 typedef uint32_t oct_pci_dev_handle_t;

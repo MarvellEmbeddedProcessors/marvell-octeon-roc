@@ -21,6 +21,7 @@ oct_plt_log_class_t oct_plt_logtype_ep;
 oct_plt_log_class_t oct_plt_logtype_bphy;
 oct_plt_log_class_t oct_plt_logtype_iomem;
 oct_plt_log_class_t oct_plt_logtype_ml;
+oct_plt_log_class_t oct_plt_logtype_emdev;
 
 uint32_t oct_plt_cache_line_size;
 
@@ -68,6 +69,8 @@ oct_plt_init (const oct_plt_init_param_t *param)
   oct_plt_logtype_iomem = param->oct_plt_log_reg_class ("oct", "roc_iomem");
 
   oct_plt_logtype_ml = param->oct_plt_log_reg_class ("oct", "roc_ml");
+
+  oct_plt_logtype_emdev = param->oct_plt_log_reg_class ("oct", "roc_emdev");
 
   if (param->oct_plt_get_cache_line_size)
 	  oct_plt_cache_line_size = param->oct_plt_get_cache_line_size();

@@ -523,6 +523,7 @@ dpi_lf_queue_configure(struct roc_dpi_lf_que *que, struct roc_dpi_lf_ring_cfg *r
 	struct roc_dpi_lf *lf = que->lf;
 	const struct plt_memzone *mz;
 	uint64_t reg;
+	size_t mz_len = que->qsize * que->cmd_len;
 
 	snprintf(nm, sizeof(nm), "%s_%u_%u_%x", "dpi_lf_q", lf->slot, rcfg->ring_idx,
 		 lf->dev->pf_func);
@@ -549,7 +550,7 @@ dpi_lf_queue_configure(struct roc_dpi_lf_que *que, struct roc_dpi_lf_ring_cfg *r
 
 	reg = plt_read64(lf->rbase + DPI_LF_RINGX_BASE(rcfg->ring_idx));
 	reg = (uint64_t)que->cmd_base;
-	reg |= ((((que->mz->len >> 10) - 1) & DPI_LF_QSIZE_MASK) << DPI_LF_QSIZE_SHIFT);
+	reg |= ((((mz_len >> 10) - 1) & DPI_LF_QSIZE_MASK) << DPI_LF_QSIZE_SHIFT);
 	plt_write64(reg, lf->rbase + DPI_LF_RINGX_BASE(rcfg->ring_idx));
 
 	return 0;
