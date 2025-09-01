@@ -80,6 +80,7 @@ struct roc_emdev_psw_inb_q {
 		uintptr_t real_q_base_addr; /* Base address of the shadow queue */
 	} shib;
 
+	uint16_t desc_sz;
 	uint32_t nb_desc;
 	uint16_t pi_init;
 	uint16_t ci_init;
@@ -110,6 +111,7 @@ struct roc_emdev_psw_outb_q {
 		uintptr_t real_q_base_addr; /* Base address of the shadow queue */
 	} shob;
 
+	uint16_t desc_sz;
 	uint32_t nb_desc;
 	uint16_t pi_init;
 	uint16_t ci_init;
