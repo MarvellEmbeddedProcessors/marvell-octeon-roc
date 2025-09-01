@@ -435,7 +435,7 @@ roc_emdev_psw_outb_q_init(struct roc_emdev *roc_emdev, struct roc_emdev_psw_outb
 	rbase = psw_lf->rbase;
 	wdata = epfvf->epf_func | outbq->qid << 16;
 
-	if (!outbq->nb_desc || !rte_is_power_of_2(outbq->nb_desc))
+	if (!outbq->nb_desc || !plt_is_power_of_2(outbq->nb_desc))
 		return -EINVAL;
 
 	if (outbq->desc_sz < 8 || !plt_is_power_of_2(outbq->desc_sz))
