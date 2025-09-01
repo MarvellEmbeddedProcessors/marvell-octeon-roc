@@ -112,6 +112,11 @@ roc_nix_sq_ena_dis(struct roc_nix_sq *sq, bool enable)
 {
 	int rc = 0;
 
+	if (!sq) {
+		rc = NIX_ERR_PARAM;
+		goto done;
+	}
+
 	rc = roc_nix_tm_sq_aura_fc(sq, enable);
 	if (rc)
 		goto done;
@@ -2181,9 +2186,9 @@ nix_sqb_mem_dyn_free(uint64_t aura_handle, uint16_t count)
 int
 roc_nix_sq_fini(struct roc_nix_sq *sq)
 {
-	struct roc_nix *roc_nix = sq->roc_nix;
-	bool sq_resize_ena = roc_nix->sq_resize_ena;
 	struct ndc_sync_op *ndc_req;
+	struct roc_nix *roc_nix;
+	bool sq_resize_ena;
 	struct mbox *mbox;
 	struct nix *nix;
 	uint16_t qid;
@@ -2191,6 +2196,9 @@ roc_nix_sq_fini(struct roc_nix_sq *sq)
 
 	if (sq == NULL)
 		return NIX_ERR_PARAM;
+
+	roc_nix = sq->roc_nix;
+	sq_resize_ena = roc_nix->sq_resize_ena;
 
 	nix = roc_nix_to_nix_priv(roc_nix);
 	mbox = (&nix->dev)->mbox;
@@ -2246,7 +2254,7 @@ sqb_aura_dyn_expand(struct roc_nix_sq *sq, uint16_t count)
 	int i;
 
 	blk_sz = nix->sqb_size;
-	sqbs = calloc(1, count * sizeof(uint64_t *));
+	sqbs = calloc(1, count * sizeof(uint64_t));
 	if (!sqbs)
 		return -ENOMEM;
 
@@ -2318,7 +2326,7 @@ sqb_aura_dyn_contract(struct roc_nix_sq *sq, uint16_t count)
 	cycles = (timeout * 10 * plt_tsc_hz()) / (uint64_t)1E6;
 	cycles += plt_tsc_cycles();
 
-	sqbs = calloc(1, count * sizeof(uint64_t *));
+	sqbs = calloc(1, count * sizeof(uint64_t));
 	if (!sqbs)
 		return -ENOMEM;
 
