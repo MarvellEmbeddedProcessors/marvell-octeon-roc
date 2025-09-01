@@ -104,6 +104,7 @@ typedef struct oct_plt_spinlock_s *oct_plt_spinlock_t;
 #define plt_atomic_load_explicit  __atomic_load_n
 #define plt_memory_order_release  __ATOMIC_RELEASE
 #define plt_memory_order_acquire  __ATOMIC_ACQUIRE
+#define plt_memory_order_relaxed  __ATOMIC_RELAXED
 
 #define plt_irq_register	     g_param.oct_plt_irq_register
 #define plt_irq_unregister	     g_param.oct_plt_irq_unregister
