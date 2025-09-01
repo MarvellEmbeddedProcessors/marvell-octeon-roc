@@ -4,6 +4,8 @@
 #ifndef __INCLUDE_ROC_EMDEV_PRIV_H__
 #define __INCLUDE_ROC_EMDEV_PRIV_H__
 
+#define PSW_FID_ENTRY_MAX 12
+
 struct psw_fid_entry {
 	uint16_t bar;
 	uint32_t offset;
@@ -13,7 +15,9 @@ struct psw_fid_entry {
 	uint8_t read_en;
 	uint8_t write_en;
 	uint8_t read_mask;
+	uint8_t valid;
 	uint16_t fid_idx;
+	uint16_t isepf;
 };
 
 enum psw_virtio_fid_entry {
@@ -21,6 +25,10 @@ enum psw_virtio_fid_entry {
 	PSW_VIRTIO_FID_NOTIFY,
 	PSW_VIRTIO_FID_MSIX,
 	PSW_VIRTIO_FID_PBA,
+	PSW_EVF_VIRTIO_FID_CFG,
+	PSW_EVF_VIRTIO_FID_NOTIFY,
+	PSW_EVF_VIRTIO_FID_MSIX,
+	PSW_EVF_VIRTIO_FID_PBA,
 	PSW_VIRTIO_FID_ENTRY_MAX,
 };
 

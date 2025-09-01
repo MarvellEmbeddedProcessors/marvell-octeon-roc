@@ -3511,7 +3511,7 @@ struct psw_fid_alloc_entry_req {
 	uint16_t __io evf_id;	  /* Host VF ID */
 	uint16_t __io evfm1_mask; /* Mask for Host PF_FUNC */
 	uint16_t __io bar;	  /* BAR number */
-	uint16_t __io rsvd1;
+	uint16_t __io isepf;
 	uint32_t __io base_addr; /* Base address */
 	uint32_t __io base_mask; /* Mask for base address */
 	uint8_t __io read_en;	 /* Read enable */
@@ -3522,8 +3522,8 @@ struct psw_fid_alloc_entry_req {
 	uint8_t __io log2stride; /* Log2 of stride */
 	uint32_t __io offset;
 	uint8_t __io psw_type; /* PSW type */
-	uint8_t __io rsvd2[3];
-	uint32_t __io rsvd3;
+	uint8_t __io rsvd1[3];
+	uint32_t __io rsvd2;
 };
 
 struct psw_fid_alloc_entry_rsp {

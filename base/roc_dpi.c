@@ -449,7 +449,8 @@ roc_dpi_lf_chan_tbl_update(struct roc_dpi_lf *lf, uint64_t *config, uint16_t off
 }
 
 int
-dpi_chan_tbl_ena_dis(struct dev *dev, uint16_t lfid, uint16_t chan_tbl, bool enable)
+dpi_chan_tbl_ena_dis(struct dev *dev, uint32_t blkaddr, uint16_t lfid, uint16_t chan_tbl,
+		     bool enable)
 {
 	struct mbox *mbox = mbox_get(dev->mbox);
 	struct dpi_lf_chan_tbl_select_req *req;
@@ -464,6 +465,7 @@ dpi_chan_tbl_ena_dis(struct dev *dev, uint16_t lfid, uint16_t chan_tbl, bool ena
 	req->chan_tbl = chan_tbl;
 	req->lf_slot = lfid;
 	req->ena = enable;
+	req->dpi_blkaddr = blkaddr;
 
 	rc = mbox_process(mbox);
 exit:
