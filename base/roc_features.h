@@ -120,4 +120,10 @@ roc_feature_dpi_has_priority(void)
 	return roc_model_is_cn10k();
 }
 
+static inline bool
+roc_feature_nix_has_sq_cnt_update(void)
+{
+	return roc_model_is_cn20k();
+}
+
 #endif
