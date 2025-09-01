@@ -9,7 +9,7 @@
 static inline void
 q_wait_for_idle(uintptr_t rbase, uint16_t qid, uint64_t offset)
 {
-	int timeout = 20;
+	int timeout = 5;
 	uint64_t data;
 
 	do {
@@ -28,7 +28,7 @@ q_wait_for_idle(uintptr_t rbase, uint16_t qid, uint64_t offset)
 static inline void
 outb_inb_q_wait_for_idle(uintptr_t rbase, uint16_t qid, uint64_t offset, uint64_t wdata)
 {
-	int timeout = 20;
+	int timeout = 5;
 	uint64_t data;
 
 	do {

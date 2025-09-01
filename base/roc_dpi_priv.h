@@ -71,7 +71,8 @@ int dpi_lf_detach(struct dev *dev);
 int dpi_lf_init(struct roc_dpi_lf *lf, struct dev *dev, uint8_t slot);
 int dpi_chan_tbl_alloc(struct dev *dev, uint8_t blk_addr, uint16_t tbl_sz);
 int dpi_chan_tbl_free(struct dev *dev, uint8_t blk_addr, uint16_t tbl_num);
-int dpi_chan_tbl_ena_dis(struct dev *dev, uint16_t lfid, uint16_t chan_tbl, bool enable);
+int dpi_chan_tbl_ena_dis(struct dev *dev, uint32_t dpi_blkaddr, uint16_t lfid, uint16_t chan_tbl,
+			 bool enable);
 int dpi_chan_tbl_update(struct dev *dev, uint8_t blk_addr, uint16_t chan_tbl, uint64_t *tbl,
 			uint16_t off, uint16_t nb_entries);
 

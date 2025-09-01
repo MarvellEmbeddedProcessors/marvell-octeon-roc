@@ -20,9 +20,9 @@
 #define PSW_EPFFUNC(port, epf, vf_id) \
 	((((port) & 0x1) << 14) | (((epf) & 0x7) << 9) | ((vf_id) & 0xFF))
 
-const struct psw_fid_entry psw_fid_base[ROC_EMDEV_TYPE_MAX][PSW_VIRTIO_FID_ENTRY_MAX] = {
+const struct psw_fid_entry psw_fid_base[ROC_EMDEV_TYPE_MAX][PSW_FID_ENTRY_MAX] = {
 	[ROC_EMDEV_TYPE_VIRTIO] = {
-		/* VIRTIO PCI common config + VIRTIO DEV config area */
+		/* VIRTIO PCI common config + VIRTIO DEV config area for EPF*/
 		[PSW_VIRTIO_FID_CFG] = {
 			.bar = ROC_EMDEV_VIRTIO_BAR,
 			.offset = ROC_EMDEV_VIRTIO_PCI_COMMON_CFG_OFF,
@@ -32,8 +32,10 @@ const struct psw_fid_entry psw_fid_base[ROC_EMDEV_TYPE_MAX][PSW_VIRTIO_FID_ENTRY
 			.read_en = 1,
 			.write_en = 1,
 			.read_mask = 0x0,
+			.isepf = 1,
+			.valid = 1,
 		},
-		/* VIRTIO PCI notify area */
+		/* VIRTIO PCI notify area for EPF */
 		[PSW_VIRTIO_FID_NOTIFY] = {
 			.bar = ROC_EMDEV_VIRTIO_BAR,
 			.offset = ROC_EMDEV_VIRTIO_NOTIFY_AREA_OFF,
@@ -42,8 +44,10 @@ const struct psw_fid_entry psw_fid_base[ROC_EMDEV_TYPE_MAX][PSW_VIRTIO_FID_ENTRY
 			.write_en = 1,
 			.read_mask = 0x1,
 			.stride = ROC_EMDEV_VIRTIO_NOTIFY_AREA_STRIDE,
+			.isepf = 1,
+			.valid = 1,
 		},
-		/* VIRTIO PCI MSI-X area */
+		/* VIRTIO PCI MSI-X area for EPF */
 		[PSW_VIRTIO_FID_MSIX] = {
 			.bar = ROC_EMDEV_VIRTIO_BAR,
 			.offset = ROC_EMDEV_VIRTIO_MSIX_OFFSET,
@@ -52,8 +56,10 @@ const struct psw_fid_entry psw_fid_base[ROC_EMDEV_TYPE_MAX][PSW_VIRTIO_FID_ENTRY
 			.write_en = 1,
 			.read_en = 1,
 			.read_mask = 0x0,
+			.isepf = 1,
+			.valid = 1,
 		},
-		/* VIRTIO PCI PBA area */
+		/* VIRTIO PCI PBA area for EPF */
 		[PSW_VIRTIO_FID_PBA] = {
 			.bar = ROC_EMDEV_VIRTIO_BAR,
 			.offset = ROC_EMDEV_VIRTIO_PBA_OFFSET,
@@ -62,6 +68,57 @@ const struct psw_fid_entry psw_fid_base[ROC_EMDEV_TYPE_MAX][PSW_VIRTIO_FID_ENTRY
 			.write_en = 1,
 			.read_en = 1,
 			.read_mask = 0x0,
+			.isepf = 1,
+			.valid = 1,
+		},
+		/* VIRTIO PCI common config + VIRTIO DEV config area for all EVFs of a EPF */
+		[PSW_EVF_VIRTIO_FID_CFG] = {
+			.bar = ROC_EMDEV_VIRTIO_BAR,
+			.offset = ROC_EMDEV_VIRTIO_PCI_COMMON_CFG_OFF,
+			.size = (ROC_EMDEV_VIRTIO_PCI_COMMON_CFG_LEN +
+				 ROC_EMDEV_VIRTIO_PCI_DEV_CFG_LEN),
+			.psw_type = PSW_TYPES_API,
+			.read_en = 1,
+			.write_en = 1,
+			.read_mask = 0x0,
+			.isepf = 0,
+			.valid = 1,
+		},
+		/* VIRTIO PCI notify area for all EVFs of a EPF */
+		[PSW_EVF_VIRTIO_FID_NOTIFY] = {
+			.bar = ROC_EMDEV_VIRTIO_BAR,
+			.offset = ROC_EMDEV_VIRTIO_NOTIFY_AREA_OFF,
+			.psw_type = PSW_TYPES_PIDBL,
+			.size = 0,
+			.write_en = 1,
+			.read_mask = 0x1,
+			.stride = ROC_EMDEV_VIRTIO_NOTIFY_AREA_STRIDE,
+			.isepf = 0,
+			.valid = 1,
+		},
+		/* VIRTIO PCI MSI-X area for all EPFs of a EPF */
+		[PSW_EVF_VIRTIO_FID_MSIX] = {
+			.bar = ROC_EMDEV_VIRTIO_BAR,
+			.offset = ROC_EMDEV_VIRTIO_MSIX_OFFSET,
+			.psw_type = PSW_TYPES_MSIX,
+			.size = 0,
+			.write_en = 1,
+			.read_en = 1,
+			.read_mask = 0x0,
+			.isepf = 0,
+			.valid = 1,
+		},
+		/* VIRTIO PCI PBA area for all EPFs of a EPF */
+		[PSW_EVF_VIRTIO_FID_PBA] = {
+			.bar = ROC_EMDEV_VIRTIO_BAR,
+			.offset = ROC_EMDEV_VIRTIO_PBA_OFFSET,
+			.psw_type = PSW_TYPES_PBA,
+			.size = 0,
+			.write_en = 1,
+			.read_en = 1,
+			.read_mask = 0x0,
+			.isepf = 0,
+			.valid = 1,
 		},
 	},
 };
@@ -218,8 +275,10 @@ psw_virtio_fid_table_setup(struct emdev *emdev)
 	size_t size;
 	int rc, i;
 
-	for (i = 0; i < (int)PLT_DIM(psw_fid_base[ROC_EMDEV_TYPE_VIRTIO]); i++) {
+	for (i = 0; i < (int)PSW_FID_ENTRY_MAX; i++) {
 		entry = &psw_fid_base[ROC_EMDEV_TYPE_VIRTIO][i];
+		if (!entry->valid)
+			continue;
 		/* Allocate entry for common config and device config */
 		req = mbox_alloc_msg_psw_fid_alloc_entry(mbox);
 		if (!req)
@@ -251,7 +310,8 @@ psw_virtio_fid_table_setup(struct emdev *emdev)
 		size = plt_align32pow2(size);
 		/* Check if size and base conflicts with previous entry */
 		if (i >= 1) {
-			if (emdev->fid_entries[i - 1].offset + emdev->fid_entries[i - 1].size >
+			if (emdev->fid_entries[i - 1].isepf == entry->isepf &&
+			    emdev->fid_entries[i - 1].offset + emdev->fid_entries[i - 1].size >
 			    entry->offset) {
 				plt_err("FID entry[%d] conflicts with previous entry", i);
 				rc = -EINVAL;
@@ -266,6 +326,7 @@ psw_virtio_fid_table_setup(struct emdev *emdev)
 		req->psw_type = entry->psw_type;
 		req->read_mask = entry->read_mask;
 		req->read_en = entry->read_en;
+		req->isepf = entry->isepf;
 
 		plt_emdev_dbg("fid[%u]: Base_addr=%x base_mask=%x", i, req->base_addr,
 			      req->base_mask);
@@ -630,9 +691,11 @@ emdev_dpi_setup(struct emdev *emdev)
 
 		if (emdev->nb_epfvfs > 1) {
 			/* Associate LF to channel table */
-			rc = dpi_chan_tbl_ena_dis(&emdev->dev, lf->slot, emdev->dpi_chan_tbl, true);
+			rc = dpi_chan_tbl_ena_dis(&emdev->dev, emdev->dpi_blkaddr, lf->slot,
+						  emdev->dpi_chan_tbl, true);
 			if (rc) {
-				plt_err("Failed to associate DPI LF to channel table, rc=%d", rc);
+				plt_err("Failed to associate DPI LF:%d to channel table, rc=%d",
+					lf->slot, rc);
 				goto cleanup_ring;
 			}
 		}
@@ -683,11 +746,14 @@ cleanup_ring:
 		lf_q = &lf->queue[ROC_EMDEV_DPI_LF_RING_OUTB];
 		emdev_dpi_lf_ring_ena_dis(lf, ROC_EMDEV_DPI_LF_RING_OUTB, 0);
 		roc_dpi_lf_ring_fini(lf_q);
+
+		if (emdev->nb_epfvfs > 1)
+			rc |= dpi_chan_tbl_ena_dis(&emdev->dev, emdev->dpi_blkaddr, lf->slot,
+						   emdev->dpi_chan_tbl, false);
 	}
-	if (emdev->nb_epfvfs > 1) {
-		dpi_chan_tbl_ena_dis(&emdev->dev, emdev->dpi_blkaddr, emdev->dpi_chan_tbl, false);
+	if (emdev->nb_epfvfs > 1)
 		rc |= dpi_chan_tbl_free(&emdev->dev, emdev->dpi_blkaddr, emdev->dpi_chan_tbl);
-	}
+
 	return rc;
 }
 
@@ -709,13 +775,15 @@ emdev_dpi_release(struct emdev *emdev)
 		lf_q = &lf->queue[ROC_EMDEV_DPI_LF_RING_OUTB];
 		emdev_dpi_lf_ring_ena_dis(lf, ROC_EMDEV_DPI_LF_RING_OUTB, 0);
 		roc_dpi_lf_ring_fini(lf_q);
+
+		if (emdev->nb_epfvfs > 1)
+			/* Disable DPI LF from channel table */
+			rc |= dpi_chan_tbl_ena_dis(&emdev->dev, emdev->dpi_blkaddr, lf->slot,
+						   emdev->dpi_chan_tbl, false);
 	}
 
-	if (emdev->nb_epfvfs > 1) {
-		/* Disable DPI LF from channel table */
-		dpi_chan_tbl_ena_dis(&emdev->dev, emdev->dpi_blkaddr, emdev->dpi_chan_tbl, false);
+	if (emdev->nb_epfvfs > 1)
 		rc = dpi_chan_tbl_free(&emdev->dev, emdev->dpi_blkaddr, emdev->dpi_chan_tbl);
-	}
 
 	return rc;
 }
