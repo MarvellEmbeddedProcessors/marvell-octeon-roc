@@ -301,6 +301,12 @@ roc_emdev_psw_inb_q_init(struct roc_emdev *roc_emdev, struct roc_emdev_psw_inb_q
 	if (inbq->qid >= epfvf->nb_inb_qs)
 		return -EINVAL;
 
+	if (!inbq->nb_desc || !plt_is_power_of_2(inbq->nb_desc))
+		return -EINVAL;
+
+	if (inbq->desc_sz < 8 || !plt_is_power_of_2(inbq->desc_sz))
+		return -EINVAL;
+
 	psw_lf = &emdev->psw_lfs[0];
 	rbase = psw_lf->rbase;
 	wdata = epfvf->epf_func | inbq->qid << 16;
@@ -308,7 +314,7 @@ roc_emdev_psw_inb_q_init(struct roc_emdev *roc_emdev, struct roc_emdev_psw_inb_q
 	/* Initialize Shadow inbound queue */
 	memset(&q_cfg_base, 0, sizeof(q_cfg_base));
 	q_cfg_base.s.base_addr = (uint64_t)inbq->shib.q_base_addr >> 6;
-	q_cfg_base.s.log2ds = plt_log2_u32(emdev->hdesc_sz) - 3;
+	q_cfg_base.s.log2ds = plt_log2_u32(inbq->desc_sz) - 3;
 	q_cfg_base.s.log2qs = plt_log2_u32(inbq->nb_desc) - 1;
 	q_cfg_base.s.pround = inbq->hib.pround;
 	q_cfg_base.s.pi = inbq->pi_init;
@@ -330,7 +336,7 @@ roc_emdev_psw_inb_q_init(struct roc_emdev *roc_emdev, struct roc_emdev_psw_inb_q
 	/* Initialize Host inbound queue */
 	memset(&q_cfg_base, 0, sizeof(q_cfg_base));
 	q_cfg_base.s.base_addr = inbq->hib.q_base_addr >> 6;
-	q_cfg_base.s.log2ds = plt_log2_u32(emdev->hdesc_sz) - 3;
+	q_cfg_base.s.log2ds = plt_log2_u32(inbq->desc_sz) - 3;
 	q_cfg_base.s.log2qs = plt_log2_u32(inbq->nb_desc) - 1;
 	q_cfg_base.s.pi = inbq->pi_init;
 	q_cfg_base.s.ci = inbq->ci_init;
@@ -429,10 +435,16 @@ roc_emdev_psw_outb_q_init(struct roc_emdev *roc_emdev, struct roc_emdev_psw_outb
 	rbase = psw_lf->rbase;
 	wdata = epfvf->epf_func | outbq->qid << 16;
 
+	if (!outbq->nb_desc || !rte_is_power_of_2(outbq->nb_desc))
+		return -EINVAL;
+
+	if (outbq->desc_sz < 8 || !plt_is_power_of_2(outbq->desc_sz))
+		return -EINVAL;
+
 	/* Initialize Host outbound queue */
 	memset(&q_cfg_base, 0, sizeof(q_cfg_base));
 	q_cfg_base.s.base_addr = (uint64_t)outbq->hob.q_base_addr >> 6;
-	q_cfg_base.s.log2ds = plt_log2_u32(emdev->hdesc_sz) - 3;
+	q_cfg_base.s.log2ds = plt_log2_u32(outbq->desc_sz) - 3;
 	q_cfg_base.s.log2qs = plt_log2_u32(outbq->nb_desc) - 1;
 	q_cfg_base.s.pround = outbq->hob.pround;
 	q_cfg_base.s.pi = outbq->pi_init;
@@ -459,7 +471,7 @@ roc_emdev_psw_outb_q_init(struct roc_emdev *roc_emdev, struct roc_emdev_psw_outb
 	/* Initialize Shadow outbound queue */
 	memset(&q_cfg_base, 0, sizeof(q_cfg_base));
 	q_cfg_base.s.base_addr = outbq->shob.q_base_addr >> 6;
-	q_cfg_base.s.log2ds = plt_log2_u32(emdev->hdesc_sz) - 3;
+	q_cfg_base.s.log2ds = plt_log2_u32(outbq->desc_sz) - 3;
 	q_cfg_base.s.log2qs = plt_log2_u32(outbq->nb_desc) - 1;
 	q_cfg_base.s.enable = 1;
 	q_cfg_base.s.pi = outbq->pi_init;

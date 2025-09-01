@@ -19,25 +19,27 @@ emdev_lf_aq_ack_desc_enqueue(struct psw_lf *lf, uint64_t data, uint8_t be, uint1
 	struct roc_emdev_psw_aq_qp *aq_qp;
 	uint64_t desc_data;
 	void *ack_q_base;
-	uint16_t off;
-
-	PLT_SET_USED(rd_err);
+	uint16_t pi, ci;
 
 	aq_qp = &emdev->aq_qps[lf->lf_id];
 	ack_q_base = aq_qp->ack_q_base;
-	off = plt_read64(aq_qp->ack_q_pi_dbell);
+	pi = plt_read64(aq_qp->ack_q_pi_dbell);
+	ci = plt_read64(aq_qp->ack_q_ci_dbell);
+	if (((pi + 1) & aq_qp->qmask) == ci)
+		return -ENOSPC;
 
 	desc_data = PSW_ACK_DESC_TYPE_DATA << 1;
 	desc_data |= 1 << 8;
 	desc_data |= epffunc << 16;
 	desc_data |= (uint64_t)etag << 32;
 	desc_data |= be << 8;
+	desc_data |= rd_err << 5;
 
-	*AAQ_DESC_PTR_OFF(ack_q_base, off, 0) = desc_data;
-	*AAQ_DESC_PTR_OFF(ack_q_base, off, 8) = data;
+	*AAQ_DESC_PTR_OFF(ack_q_base, pi, 0) = desc_data;
+	*AAQ_DESC_PTR_OFF(ack_q_base, pi, 8) = data;
 
-	off = (off + 1) & aq_qp->qmask;
-	plt_write64(off, aq_qp->ack_q_pi_dbell);
+	pi = (pi + 1) & aq_qp->qmask;
+	plt_write64(pi, aq_qp->ack_q_pi_dbell);
 
 	return 0;
 }
@@ -52,9 +54,9 @@ emdev_lf_apinotif_process_desc(struct psw_lf *lf)
 	uint16_t epf_func, etag;
 	void *notify_q_base;
 	uint8_t dtype, be;
+	bool rd_err = 0;
 	uint16_t ci, pi;
 	uint32_t addr;
-	bool rd_err;
 	int rc = 0;
 
 	aq_qp = &emdev->aq_qps[lf->lf_id];
@@ -118,12 +120,23 @@ emdev_lf_apinotif_process_desc(struct psw_lf *lf)
 							    emdev->apinotif_cb_args);
 
 			etag = (desc_data >> 4) & 0x3ff;
-			emdev_lf_aq_ack_desc_enqueue(lf, handle.data, handle.be, etag, epf_func,
-						     !!rd_err);
+			rc = emdev_lf_aq_ack_desc_enqueue(lf, handle.data, handle.be, etag,
+							  epf_func, !!rd_err);
+			if (rc) {
+				ci = (ci - 1) & aq_qp->qmask;
+				goto dbell_update;
+			}
+			ci = (ci + 1) & aq_qp->qmask;
+			break;
+		default:
+			plt_err("Unknown descriptor type : 0x%x at ci 0x%x", dtype, ci);
+			rc |= -EINVAL;
 			ci = (ci + 1) & aq_qp->qmask;
 			break;
 		}
 	}
+
+dbell_update:
 	plt_write64(ci, aq_qp->notify_q_ci_dbell);
 	return rc;
 }

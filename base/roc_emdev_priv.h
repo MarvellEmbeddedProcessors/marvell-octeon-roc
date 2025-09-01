@@ -78,9 +78,6 @@ struct emdev {
 	/* Emulation device type */
 	enum roc_emdev_type emul_type;
 
-	/* Emulation device descriptor size */
-	uint16_t hdesc_sz;
-
 	/* API notification queues */
 	struct roc_emdev_psw_aq_qp *aq_qps;
 

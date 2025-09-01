@@ -15,6 +15,8 @@
 #define MBOX_MSIX_VECS 4
 #define MSIX_VEC_SZ    16
 
+#define PEM_MAX_PFS 8
+
 #define PSW_EPFFUNC(port, epf, vf_id) \
 	((((port) & 0x1) << 14) | (((epf) & 0x7) << 9) | ((vf_id) & 0xFF))
 
@@ -303,7 +305,7 @@ error:
 	/* Release allocated FID entries */
 	for (i = 0; i < emdev->nb_fid_entries; i++) {
 		free_req = mbox_alloc_msg_psw_fid_free_entry(mbox);
-		if (!req)
+		if (!free_req)
 			break;
 		free_req->fid_idx = emdev->fid_entries[i].fid_idx;
 		rc |= mbox_process(mbox);
@@ -456,7 +458,7 @@ emdev_psw_rsrc_free(struct emdev *emdev)
 	struct psw_gid_free_req *req;
 	struct emdev_epfvf *epfvf;
 	uint16_t nb_epfvfs;
-	int rc, i;
+	int rc = 0, i;
 
 	nb_epfvfs = emdev->nb_epfvfs;
 
@@ -471,16 +473,14 @@ emdev_psw_rsrc_free(struct emdev *emdev)
 		req->evf_id = epfvf->evf_id;
 		req->nb_rids = epfvf->nb_rids;
 		req->rid_base = 0;
-		rc = mbox_process(mbox);
-		if (rc) {
-			plt_err("Failed to free PSW queues, rc=%d", rc);
-			goto exit;
-		}
+		rc |= mbox_process(mbox);
+		if (rc)
+			plt_err("Failed to free PSW queues for epfvf %d, rc=%d", i, rc);
 	}
 
 	plt_free(emdev->epfvfs);
 	emdev->epfvfs = NULL;
-exit:
+
 	mbox_put(mbox);
 	return rc;
 }
@@ -590,6 +590,7 @@ emdev_dpi_chan_tbl_config(struct emdev *emdev)
 					 i - nb_entries, nb_entries);
 		if (rc) {
 			plt_err("Failed to write DPI Channel Table, rc=%d", rc);
+			rc |= dpi_chan_tbl_free(&emdev->dev, emdev->dpi_blkaddr, chan_tbl);
 			return rc;
 		}
 	}
@@ -639,7 +640,7 @@ emdev_dpi_setup(struct emdev *emdev)
 		/* Setup DPI ring for ROC_EMDEV_DPI_LF_RING_INB */
 		memset(&rcfg, 0, sizeof(rcfg));
 		rcfg.xtype = DPI_XTYPE_INBOUND;
-		rcfg.rport = 0;
+		rcfg.rport = emdev->epf_id < PEM_MAX_PFS ? 0 : 1;
 		rcfg.isize = lf_q->cmd_len / DPI_CMD_SIZE_128B;
 		rcfg.ring_idx = ROC_EMDEV_DPI_LF_RING_INB;
 
@@ -656,7 +657,7 @@ emdev_dpi_setup(struct emdev *emdev)
 		/* Setup DPI ring for ROC_EMDEV_DPI_LF_RING_OUTB */
 		memset(&rcfg, 0, sizeof(rcfg));
 		rcfg.xtype = DPI_XTYPE_OUTBOUND;
-		rcfg.wport = 0;
+		rcfg.wport = emdev->epf_id < PEM_MAX_PFS ? 0 : 1;
 		rcfg.isize = lf_q->cmd_len / DPI_CMD_SIZE_128B;
 		rcfg.ring_idx = ROC_EMDEV_DPI_LF_RING_OUTB;
 
@@ -774,7 +775,7 @@ roc_emdev_setup(struct roc_emdev *roc_emdev)
 	/* Allocate memory to hold AQs */
 	emdev->aq_qps = plt_zmalloc(sizeof(struct roc_emdev_psw_aq_qp) * nb_psw_lfs, 0);
 	if (!emdev->aq_qps)
-		goto free_mem;
+		return rc;
 
 	/* Allocate memory to hold pointers to NQ QP's */
 	emdev->nq_qps = plt_zmalloc(sizeof(struct roc_emdev_psw_nq_qp *) * nb_notify_qs, 0);
@@ -791,7 +792,7 @@ roc_emdev_setup(struct roc_emdev *roc_emdev)
 	if (!emdev->dpi_lfs)
 		goto free_mem;
 
-	emdev->emul_type = ROC_EMDEV_TYPE_VIRTIO;
+	emdev->emul_type = roc_emdev->emul_type;
 
 	rc = emdev_psw_caps_get(emdev);
 	if (rc)
@@ -814,10 +815,8 @@ roc_emdev_setup(struct roc_emdev *roc_emdev)
 
 	/* Setup PSW FID table based on device type */
 	rc = -ENOTSUP;
-	if (emdev->emul_type == ROC_EMDEV_TYPE_VIRTIO) {
+	if (emdev->emul_type == ROC_EMDEV_TYPE_VIRTIO)
 		rc = psw_virtio_fid_table_setup(emdev);
-		emdev->hdesc_sz = 16UL; /* Fix Hard Coding */
-	}
 
 	if (rc)
 		goto free_psw_rsrc;
@@ -826,8 +825,6 @@ roc_emdev_setup(struct roc_emdev *roc_emdev)
 	rc = emdev_aq_qp_init(roc_emdev);
 	if (rc)
 		goto cleanup_fid;
-
-	roc_emdev->emul_type = emdev->emul_type;
 
 	return 0;
 cleanup_fid:
@@ -840,9 +837,11 @@ dpi_lf_release:
 detach_lf:
 	rc |= emdev_lf_detach(emdev);
 free_mem:
-	plt_free(emdev->aq_qps);
-	plt_free(emdev->nq_qps);
+	plt_free(emdev->dpi_lfs);
 	plt_free(emdev->psw_lfs);
+	plt_free(emdev->nq_qps);
+	plt_free(emdev->aq_qps);
+
 	return rc;
 }
 
@@ -880,9 +879,11 @@ roc_emdev_release(struct roc_emdev *roc_emdev)
 	plt_free(emdev->aq_qps);
 	plt_free(emdev->nq_qps);
 	plt_free(emdev->psw_lfs);
+	plt_free(emdev->dpi_lfs);
 	emdev->aq_qps = NULL;
 	emdev->nq_qps = NULL;
 	emdev->psw_lfs = NULL;
+	emdev->dpi_lfs = NULL;
 
 	return 0;
 }
@@ -922,7 +923,7 @@ roc_emdev_epf_func_get(struct roc_emdev *roc_emdev, uint16_t vf_id)
 	struct emdev *emdev = roc_emdev_to_emdev_priv(roc_emdev);
 	uint16_t port;
 
-	port = emdev->epf_id > 7 ? 1 : 0;
+	port = emdev->epf_id < PEM_MAX_PFS ? 0 : 1;
 	return PSW_EPFFUNC(port, emdev->epf_id, vf_id);
 }
 
