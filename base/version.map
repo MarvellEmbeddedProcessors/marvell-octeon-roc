@@ -322,6 +322,7 @@ INTERNAL {
 	roc_nix_inb_mode_set;
 	roc_nix_inl_cpt_lf_stats_get;
 	roc_nix_inl_dev_qptr_get;
+	roc_nix_inl_is_cq_ena;
 	roc_nix_inl_outb_fini;
 	roc_nix_inl_outb_init;
 	roc_nix_inl_outb_lf_base_get;
