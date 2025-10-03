@@ -63,6 +63,8 @@ INTERNAL {
 	roc_bphy_sso_pf_func_get;
 	roc_clk_freq_get;
 	roc_cpt_afs_print;
+	roc_cpt_cq_disable;
+	roc_cpt_cq_enable;
 	roc_cpt_dev_clear;
 	roc_cpt_dev_configure;
 	roc_cpt_dev_fini;
