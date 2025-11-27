@@ -1579,6 +1579,7 @@ roc_nix_inl_outb_init(struct roc_nix *roc_nix)
 				lf->cq_entry_size = 0;
 				lf->cq_all = 0;
 				lf->cq_size = lf->nb_desc;
+				lf->cq_head = 1;
 			}
 		}
 
