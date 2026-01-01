@@ -62,7 +62,7 @@ union npc_rx_parse_nibble_cn20k_u {
 	uint64_t u;
 };
 
-struct npc_rx_parse_nibble_s {
+struct __plt_packed_begin npc_rx_parse_nibble_s {
 	uint16_t chan : 3;
 	uint16_t errlev : 1;
 	uint16_t errcode : 2;
@@ -83,7 +83,7 @@ struct npc_rx_parse_nibble_s {
 	uint16_t lgtype : 1;
 	uint16_t lhflags : 2;
 	uint16_t lhtype : 1;
-} __plt_packed;
+} __plt_packed_end;
 
 static const char *const intf_str[] = {
 	"NIX-RX",
