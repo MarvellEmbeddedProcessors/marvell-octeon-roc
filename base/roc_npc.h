@@ -304,6 +304,7 @@ struct roc_npc_spi_to_sa_action_info {
 	bool has_action;
 };
 
+struct mbox;
 struct roc_npc_flow {
 	uint8_t nix_intf;
 	uint8_t enable;
