@@ -26,8 +26,9 @@
 /* Nibble offsets */
 #define NPC_LAYER_KEYX_SZ	  (3)
 #define NPC_PARSE_KEX_S_LA_OFFSET (7)
-#define NPC_PARSE_KEX_S_LID_OFFSET(lid)                                                            \
-	((((lid) - (NPC_LID_LA)) * NPC_LAYER_KEYX_SZ) + NPC_PARSE_KEX_S_LA_OFFSET)
+#define NPC_PARSE_KEX_S_LID_OFFSET(lid)                                        \
+	((((lid) - (NPC_LID_LA)) * NPC_LAYER_KEYX_SZ) +                        \
+	 NPC_PARSE_KEX_S_LA_OFFSET)
 
 #define NPC_LAYER_KEYX_SZ_CN20K (2)
 #define NPC_PARSE_KEX_S_LID_OFFSET_CN20K(lid)                                                      \
@@ -387,8 +388,10 @@ typedef struct npc_lid_lt_xtract_info_cn20k npc_dxcfg_cn20k_t[NPC_MAX_INTF][NPC_
 							     [NPC_MAX_LT];
 typedef union npc_kex_ldata_flags_cfg npc_lid_cn20k_t[NPC_MAX_INTF][NPC_MAX_EXTRACTTORS];
 
-typedef struct npc_lid_lt_xtract_info npc_dxcfg_t[NPC_MAX_INTF][NPC_MAX_LID][NPC_MAX_LT];
-typedef struct npc_lid_lt_xtract_info npc_fxcfg_t[NPC_MAX_INTF][NPC_MAX_LD][NPC_MAX_LFL];
+typedef struct npc_lid_lt_xtract_info npc_dxcfg_t[NPC_MAX_INTF][NPC_MAX_LID]
+						 [NPC_MAX_LT];
+typedef struct npc_lid_lt_xtract_info npc_fxcfg_t[NPC_MAX_INTF][NPC_MAX_LD]
+						 [NPC_MAX_LFL];
 typedef union npc_kex_ldata_flags_cfg npc_ld_flags_t[NPC_MAX_LD];
 
 /* MBOX_MSG_NPC_GET_DATAX_CFG Response */

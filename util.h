@@ -113,6 +113,12 @@ extern __attribute__((const)) int __plt_log2_NaN(void);
 #ifndef __plt_packed
 #define __plt_packed __attribute__((__packed__))
 #endif
+#ifndef __plt_packed_begin
+#define __plt_packed_begin
+#endif
+#ifndef __plt_packed_end
+#define __plt_packed_end __attribute__((__packed__))
+#endif
 #ifndef __plt_aligned
 #define __plt_aligned(x) __attribute__((__aligned__(x)))
 #endif

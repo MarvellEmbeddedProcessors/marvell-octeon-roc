@@ -212,7 +212,7 @@ npc_aged_flows_get(void *args)
 		plt_seqcount_write_end(&flow_age->seq_cnt);
 
 lbl_sleep:
-	npc_age_wait_until(flow_age);
+		npc_age_wait_until(flow_age);
 	}
 
 	return 0;

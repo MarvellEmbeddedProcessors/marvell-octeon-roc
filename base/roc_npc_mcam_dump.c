@@ -36,7 +36,7 @@
 #define NIX_TX_VTAGACT_VTAG1_DEF_MASK	 GENMASK(57, 48)
 
 union npc_rx_parse_nibble_cn20k_u {
-	struct {
+	struct __plt_packed_begin {
 		uint64_t chan : 3;
 		uint64_t errlev : 1;
 		uint64_t errcode : 2;
@@ -58,7 +58,7 @@ union npc_rx_parse_nibble_cn20k_u {
 		uint64_t lhflags : 1;
 		uint64_t lhtype : 1;
 		uint64_t reserved : 41;
-	} s __plt_packed;
+	} s __plt_packed_end;
 	uint64_t u;
 };
 

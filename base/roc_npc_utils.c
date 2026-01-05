@@ -57,7 +57,8 @@ npc_mem_is_zero(const void *mem, int len)
 }
 
 static void
-npc_set_hw_mask(struct npc_parse_item_info *info, struct npc_xtract_info *xinfo, char *hw_mask)
+npc_set_hw_mask(struct npc_parse_item_info *info, struct npc_xtract_info *xinfo,
+		char *hw_mask)
 {
 	int max_off, offset;
 	int j;
@@ -483,9 +484,9 @@ npc_process_ipv6_field_hash_o20k(const struct roc_npc_flow_item_ipv6 *ipv6_spec,
 	struct npc_lid_lt_xtract_info_cn20k *lid_lt_xinfo;
 	union npc_kex_ldata_flags_cfg *lid_cfg;
 	uint8_t hash_field[ROC_IPV6_ADDR_LEN];
-	int intf, i, rc = 0, hash_idx = 0;
 	struct npc_xtract_info *xinfo;
 	uint32_t hash = 0, mask;
+	int intf, i, rc = 0, hash_idx = 0;
 
 	memset(hash_field, 0, sizeof(hash_field));
 
