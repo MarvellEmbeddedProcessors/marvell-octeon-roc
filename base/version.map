@@ -157,6 +157,8 @@ INTERNAL {
 	roc_idev_mcs_free;
 	roc_idev_mcs_get;
 	roc_idev_mcs_set;
+	roc_idev_npa_halo_ena_get;
+	roc_idev_npa_halo_ena_set;
 	roc_idev_npa_maxpools_get;
 	roc_idev_npa_maxpools_set;
 	roc_idev_npa_nix_get;
