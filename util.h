@@ -119,6 +119,9 @@ extern __attribute__((const)) int __plt_log2_NaN(void);
 #ifndef __plt_packed_end
 #define __plt_packed_end __attribute__((__packed__))
 #endif
+#ifndef __plt_may_alias
+#define __plt_may_alias __attribute__((__may_alias__))
+#endif
 #ifndef __plt_aligned
 #define __plt_aligned(x) __attribute__((__aligned__(x)))
 #endif
