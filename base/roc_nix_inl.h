@@ -237,4 +237,5 @@ enum roc_nix_cpt_lf_stats_type {
 int __roc_api roc_nix_inl_cpt_lf_stats_get(struct roc_nix *roc_nix,
 					   enum roc_nix_cpt_lf_stats_type type,
 					   struct roc_nix_cpt_lf_stats *stats, uint16_t idx);
+int __roc_api roc_nix_inl_ipsec_vlan_cfg(struct roc_nix *roc_nix, uint8_t *pcp_qsel);
 #endif /* _ROC_NIX_INL_H_ */

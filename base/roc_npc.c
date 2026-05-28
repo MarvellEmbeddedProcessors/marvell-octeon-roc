@@ -994,14 +994,17 @@ npc_parse_actions(struct roc_npc *roc_npc, const struct roc_npc_attr *attr,
 		if (roc_feature_nix_has_inl_profile()) {
 			const struct roc_npc_sec_action *sa_action = NULL;
 			uint16_t profile_id;
+			uint8_t ipsec_qsel = 0;
 
 			profile_id = roc_nix_inl_inb_ipsec_profile_id_get(roc_nix, true);
 			if (sec_action && sec_action->conf) {
 				sa_action = (const struct roc_npc_sec_action *)sec_action->conf;
 				if (sa_action->use_custom_profile)
 					profile_id = sa_action->profile_id;
+				ipsec_qsel = sa_action->ipsec_qsel & 0x7;
 			}
-			flow->npc_action2 |= (is_non_inp ? (1ULL << 15) : 0) | (profile_id << 8);
+			flow->npc_action2 |=
+				(is_non_inp ? (1ULL << 15) : 0) | (profile_id << 8) | ipsec_qsel;
 
 			flow->npc_action = NIX_RX_ACTIONOP_UCAST_CPT;
 			flow->npc_action |= (uint64_t)rq << 20;
@@ -1585,6 +1588,7 @@ npc_vtag_action_program(struct roc_npc *roc_npc,
 			struct roc_npc_flow *flow)
 {
 	bool vlan_strip_parsed = false, vlan_insert_parsed = false;
+	const struct roc_npc_sec_action *qsel_sec = NULL;
 	const struct roc_npc_action *insert_actions;
 	struct roc_nix *roc_nix = roc_npc->roc_nix;
 	struct npc_action_vtag_info vlan_info[2];
@@ -1647,6 +1651,9 @@ npc_vtag_action_program(struct roc_npc *roc_npc,
 			}
 			actions += tot_vlan_params - 1;
 			vlan_insert_parsed = true;
+		} else if (actions->type == ROC_NPC_ACTION_TYPE_SEC && !actions->no_sec_action &&
+			   actions->conf != NULL) {
+			qsel_sec = actions->conf;
 		}
 	}
 
@@ -1656,6 +1663,36 @@ npc_vtag_action_program(struct roc_npc *roc_npc,
 		if (rc)
 			return rc;
 	}
+
+	/* Program IPsec CPT queue selection (VTAG PCP) after strip/insert so
+	 * it is not overwritten. Use TYPE5 when a strip is also requested
+	 * (single slot does strip + qsel), else TYPE4 (qsel only).
+	 */
+	if (qsel_sec && roc_nix->custom_sa_action && !roc_model_is_cn9k()) {
+		union {
+			uint64_t reg;
+			union nix_rx_vtag_action_u act;
+		} vtag_act;
+		uint8_t vtag_type;
+
+		vtag_type = strip_cnt ? NIX_RX_VTAG_TYPE5 : NIX_RX_VTAG_TYPE4;
+
+		vtag_act.reg = flow->vtag_action;
+		if (qsel_sec->ipsec_qsel == ROC_NPC_SEC_IPSEC_QSEL_VTAG0_PCP) {
+			vtag_act.act.vtag0_valid = 1;
+			vtag_act.act.vtag0_type = vtag_type;
+			/* Point capture at the VLAN (LB) layer. */
+			vtag_act.act.vtag0_lid = NPC_LID_LB;
+			vtag_act.act.vtag0_relptr = NIX_RX_VTAGACTION_VTAG0_RELPTR;
+		} else if (qsel_sec->ipsec_qsel == ROC_NPC_SEC_IPSEC_QSEL_VTAG1_PCP) {
+			vtag_act.act.vtag1_valid = 1;
+			vtag_act.act.vtag1_type = vtag_type;
+			vtag_act.act.vtag1_lid = NPC_LID_LB;
+			vtag_act.act.vtag1_relptr = NIX_RX_VTAGACTION_VTAG0_RELPTR;
+		}
+		flow->vtag_action = vtag_act.reg;
+	}
+
 	return 0;
 }
 
