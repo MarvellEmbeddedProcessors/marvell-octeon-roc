@@ -1703,3 +1703,96 @@ roc_nix_inl_dev_cpt_release(void)
 
 	return nix_inl_cpt_release(inl_dev);
 }
+
+int
+roc_nix_inl_ipsec_vlan_cfg(struct roc_nix *roc_nix, uint8_t *pcp_qsel)
+{
+	struct nix_rx_ipsec_vlan_cfg_rsp *rsp;
+	struct nix_rx_ipsec_vlan_cfg_req *req;
+	struct nix_vtag_config *vtag_cfg;
+	struct nix_inl_dev *inl_dev;
+	struct idev_cfg *idev;
+	struct mbox *mbox;
+	struct nix *nix;
+	uint8_t cfg_idx;
+	uint16_t nb_qs;
+	int rc = 0, i;
+
+	if (!roc_nix || !pcp_qsel)
+		return -EINVAL;
+
+	if (!roc_feature_nix_has_inl_multi_queue()) {
+		plt_err("Inline multi-queue feature not supported");
+		return -ENOTSUP;
+	}
+
+	idev = idev_get_cfg();
+	if (!idev || !idev->nix_inl_dev) {
+		plt_err("Inline device not available");
+		return -ENODEV;
+	}
+
+	inl_dev = idev->nix_inl_dev;
+	nb_qs = inl_dev->nb_inb_cptlfs;
+
+	nix = roc_nix_to_nix_priv(roc_nix);
+	/* Configure VTAG_TYPE on inline device LF's mailbox. */
+	mbox = mbox_get(inl_dev->dev.mbox);
+
+	/* pcp_qsel[] carries a CPT queue index (0..nb_inb_cptlfs-1) */
+	for (i = 0; i < NIX_RX_INL_IPSEC_PCP_QSEL_CNT; i++) {
+		if (pcp_qsel[i] >= nb_qs) {
+			plt_err("pcp_qsel[%d]=%u exceeds CPT queue count %u", i, pcp_qsel[i],
+				nb_qs);
+			rc = -EINVAL;
+			goto exit;
+		}
+	}
+
+	req = mbox_alloc_msg_nix_rx_ipsec_vlan_cfg(mbox);
+	if (!req) {
+		plt_err("Failed to alloc nix_rx_ipsec_vlan_cfg mbox msg");
+		rc = -ENOSPC;
+		goto exit;
+	}
+
+	/* Resolve each queue index to its allocated CPT queue id for HW */
+	for (i = 0; i < NIX_RX_INL_IPSEC_PCP_QSEL_CNT; i++)
+		req->pcp_qsel[i] = inl_dev->nix_inb_qids[inl_dev->inb_cpt_lf_id + pcp_qsel[i]];
+
+	rc = mbox_process_msg(mbox, (void *)&rsp);
+	if (rc) {
+		plt_err("Failed to process nix_rx_ipsec_vlan_cfg mbox msg, rc=%d", rc);
+		goto exit;
+	}
+
+	cfg_idx = rsp->vlan_cfg_idx;
+
+	/* Program IPsec RX VTAG types with the PCP-to-queue table index:
+	 *   TYPE4: IPsec only         (STRIP=0, IPSEC_QSEL_ALG=x)
+	 *   TYPE5: IPsec + VLAN strip (STRIP=1, IPSEC_QSEL_ALG=x)
+	 */
+	for (i = NIX_RX_VTAG_TYPE4; i <= NIX_RX_VTAG_TYPE5; i++) {
+		vtag_cfg = mbox_alloc_msg_nix_vtag_cfg(mbox);
+		if (!vtag_cfg) {
+			plt_err("Failed to alloc nix_vtag_cfg mbox msg");
+			rc = -ENOSPC;
+			goto exit;
+		}
+
+		vtag_cfg->cfg_type = VTAG_RX;
+		vtag_cfg->vtag_size = NIX_VTAGSIZE_T4;
+		vtag_cfg->rx.vtag_type = i;
+		vtag_cfg->rx.ipsec_qsel_alg = cfg_idx;
+		/* TYPE5 additionally strips the VLAN tag */
+		vtag_cfg->rx.strip_vtag = (i == NIX_RX_VTAG_TYPE5) ? 1 : 0;
+		/* CAPTURE must be set for NIX_RX_PARSE_S[VTAG0_VALID] to be set */
+		vtag_cfg->rx.capture_vtag = 1;
+	}
+
+	rc = mbox_process(mbox);
+
+exit:
+	mbox_put(mbox);
+	return rc;
+}

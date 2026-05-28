@@ -274,6 +274,18 @@ enum roc_npc_sec_action_alg {
 	ROC_NPC_SEC_ACTION_ALG4,
 };
 
+/* IPsec CPT queue selection algorithm. */
+enum roc_npc_sec_ipsec_qsel {
+	ROC_NPC_SEC_IPSEC_QSEL_DEF_CPTQ = 0,
+	ROC_NPC_SEC_IPSEC_QSEL_VTAG0_PCP = 1,
+	ROC_NPC_SEC_IPSEC_QSEL_VTAG1_PCP = 2,
+	ROC_NPC_SEC_IPSEC_QSEL_CPT_QUEUE = 3,
+	ROC_NPC_SEC_IPSEC_QSEL_INNER_DSCP_TBL0 = 4,
+	ROC_NPC_SEC_IPSEC_QSEL_OUTER_DSCP_TBL0 = 5,
+	ROC_NPC_SEC_IPSEC_QSEL_INNER_DSCP_TBL1 = 6,
+	ROC_NPC_SEC_IPSEC_QSEL_OUTER_DSCP_TBL1 = 7,
+};
+
 struct roc_npc_sec_action {
 	/* Used as lookup result for ALG3 */
 	uint32_t sa_index;
@@ -291,6 +303,8 @@ struct roc_npc_sec_action {
 	 * When false, use default IPsec profile (backward compatible).
 	 */
 	bool use_custom_profile;
+	/* IPsec CPT queue selection algorithm. */
+	enum roc_npc_sec_ipsec_qsel ipsec_qsel;
 };
 
 struct roc_npc_attr {

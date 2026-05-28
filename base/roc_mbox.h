@@ -368,6 +368,8 @@ struct mbox_msghdr {
 			      nix_rx_inline_qcfg_req, msg_rsp)		\
 	M(NIX_AF_RX_FLOW_VEC_CTRL_SET, 0x8034, nix_af_rx_flow_vec_ctrl_set,                        \
 	  nix_af_rx_flow_vec_ctrl_write_req, msg_rsp)                                              \
+	M(NIX_RX_IPSEC_VLAN_CFG, 0x8035, nix_rx_ipsec_vlan_cfg, nix_rx_ipsec_vlan_cfg_req,         \
+	  nix_rx_ipsec_vlan_cfg_rsp)                                                               \
 	/* MCS mbox IDs (range 0xa000 - 0xbFFF) */                                                 \
 	M(MCS_ALLOC_RESOURCES, 0xa000, mcs_alloc_resources, mcs_alloc_rsrc_req,                    \
 	  mcs_alloc_rsrc_rsp)                                                                      \
@@ -1942,6 +1944,8 @@ struct nix_vtag_config {
 			uint8_t __io strip_vtag : 1;
 			/* Rx vtag capture */
 			uint8_t __io capture_vtag : 1;
+			/* Index into NIX_AF_RX_IPSEC_VLAN_CFG(0..15) */
+			uint8_t __io ipsec_qsel_alg;
 		} rx;
 	};
 };
@@ -2210,6 +2214,19 @@ struct nix_rx_inline_qcfg_req {
 	uint8_t __io enable;
 	uint8_t __io hysteresis;
 	uint8_t __io rsvd[32];
+};
+
+#define NIX_RX_INL_IPSEC_PCP_QSEL_CNT 8
+
+struct nix_rx_ipsec_vlan_cfg_req {
+	struct mbox_msghdr hdr;
+	uint8_t __io pcp_qsel[NIX_RX_INL_IPSEC_PCP_QSEL_CNT];
+	uint8_t __io rsvd[32];
+};
+
+struct nix_rx_ipsec_vlan_cfg_rsp {
+	struct mbox_msghdr hdr;
+	uint8_t __io vlan_cfg_idx;
 };
 
 struct nix_get_lf_stats_req {
