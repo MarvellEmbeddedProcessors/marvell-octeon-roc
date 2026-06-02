@@ -130,6 +130,8 @@ set(OCT_ROC_HEADERS
   base/roc_npc_priv.h
   base/roc_platform.h
   base/roc_priv.h
+  base/roc_re.h
+  base/roc_re_ml_tables.h
   base/roc_ree.h
   base/roc_ree_priv.h
   base/roc_rvu_lf.h
