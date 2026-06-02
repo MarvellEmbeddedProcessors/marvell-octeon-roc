@@ -41,6 +41,7 @@ struct oct_plt_spinlock_s
 
 typedef struct oct_plt_spinlock_s *oct_plt_spinlock_t;
 
+#define PLT_ATOMIC
 #define PLT_ASSERT	     assert
 #define PLT_MEMZONE_NAME     32
 #define PLT_MODEL_MZ_NAME    "roc_model_mz"
@@ -102,9 +103,12 @@ typedef struct oct_plt_spinlock_s *oct_plt_spinlock_t;
 
 #define plt_atomic_store_explicit __atomic_store_n
 #define plt_atomic_load_explicit  __atomic_load_n
+#define plt_atomic_fetch_add_explicit __atomic_fetch_add
+#define plt_atomic_fetch_sub_explicit __atomic_fetch_sub
 #define plt_memory_order_release  __ATOMIC_RELEASE
 #define plt_memory_order_acquire  __ATOMIC_ACQUIRE
 #define plt_memory_order_relaxed  __ATOMIC_RELAXED
+#define plt_memory_order_seq_cst  __ATOMIC_SEQ_CST
 
 #define plt_irq_register	     g_param.oct_plt_irq_register
 #define plt_irq_unregister	     g_param.oct_plt_irq_unregister
