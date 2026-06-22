@@ -370,6 +370,8 @@ struct mbox_msghdr {
 	  nix_af_rx_flow_vec_ctrl_write_req, msg_rsp)                                              \
 	M(NIX_RX_IPSEC_VLAN_CFG, 0x8035, nix_rx_ipsec_vlan_cfg, nix_rx_ipsec_vlan_cfg_req,         \
 	  nix_rx_ipsec_vlan_cfg_rsp)                                                               \
+	M(NIX_RX_IPSEC_DSCP_CFG, 0x8036, nix_rx_ipsec_dscp_cfg, nix_rx_ipsec_dscp_cfg_req,         \
+	  nix_rx_ipsec_dscp_cfg_rsp)                                                               \
 	/* MCS mbox IDs (range 0xa000 - 0xbFFF) */                                                 \
 	M(MCS_ALLOC_RESOURCES, 0xa000, mcs_alloc_resources, mcs_alloc_rsrc_req,                    \
 	  mcs_alloc_rsrc_rsp)                                                                      \
@@ -2227,6 +2229,24 @@ struct nix_rx_ipsec_vlan_cfg_req {
 struct nix_rx_ipsec_vlan_cfg_rsp {
 	struct mbox_msghdr hdr;
 	uint8_t __io vlan_cfg_idx;
+};
+
+/* dscp_map layout: 4 words x 16 nibbles = 64 DSCP values */
+#define NIX_RX_INL_IPSEC_DSCP_MAP_WORDS 4
+#define NIX_RX_INL_IPSEC_DSCP_PER_WORD	16
+
+/* Number of HW DSCP-to-CPTQ mapping tables for inline IPsec queue selection */
+#define NIX_RX_INL_IPSEC_DSCP_QMAP_MAX 2
+
+struct nix_rx_ipsec_dscp_cfg_req {
+	struct mbox_msghdr hdr;
+	uint64_t __io dscp_map[NIX_RX_INL_IPSEC_DSCP_MAP_WORDS];
+	uint8_t __io rsvd[32];
+};
+
+struct nix_rx_ipsec_dscp_cfg_rsp {
+	struct mbox_msghdr hdr;
+	uint8_t __io qmap_idx;
 };
 
 struct nix_get_lf_stats_req {

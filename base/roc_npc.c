@@ -1002,6 +1002,27 @@ npc_parse_actions(struct roc_npc *roc_npc, const struct roc_npc_attr *attr,
 				if (sa_action->use_custom_profile)
 					profile_id = sa_action->profile_id;
 				ipsec_qsel = sa_action->ipsec_qsel & 0x7;
+
+				/* For DSCP variants, bit1 of ipsec_qsel is the
+				 * app's logical map (config order); the real HW
+				 * table index is assigned by the AF from a shared
+				 * pool. Swap bit1 for the index recorded at
+				 * dscp_cfg() time (bit2=DSCP and bit0=inner/outer
+				 * are kept).
+				 */
+				if (ipsec_qsel >= ROC_NPC_SEC_IPSEC_QSEL_INNER_DSCP_MAP0) {
+					struct nix *nix_priv = roc_nix_to_nix_priv(roc_nix);
+					uint8_t map = (ipsec_qsel >> 1) & 0x1;
+
+					if (map >= nix_priv->inl_ipsec_dscp_qmap_cnt) {
+						plt_err("DSCP map %u not configured", map);
+						errcode = NPC_ERR_ACTION_NOTSUP;
+						goto err_exit;
+					}
+
+					ipsec_qsel = (ipsec_qsel & ~0x2) |
+						     (nix_priv->inl_ipsec_dscp_qmap_idx[map] << 1);
+				}
 			}
 			flow->npc_action2 |=
 				(is_non_inp ? (1ULL << 15) : 0) | (profile_id << 8) | ipsec_qsel;
