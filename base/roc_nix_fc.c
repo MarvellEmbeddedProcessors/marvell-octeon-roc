@@ -26,9 +26,14 @@ nix_fc_rxchan_bpid_set(struct roc_nix *roc_nix, bool enable)
 	struct nix *nix = roc_nix_to_nix_priv(roc_nix);
 	struct dev *dev = &nix->dev;
 	struct mbox *mbox = mbox_get(dev->mbox);
+	struct idev_cfg *idev = idev_get_cfg();
 	struct nix_bp_cfg_req *req;
 	struct nix_bp_cfg_rsp *rsp;
+	uint16_t nb_inb_cptlfs = 0;
 	int rc = -ENOSPC, i;
+
+	if (idev && idev->nix_inl_dev)
+		nb_inb_cptlfs = idev->nix_inl_dev->nb_inb_cptlfs;
 
 	if (enable) {
 		req = mbox_alloc_msg_nix_bp_enable(mbox);
@@ -89,14 +94,14 @@ nix_fc_rxchan_bpid_set(struct roc_nix *roc_nix, bool enable)
 		nix->cpt_lbpid = rsp->chan_bpid[0] & 0x7FF;
 	}
 
-	/* CPT to NIX BP on all channels */
-	if (!roc_feature_nix_has_rxchan_multi_bpid() || !nix->cpt_nixbpid ||
-	    !roc_nix_inl_inb_is_enabled(roc_nix))
+	/* CPT to NIX BP on all channels; skip for multiple CPT queues */
+	if (!roc_feature_nix_has_rxchan_multi_bpid() || !nix->cpt_nixbpid[0] ||
+	    !roc_nix_inl_inb_is_enabled(roc_nix) || nb_inb_cptlfs > 1)
 		goto exit;
 
 	mbox_put(mbox);
 	for (i = 0; i < nix->rx_chan_cnt; i++) {
-		rc = roc_nix_chan_bpid_set(roc_nix, i, nix->cpt_nixbpid, enable, false);
+		rc = roc_nix_chan_bpid_set(roc_nix, i, nix->cpt_nixbpid[0], enable, false);
 		if (rc)
 			break;
 	}
@@ -354,9 +359,16 @@ nix_fc_rq_config_set(struct roc_nix *roc_nix, struct roc_nix_fc_cfg *fc_cfg)
 {
 	struct nix *nix = roc_nix_to_nix_priv(roc_nix);
 	uint64_t pool_drop_pct, spb_pool_drop_pct;
+	struct idev_cfg *idev = idev_get_cfg();
+	uint16_t nb_inb_cptlfs = 0;
 	struct roc_nix_fc_cfg tmp;
 	struct roc_nix_rq *rq;
+	uint16_t bpid;
+	uint8_t bp_tc;
 	int rc;
+
+	if (idev && idev->nix_inl_dev)
+		nb_inb_cptlfs = idev->nix_inl_dev->nb_inb_cptlfs;
 
 	rq = nix->rqs[fc_cfg->rq_cfg.rq];
 
@@ -398,6 +410,18 @@ nix_fc_rq_config_set(struct roc_nix *roc_nix, struct roc_nix_fc_cfg *fc_cfg)
 	rc = nix_fc_cq_config_set(roc_nix, &tmp);
 	if (rc)
 		return rc;
+
+	/* Inline IPsec PFC: TC -> CPTQ -> BPID on the matching channel.
+	 * TODO: assumes channel == pcp; generalize for shared-PCP layouts.
+	 */
+	if (nix->cpt_pcp_qsel_valid && roc_nix_inl_inb_is_enabled(roc_nix) &&
+	    roc_feature_nix_has_rxchan_multi_bpid() && nb_inb_cptlfs > 1) {
+		bp_tc = fc_cfg->rq_cfg.enable ? fc_cfg->rq_cfg.tc : rq->tc;
+
+		if (bp_tc < NIX_RX_INL_IPSEC_PCP_QSEL_CNT && bp_tc < nix->rx_chan_cnt &&
+		    !nix_inl_inb_cptq_bpid_get(nix->cpt_pcp_qsel[bp_tc], &bpid))
+			roc_nix_chan_bpid_set(roc_nix, bp_tc, bpid, fc_cfg->rq_cfg.enable, false);
+	}
 
 	rq->tc = fc_cfg->rq_cfg.enable ? fc_cfg->rq_cfg.tc : ROC_NIX_PFC_CLASS_INVALID;
 	plt_nix_dbg("RQ %u: TC %u %s", fc_cfg->rq_cfg.rq, fc_cfg->rq_cfg.tc,

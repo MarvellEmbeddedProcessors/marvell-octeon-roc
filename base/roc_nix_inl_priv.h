@@ -114,7 +114,10 @@ struct nix_inl_dev {
 	uint16_t inb_cpt_lf_id;
 	uint16_t nix_inb_qids[MAX_NIX_INL_DEV_CPT_LF];
 	uint16_t nb_inb_cptlfs;
-	int nix_inb_q_bpid;
+	/* Per-queue backpressure ID for independent BP, -1 if unallocated */
+	int nix_inb_q_bpid[MAX_NIX_INL_DEV_CPT_LF];
+	/* Inbound CPT queue BP credit threshold as percentage (1-100), 0 for default */
+	uint32_t inb_cpt_credit_th;
 	uint16_t ipsec_prof_id;
 	uint8_t reass_prof_id;
 };
@@ -150,5 +153,8 @@ int nix_inl_setup_dflt_ipsec_profile(struct dev *dev, uint16_t *prof_id);
 int nix_inl_setup_reass_profile(struct dev *dev, uint8_t *prof_id);
 int nix_inl_dev_profile_config(struct nix_inl_dev *inl_dev, uint32_t sa_size, uint32_t max_sa,
 			       uint16_t profile_id);
+
+/* Resolve the BPID of the inline inbound CPT queue at the given queue index */
+int nix_inl_inb_cptq_bpid_get(uint16_t qidx, uint16_t *bpid);
 
 #endif /* _ROC_NIX_INL_PRIV_H_ */

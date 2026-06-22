@@ -119,6 +119,7 @@ struct roc_nix_inl_dev {
 	uint8_t custom_inb_sa;
 	uint8_t nb_inb_cptlfs;
 	int8_t res_addr_offset; /* CPT result address offset */
+	uint32_t inb_cpt_credit_th; /* Inbound CPT BP credit threshold % (1-100), 0=default */
 
 	/* End of input parameters */
 

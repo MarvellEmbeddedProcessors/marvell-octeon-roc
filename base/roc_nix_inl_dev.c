@@ -179,13 +179,16 @@ nix_inl_inb_queue_setup(struct nix_inl_dev *inl_dev, uint8_t slot_id)
 	uint16_t bpid, qid;
 	int rc;
 
-	/* Allocate BPID if not allocated */
-	if (inl_dev->nix_inb_q_bpid < 0) {
-		rc = nix_bpids_alloc(&inl_dev->dev, ROC_NIX_INTF_TYPE_CPT_NIX, 1, &bpid);
+	/* Distinct intf type per queue to get a unique BPID for each queue */
+	if (inl_dev->nix_inb_q_bpid[slot_id] < 0) {
+		uint8_t intf_type = ROC_NIX_INTF_TYPE_CPT_NIX - (slot_id - inl_dev->inb_cpt_lf_id);
+
+		rc = nix_bpids_alloc(&inl_dev->dev, intf_type, 1, &bpid);
 		if (rc <= 0)
-			plt_warn("Failed to allocate BPID for inbound queue, rc=%d", rc);
+			plt_warn("Failed to allocate BPID for inbound queue %u, rc=%d", slot_id,
+				 rc);
 		else
-			inl_dev->nix_inb_q_bpid = bpid;
+			inl_dev->nix_inb_q_bpid[slot_id] = bpid;
 	}
 
 	mbox = mbox_get((&inl_dev->dev)->mbox);
@@ -229,9 +232,16 @@ nix_inl_inb_queue_setup(struct nix_inl_dev *inl_dev, uint8_t slot_id)
 	nix_req->cpt_credit = lf->nb_desc;
 	nix_req->rx_queue_id = qid;
 	nix_req->enable = 1;
-	if (inl_dev->nix_inb_q_bpid >= 0) {
-		nix_req->bpid = inl_dev->nix_inb_q_bpid;
+	if (inl_dev->nix_inb_q_bpid[slot_id] >= 0) {
+		nix_req->bpid = inl_dev->nix_inb_q_bpid[slot_id];
 		nix_req->credit_th = nix_req->cpt_credit - 1;
+		/* inb_cpt_credit_th is a percentage (1-100) of the credit pool */
+		if (inl_dev->inb_cpt_credit_th) {
+			uint32_t th = (nix_req->cpt_credit * inl_dev->inb_cpt_credit_th) / 100;
+
+			if (th && th < nix_req->cpt_credit)
+				nix_req->credit_th = th;
+		}
 	}
 
 	rc = mbox_process(mbox);
@@ -1470,7 +1480,9 @@ roc_nix_inl_dev_init(struct roc_nix_inl_dev *roc_inl_dev)
 	inl_dev->soft_exp_poll_freq = roc_inl_dev->soft_exp_poll_freq;
 	inl_dev->cpt_cq_ena = roc_inl_dev->cpt_cq_enable;
 	inl_dev->custom_inb_sa = roc_inl_dev->custom_inb_sa;
-	inl_dev->nix_inb_q_bpid = -1;
+	inl_dev->inb_cpt_credit_th = roc_inl_dev->inb_cpt_credit_th;
+	for (i = 0; i < MAX_NIX_INL_DEV_CPT_LF; i++)
+		inl_dev->nix_inb_q_bpid[i] = -1;
 	inl_dev->nb_cptlf = 1;
 	inl_dev->ipsec_prof_id = 0;
 	inl_dev->res_addr_offset = roc_inl_dev->res_addr_offset;
@@ -1791,8 +1803,38 @@ roc_nix_inl_ipsec_vlan_cfg(struct roc_nix *roc_nix, uint8_t *pcp_qsel)
 	}
 
 	rc = mbox_process(mbox);
+	if (rc)
+		goto exit;
+
+	/* Override default mapping so PFC targets the app-selected CPT queue */
+	memcpy(nix->cpt_pcp_qsel, pcp_qsel, NIX_RX_INL_IPSEC_PCP_QSEL_CNT);
 
 exit:
 	mbox_put(mbox);
 	return rc;
+}
+
+int
+nix_inl_inb_cptq_bpid_get(uint16_t qidx, uint16_t *bpid)
+{
+	struct idev_cfg *idev = idev_get_cfg();
+	struct nix_inl_dev *inl_dev;
+	uint8_t slot;
+
+	if (!bpid)
+		return -EINVAL;
+
+	if (!idev || !idev->nix_inl_dev)
+		return -ENODEV;
+
+	inl_dev = idev->nix_inl_dev;
+	if (qidx >= inl_dev->nb_inb_cptlfs)
+		return -EINVAL;
+
+	slot = inl_dev->inb_cpt_lf_id + qidx;
+	if (inl_dev->nix_inb_q_bpid[slot] < 0)
+		return -ENOENT;
+
+	*bpid = inl_dev->nix_inb_q_bpid[slot];
+	return 0;
 }

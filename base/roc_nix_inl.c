@@ -1648,8 +1648,8 @@ nix_inl_legacy_inb_init(struct roc_nix *roc_nix)
 		}
 		rc = roc_nix_bpids_alloc(roc_nix, ROC_NIX_INTF_TYPE_CPT_NIX, 1, bpids);
 		if (rc > 0) {
-			nix->cpt_nixbpid = bpids[0];
-			cfg.bpid = nix->cpt_nixbpid;
+			nix->cpt_nixbpid[0] = bpids[0];
+			cfg.bpid = nix->cpt_nixbpid[0];
 		}
 
 		if (roc_errata_cpt_has_ctx_fetch_issue()) {
@@ -1687,7 +1687,7 @@ nix_inl_inb_init(struct roc_nix *roc_nix)
 	struct nix *nix = roc_nix_to_nix_priv(roc_nix);
 	struct idev_cfg *idev = idev_get_cfg();
 	struct nix_inl_dev *inl_dev;
-	int rc;
+	int rc, i;
 
 	if (idev == NULL)
 		return -ENOTSUP;
@@ -1701,6 +1701,19 @@ nix_inl_inb_init(struct roc_nix *roc_nix)
 
 	/* FIXME get engine caps from inline device */
 	nix->cpt_eng_caps = 0;
+
+	/* Cache all inbound CPT queue BPIDs; index 0 is the non-PFC default */
+	for (i = 0; i < inl_dev->nb_inb_cptlfs && i < NIX_RX_INL_IPSEC_PCP_QSEL_CNT; i++) {
+		int bpid = inl_dev->nix_inb_q_bpid[inl_dev->inb_cpt_lf_id + i];
+
+		if (bpid >= 0)
+			nix->cpt_nixbpid[i] = bpid;
+	}
+
+	/* Default round-robin PCP -> CPT queue index mapping until app sets one */
+	for (i = 0; i < NIX_RX_INL_IPSEC_PCP_QSEL_CNT; i++)
+		nix->cpt_pcp_qsel[i] = i % inl_dev->nb_inb_cptlfs;
+	nix->cpt_pcp_qsel_valid = true;
 
 	/* Setup Inbound SA table */
 	rc = nix_inl_inb_ipsec_sa_tbl_setup(roc_nix);
