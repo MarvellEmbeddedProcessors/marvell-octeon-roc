@@ -230,7 +230,11 @@ struct nix {
 	uint16_t outb_se_ring_cnt;
 	uint16_t outb_se_ring_base;
 	uint16_t cpt_lbpid;
-	uint16_t cpt_nixbpid;
+	/* Per inbound CPT queue BPID cache; index 0 is the non-PFC default */
+	uint16_t cpt_nixbpid[NIX_RX_INL_IPSEC_PCP_QSEL_CNT];
+	/* Cached PCP->CPTQ mapping, used by PFC path to map CPTQ BPIDs to chans */
+	uint8_t cpt_pcp_qsel[NIX_RX_INL_IPSEC_PCP_QSEL_CNT];
+	bool cpt_pcp_qsel_valid;
 	uint64_t cpt_eng_caps;
 	bool need_meta_aura;
 	/* Mode provided by driver */
