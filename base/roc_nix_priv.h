@@ -240,6 +240,13 @@ struct nix {
 	/* Mode provided by driver */
 	bool inb_inl_dev;
 
+	/* AF-allocated DSCP-to-CPTQ table indices, in first-seen order.
+	 * A flow rule refers to a table by logical slot (MAP0/MAP1) and the
+	 * driver maps it to the real HW index stored here.
+	 */
+	uint8_t inl_ipsec_dscp_qmap_idx[NIX_RX_INL_IPSEC_DSCP_QMAP_MAX];
+	uint8_t inl_ipsec_dscp_qmap_cnt;
+
 } __plt_cache_aligned;
 
 enum nix_err_status {

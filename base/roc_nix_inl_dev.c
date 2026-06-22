@@ -179,9 +179,11 @@ nix_inl_inb_queue_setup(struct nix_inl_dev *inl_dev, uint8_t slot_id)
 	uint16_t bpid, qid;
 	int rc;
 
-	/* Distinct intf type per queue to get a unique BPID for each queue */
+	/* Distinct intf type per queue for a unique BPID, skipping SSO (253) */
 	if (inl_dev->nix_inb_q_bpid[slot_id] < 0) {
-		uint8_t intf_type = ROC_NIX_INTF_TYPE_CPT_NIX - (slot_id - inl_dev->inb_cpt_lf_id);
+		uint8_t q = slot_id - inl_dev->inb_cpt_lf_id;
+		uint8_t intf_type = q ? (ROC_NIX_INTF_TYPE_SSO - q) :
+					ROC_NIX_INTF_TYPE_CPT_NIX;
 
 		rc = nix_bpids_alloc(&inl_dev->dev, intf_type, 1, &bpid);
 		if (rc <= 0)
@@ -1837,4 +1839,76 @@ nix_inl_inb_cptq_bpid_get(uint16_t qidx, uint16_t *bpid)
 
 	*bpid = inl_dev->nix_inb_q_bpid[slot];
 	return 0;
+}
+
+int
+roc_nix_inl_ipsec_dscp_cfg(struct roc_nix *roc_nix, uint64_t *dscp_map)
+{
+	struct nix_rx_ipsec_dscp_cfg_rsp *rsp;
+	struct nix_rx_ipsec_dscp_cfg_req *req;
+	struct nix_inl_dev *inl_dev;
+	struct idev_cfg *idev;
+	struct mbox *mbox;
+	struct nix *nix;
+	uint16_t nb_qs;
+	int rc, i, j;
+
+	if (!roc_nix || !dscp_map)
+		return -EINVAL;
+
+	if (!roc_feature_nix_has_inl_multi_queue())
+		return -ENOTSUP;
+
+	idev = idev_get_cfg();
+	if (!idev || !idev->nix_inl_dev)
+		return -ENOTSUP;
+
+	inl_dev = idev->nix_inl_dev;
+	nb_qs = inl_dev->nb_inb_cptlfs;
+
+	nix = roc_nix_to_nix_priv(roc_nix);
+
+	for (i = 0; i < NIX_RX_INL_IPSEC_DSCP_MAP_WORDS; i++) {
+		for (j = 0; j < NIX_RX_INL_IPSEC_DSCP_PER_WORD; j++) {
+			uint8_t qidx = (dscp_map[i] >> (j * 4)) & 0xF;
+
+			if (qidx >= nb_qs) {
+				plt_err("dscp_map[%d] nibble %d=%u exceeds configured CPT queues (%u)",
+					i, j, qidx, nb_qs);
+				return -EINVAL;
+			}
+		}
+	}
+
+	mbox = mbox_get((&nix->dev)->mbox);
+
+	req = mbox_alloc_msg_nix_rx_ipsec_dscp_cfg(mbox);
+	if (!req) {
+		plt_err("Failed to alloc mbox for DSCP cfg");
+		rc = -ENOSPC;
+		goto exit;
+	}
+
+	mbox_memcpy(req->dscp_map, dscp_map, sizeof(uint64_t) * NIX_RX_INL_IPSEC_DSCP_MAP_WORDS);
+
+	rc = mbox_process_msg(mbox, (void *)&rsp);
+	if (rc) {
+		plt_err("Failed to process DSCP cfg mbox: rc=%d", rc);
+		goto exit;
+	}
+
+	/* Record the AF-allocated table index in first-seen order. De-dup so a
+	 * re-submitted identical map (which the AF maps to the same index) does
+	 * not consume a second logical slot.
+	 */
+	for (i = 0; i < nix->inl_ipsec_dscp_qmap_cnt; i++) {
+		if (nix->inl_ipsec_dscp_qmap_idx[i] == rsp->qmap_idx)
+			break;
+	}
+	if (i == nix->inl_ipsec_dscp_qmap_cnt &&
+	    nix->inl_ipsec_dscp_qmap_cnt < NIX_RX_INL_IPSEC_DSCP_QMAP_MAX)
+		nix->inl_ipsec_dscp_qmap_idx[nix->inl_ipsec_dscp_qmap_cnt++] = rsp->qmap_idx;
+exit:
+	mbox_put(mbox);
+	return rc;
 }
