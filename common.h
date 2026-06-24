@@ -135,6 +135,10 @@ typedef struct oct_plt_spinlock_s *oct_plt_spinlock_t;
 #define oct_plt_print_no_nl(fmt, args...)                                    \
   g_param.oct_plt_log (OCT_PLT_LOG_LEVEL_INFO, oct_plt_logtype_base, fmt, ##args)
 
+#define oct_plt_dump(fmt, args...) g_param.oct_plt_console (fmt "\n", ##args)
+
+#define oct_plt_dump_no_nl(fmt, args...) g_param.oct_plt_console (fmt, ##args)
+
 #define oct_plt_dbg(subsystem, fmt, args...)                                 \
   g_param.oct_plt_log (OCT_PLT_LOG_LEVEL_DEBUG, oct_plt_logtype_##subsystem,                   \
 	    "[%s] %s():%u " fmt "\n", #subsystem, __func__, __LINE__, ##args)
@@ -144,8 +148,8 @@ typedef struct oct_plt_spinlock_s *oct_plt_spinlock_t;
 #define plt_warn(fmt, ...)  oct_plt_warn (fmt, ##__VA_ARGS__)
 #define plt_print(fmt, ...) oct_plt_print (fmt, ##__VA_ARGS__)
 #define plt_print_no_nl(fmt, ...) oct_plt_print_no_nl (fmt, ##__VA_ARGS__)
-#define plt_dump	       plt_print
-#define plt_dump_no_nl		  plt_print_no_nl
+#define plt_dump(fmt, ...) oct_plt_dump (fmt, ##__VA_ARGS__)
+#define plt_dump_no_nl(fmt, ...) oct_plt_dump_no_nl (fmt, ##__VA_ARGS__)
 
 #define plt_base_dbg(fmt, ...)	oct_plt_dbg (base, fmt, ##__VA_ARGS__)
 #define plt_cpt_dbg(fmt, ...)	oct_plt_dbg (cpt, fmt, ##__VA_ARGS__)
@@ -298,6 +302,7 @@ typedef struct
 struct oct_plt_memzone;
 typedef oct_plt_log_class_t (*oct_plt_log_reg_class_fn_t) (char *class, char *subclass);
 typedef void (*oct_plt_log_fn_t) (oct_plt_log_level_t level, oct_plt_log_class_t class, char *fmt, ...);
+typedef void (*oct_plt_dump_fn_t) (const char *fmt, ...);
 typedef void (*oct_plt_free_fn_t) (void *add);
 typedef void * (*oct_plt_zmalloc_fn_t) (uint32_t size, uint32_t align);
 typedef void * (*oct_plt_realloc_fn_t) (void *addr, uint32_t size, uint32_t align);
@@ -324,6 +329,7 @@ typedef struct oct_plt_init_param
 {
   oct_plt_log_reg_class_fn_t oct_plt_log_reg_class;
   oct_plt_log_fn_t oct_plt_log;
+  oct_plt_dump_fn_t oct_plt_console;
   oct_plt_free_fn_t oct_plt_free; 
   oct_plt_zmalloc_fn_t oct_plt_zmalloc; 
   oct_plt_realloc_fn_t oct_plt_realloc;

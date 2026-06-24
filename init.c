@@ -37,7 +37,7 @@ oct_plt_init (const oct_plt_init_param_t *param)
 	!param->oct_plt_spinlock_lock || !param->oct_plt_spinlock_unlock ||
 	!param->oct_plt_spinlock_trylock || !param->oct_plt_irq_register ||
 	!param->oct_plt_irq_unregister || !param->oct_plt_irq_reconfigure ||
-	!param->oct_plt_irq_disable)
+	!param->oct_plt_irq_disable || !param->oct_plt_console)
 	  return -1;
 
   g_param = *param;
