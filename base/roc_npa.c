@@ -292,13 +292,46 @@ exit:
 }
 
 static int
+npa_cn20k_lf_cache_sync(struct mbox *mbox)
+{
+	struct msg_req *req;
+	int rc;
+
+	req = mbox_alloc_msg_npa_cn20k_cache_sync(mbox);
+	if (req == NULL)
+		return -ENOSPC;
+	rc = mbox_process(mbox);
+	if (rc)
+		plt_err("Error on NPA LF cache sync, rc %d", rc);
+
+	return rc;
+}
+
+static int
+npa_ndc_lf_sync(struct mbox *mbox)
+{
+	struct ndc_sync_op *ndc_req;
+	int rc;
+
+	ndc_req = mbox_alloc_msg_ndc_sync_op(mbox);
+	if (ndc_req == NULL)
+		return -ENOSPC;
+	ndc_req->npa_lf_sync = 1;
+	rc = mbox_process(mbox);
+	if (rc) {
+		plt_err("Error on NDC-NPA LF sync, rc %d", rc);
+	}
+
+	return rc;
+}
+
+static int
 npa_aura_pool_fini(struct mbox *m_box, uint32_t aura_id, uint64_t aura_handle)
 {
 	struct npa_cn20k_aq_enq_req *aura_req_cn20k, *pool_req_cn20k;
 	struct npa_aq_enq_req *aura_req, *pool_req;
 	struct npa_aq_enq_rsp *aura_rsp, *pool_rsp;
 	struct mbox_dev *mdev = &m_box->dev[0];
-	struct ndc_sync_op *ndc_req;
 	int rc = -ENOSPC, off;
 	struct mbox *mbox;
 	uint64_t ptr;
@@ -378,22 +411,14 @@ npa_aura_pool_fini(struct mbox *m_box, uint32_t aura_id, uint64_t aura_handle)
 	}
 
 	if (roc_model_is_cn20k()) {
-		/* In cn20k, NPA does not use NDC */
-		rc = 0;
+		rc = npa_cn20k_lf_cache_sync(mbox);
+		if (rc)
+			rc = NPA_ERR_AURA_POOL_FINI;
 		goto exit;
-	}
-
-	/* Sync NDC-NPA for LF */
-	ndc_req = mbox_alloc_msg_ndc_sync_op(mbox);
-	if (ndc_req == NULL) {
-		rc = -ENOSPC;
-		goto exit;
-	}
-	ndc_req->npa_lf_sync = 1;
-	rc = mbox_process(mbox);
-	if (rc) {
-		plt_err("Error on NDC-NPA LF sync, rc %d", rc);
-		rc = NPA_ERR_AURA_POOL_FINI;
+	} else {
+		rc = npa_ndc_lf_sync(mbox);
+		if (rc)
+			rc = NPA_ERR_AURA_POOL_FINI;
 		goto exit;
 	}
 	rc = 0;
@@ -407,7 +432,6 @@ npa_aura_fini(struct mbox *m_box, uint32_t aura_id)
 {
 	struct npa_aq_enq_req *aura_req;
 	struct npa_aq_enq_rsp *aura_rsp;
-	struct ndc_sync_op *ndc_req;
 	struct mbox *mbox;
 	int rc = -ENOSPC;
 
@@ -440,22 +464,14 @@ npa_aura_fini(struct mbox *m_box, uint32_t aura_id)
 	}
 
 	if (roc_model_is_cn20k()) {
-		/* In cn20k, NPA does not use NDC */
-		rc = 0;
+		rc = npa_cn20k_lf_cache_sync(mbox);
+		if (rc)
+			rc = NPA_ERR_AURA_POOL_FINI;
 		goto exit;
-	}
-
-	/* Sync NDC-NPA for LF */
-	ndc_req = mbox_alloc_msg_ndc_sync_op(mbox);
-	if (ndc_req == NULL) {
-		rc = -ENOSPC;
-		goto exit;
-	}
-	ndc_req->npa_lf_sync = 1;
-	rc = mbox_process(mbox);
-	if (rc) {
-		plt_err("Error on NDC-NPA LF sync, rc %d", rc);
-		rc = NPA_ERR_AURA_POOL_FINI;
+	} else {
+		rc = npa_ndc_lf_sync(mbox);
+		if (rc)
+			rc = NPA_ERR_AURA_POOL_FINI;
 		goto exit;
 	}
 	rc = 0;
@@ -470,7 +486,6 @@ roc_npa_pool_op_pc_reset(uint64_t aura_handle)
 	struct npa_lf *lf = idev_npa_obj_get();
 	struct npa_aq_enq_req *pool_req;
 	struct npa_aq_enq_rsp *pool_rsp;
-	struct ndc_sync_op *ndc_req;
 	struct mbox_dev *mdev;
 	int rc = -ENOSPC, off;
 	struct mbox *mbox;
@@ -505,15 +520,8 @@ roc_npa_pool_op_pc_reset(uint64_t aura_handle)
 	}
 
 	/* Sync NDC-NPA for LF */
-	ndc_req = mbox_alloc_msg_ndc_sync_op(mbox);
-	if (ndc_req == NULL) {
-		rc = -ENOSPC;
-		goto exit;
-	}
-	ndc_req->npa_lf_sync = 1;
-	rc = mbox_process(mbox);
+	rc = npa_ndc_lf_sync(mbox);
 	if (rc) {
-		plt_err("Error on NDC-NPA LF sync, rc %d", rc);
 		rc = NPA_ERR_AURA_POOL_FINI;
 		goto exit;
 	}
