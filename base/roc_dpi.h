@@ -60,6 +60,7 @@ struct roc_dpi {
 	struct roc_dpi_lf *lfs;
 	uint8_t *rbase;
 	uint16_t vfid;
+	uint8_t sec_strm_id;
 	uint8_t priority;
 	uint16_t nr_lfs;
 
