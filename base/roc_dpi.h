@@ -60,8 +60,8 @@ struct roc_dpi {
 	struct roc_dpi_lf *lfs;
 	uint8_t *rbase;
 	uint16_t vfid;
-	uint8_t sec_strm_id;
 	uint8_t priority;
+	uint8_t sec_strm_id;
 	uint16_t nr_lfs;
 
 #define ROC_DPI_MEM_SZ (4 * 1024)
