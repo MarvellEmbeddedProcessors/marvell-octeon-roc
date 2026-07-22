@@ -2624,8 +2624,6 @@ roc_nix_inl_ctx_write(struct roc_nix *roc_nix, void *sa_dptr, void *sa_cptr,
 		if (inb && roc_nix->custom_inb_sa && sa_len > ROC_NIX_INL_INB_CUSTOM_SA_SZ) {
 			plt_nix_dbg("SA length: %u is more than allocated length: %u\n", sa_len,
 				    ROC_NIX_INL_INB_CUSTOM_SA_SZ);
-			return -EINVAL;
-		}
 		nix = roc_nix_to_nix_priv(roc_nix);
 		outb_lf = nix->cpt_lf_base;
 
