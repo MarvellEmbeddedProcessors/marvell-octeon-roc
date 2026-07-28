@@ -906,8 +906,12 @@ nix_tm_sq_flush_pre(struct roc_nix_sq *sq)
 			else
 				rc = roc_nix_tm_sq_free_pending_sqe(nix, sq->qid);
 			if (rc) {
+				int dump_rc;
+
 				roc_nix_tm_dump(sq->roc_nix, NULL);
-				roc_nix_queues_ctx_dump(sq->roc_nix, NULL);
+				dump_rc = roc_nix_queues_ctx_dump(sq->roc_nix, NULL);
+				if (dump_rc)
+					plt_err("Failed to dump nix queues ctx, rc=%d", dump_rc);
 				plt_err("Failed to drain sq %u, rc=%d", sq->qid, rc);
 				return rc;
 			}

@@ -65,6 +65,7 @@ nix_lf_err_irq(void *param)
 	struct nix *nix = (struct nix *)param;
 	struct dev *dev = &nix->dev;
 	uint64_t intr;
+	int rc;
 
 	intr = plt_read64(nix->base + NIX_LF_ERR_INT);
 	if (intr == 0)
@@ -76,7 +77,9 @@ nix_lf_err_irq(void *param)
 	plt_write64(intr, nix->base + NIX_LF_ERR_INT);
 	/* Dump registers to std out */
 	roc_nix_lf_reg_dump(nix_priv_to_roc_nix(nix), NULL);
-	roc_nix_queues_ctx_dump(nix_priv_to_roc_nix(nix), NULL);
+	rc = roc_nix_queues_ctx_dump(nix_priv_to_roc_nix(nix), NULL);
+	if (rc)
+		plt_err("Failed to dump nix queues context, rc=%d", rc);
 }
 
 static int
@@ -114,6 +117,7 @@ nix_lf_ras_irq(void *param)
 	struct nix *nix = (struct nix *)param;
 	struct dev *dev = &nix->dev;
 	uint64_t intr;
+	int rc;
 
 	intr = plt_read64(nix->base + NIX_LF_RAS);
 	if (intr == 0)
@@ -125,7 +129,9 @@ nix_lf_ras_irq(void *param)
 
 	/* Dump registers to std out */
 	roc_nix_lf_reg_dump(nix_priv_to_roc_nix(nix), NULL);
-	roc_nix_queues_ctx_dump(nix_priv_to_roc_nix(nix), NULL);
+	rc = roc_nix_queues_ctx_dump(nix_priv_to_roc_nix(nix), NULL);
+	if (rc)
+		plt_err("Failed to dump nix queues context, rc=%d", rc);
 }
 
 static int
@@ -253,7 +259,7 @@ nix_lf_q_irq(void *param)
 	struct nix *nix = qint->nix;
 	struct dev *dev = &nix->dev;
 	uint64_t intr;
-	uint8_t rc;
+	int rc;
 
 	intr = plt_read64(nix->base + NIX_LF_QINTX_INT(qintx));
 	if (intr == 0)
@@ -264,7 +270,9 @@ nix_lf_q_irq(void *param)
 
 	/* Dump registers to std out */
 	roc_nix_lf_reg_dump(nix_priv_to_roc_nix(nix), NULL);
-	roc_nix_queues_ctx_dump(nix_priv_to_roc_nix(nix), NULL);
+	rc = roc_nix_queues_ctx_dump(nix_priv_to_roc_nix(nix), NULL);
+	if (rc)
+		plt_err("Failed to dump nix queues context, rc=%d", rc);
 
 	/* Handle RQ interrupts */
 	for (q = 0; q < nix->nb_rx_queues; q++) {
