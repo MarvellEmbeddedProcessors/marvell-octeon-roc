@@ -329,10 +329,9 @@ roc_nix_lf_reg_dump(struct roc_nix *roc_nix, uint64_t *data)
 	return 0;
 }
 
-int
-nix_q_ctx_get(struct dev *dev, uint8_t ctype, uint16_t qid, __io void **ctx_p)
+static int
+nix_q_ctx_get_locked(struct mbox *mbox, uint8_t ctype, uint16_t qid, __io void **ctx_p)
 {
-	struct mbox *mbox = mbox_get(dev->mbox);
 	int rc;
 
 	if (roc_model_is_cn9k()) {
@@ -409,6 +408,24 @@ nix_q_ctx_get(struct dev *dev, uint8_t ctype, uint16_t qid, __io void **ctx_p)
 	}
 	rc = 0;
 exit:
+	return rc;
+}
+
+int
+nix_q_ctx_get(struct dev *dev, uint8_t ctype, uint16_t qid, __io void **ctx_p)
+{
+	struct mbox *mbox;
+	int rc;
+
+	if (plt_thread_is_intr()) {
+		mbox = mbox_trylock(dev->mbox);
+		if (mbox == NULL)
+			return -EBUSY;
+	} else {
+		mbox = mbox_get(dev->mbox);
+	}
+
+	rc = nix_q_ctx_get_locked(mbox, ctype, qid, ctx_p);
 	mbox_put(mbox);
 	return rc;
 }
@@ -911,15 +928,25 @@ roc_nix_queues_ctx_dump(struct roc_nix *roc_nix, FILE *file)
 	int sq = nix->nb_tx_queues;
 	struct roc_nix_rq *inl_rq;
 	struct npa_lf *npa_lf;
+	struct mbox *mbox, *npa_mbox;
 	volatile void *ctx;
 	uint32_t sqb_aura;
+	bool npa_locked;
 
 	npa_lf = idev_npa_obj_get();
 	if (npa_lf == NULL)
 		return NPA_ERR_DEVICE_NOT_BOUNDED;
 
+	if (plt_thread_is_intr()) {
+		mbox = mbox_trylock(dev->mbox);
+		if (mbox == NULL)
+			return -EBUSY;
+	} else {
+		mbox = mbox_get(dev->mbox);
+	}
+
 	for (q = 0; q < rq; q++) {
-		rc = nix_q_ctx_get(dev, NIX_AQ_CTYPE_CQ, q, &ctx);
+		rc = nix_q_ctx_get_locked(mbox, NIX_AQ_CTYPE_CQ, q, &ctx);
 		if (rc) {
 			plt_err("Failed to get cq context");
 			goto fail;
@@ -933,7 +960,7 @@ roc_nix_queues_ctx_dump(struct roc_nix *roc_nix, FILE *file)
 	}
 
 	for (q = 0; q < rq; q++) {
-		rc = nix_q_ctx_get(dev, NIX_AQ_CTYPE_RQ, q, &ctx);
+		rc = nix_q_ctx_get_locked(mbox, NIX_AQ_CTYPE_RQ, q, &ctx);
 		if (rc) {
 			plt_err("Failed to get rq context");
 			goto fail;
@@ -957,8 +984,10 @@ roc_nix_queues_ctx_dump(struct roc_nix *roc_nix, FILE *file)
 		if (idev && idev->nix_inl_dev)
 			inl_dev = idev->nix_inl_dev;
 
-		if (!inl_dev)
-			return -EINVAL;
+		if (!inl_dev) {
+			rc = -EINVAL;
+			goto fail;
+		}
 
 		rc = nix_q_ctx_get(&inl_dev->dev, NIX_AQ_CTYPE_RQ, inl_rq->qid, &ctx);
 		if (rc) {
@@ -976,7 +1005,7 @@ roc_nix_queues_ctx_dump(struct roc_nix *roc_nix, FILE *file)
 	}
 
 	for (q = 0; q < sq; q++) {
-		rc = nix_q_ctx_get(dev, NIX_AQ_CTYPE_SQ, q, &ctx);
+		rc = nix_q_ctx_get_locked(mbox, NIX_AQ_CTYPE_SQ, q, &ctx);
 		if (rc) {
 			plt_err("Failed to get sq context");
 			goto fail;
@@ -995,23 +1024,41 @@ roc_nix_queues_ctx_dump(struct roc_nix *roc_nix, FILE *file)
 			continue;
 		}
 
+		/* NPA aura context uses its own mbox which may be the same AF
+		 * mbox already held above; only lock it when it differs.
+		 */
+		npa_mbox = npa_lf->mbox;
+		npa_locked = false;
+		if (npa_mbox != mbox) {
+			if (plt_thread_is_intr()) {
+				npa_mbox = mbox_trylock(npa_lf->mbox);
+				if (npa_mbox == NULL)
+					continue;
+			} else {
+				npa_mbox = mbox_get(npa_lf->mbox);
+			}
+			npa_locked = true;
+		}
+
 		if (roc_model_is_cn20k()) {
-			npa_aq_cn20k = mbox_alloc_msg_npa_cn20k_aq_enq(mbox_get(npa_lf->mbox));
+			npa_aq_cn20k = mbox_alloc_msg_npa_cn20k_aq_enq(npa_mbox);
 			npa_aq = (struct npa_aq_enq_req *)npa_aq_cn20k; /* Common fields */
 		} else {
-			npa_aq = mbox_alloc_msg_npa_aq_enq(mbox_get(npa_lf->mbox));
+			npa_aq = mbox_alloc_msg_npa_aq_enq(npa_mbox);
 		}
 		if (npa_aq == NULL) {
 			rc = -ENOSPC;
-			mbox_put(npa_lf->mbox);
+			if (npa_locked)
+				mbox_put(npa_mbox);
 			goto fail;
 		}
 		npa_aq->aura_id = sqb_aura;
 		npa_aq->ctype = NPA_AQ_CTYPE_AURA;
 		npa_aq->op = NPA_AQ_INSTOP_READ;
 
-		rc = mbox_process_msg(npa_lf->mbox, (void *)&npa_rsp);
-		mbox_put(npa_lf->mbox);
+		rc = mbox_process_msg(npa_mbox, (void *)&npa_rsp);
+		if (npa_locked)
+			mbox_put(npa_mbox);
 		if (rc) {
 			plt_err("Failed to get sq's sqb_aura context");
 			continue;
@@ -1030,6 +1077,7 @@ roc_nix_queues_ctx_dump(struct roc_nix *roc_nix, FILE *file)
 	}
 
 fail:
+	mbox_put(mbox);
 	return rc;
 }
 

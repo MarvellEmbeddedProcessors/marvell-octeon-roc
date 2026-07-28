@@ -160,6 +160,16 @@ mbox_get(struct mbox *mbox)
 	return mbox;
 }
 
+static inline struct mbox *
+mbox_trylock(struct mbox *mbox)
+{
+	struct mbox_dev *mdev = &mbox->dev[0];
+
+	if (!plt_spinlock_trylock(&mdev->mbox_lock))
+		return NULL;
+	return mbox;
+}
+
 static inline void
 mbox_put(struct mbox *mbox)
 {
