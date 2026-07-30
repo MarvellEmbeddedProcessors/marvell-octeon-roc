@@ -14,8 +14,11 @@
 #define NIX_MIN_SQB	     ((uint16_t)8)
 #define NIX_SQB_PREFETCH     ((uint16_t)1)
 
-/* Apply BP/DROP when CQ is 95% full */
-#define NIX_CQ_THRESH_LEVEL	   (5 * 256 / 100)
+/* Apply BP & DROP when CQ is 90%, 95% full */
+#define NIX_CQ_BP_THRESH_LEVEL	       (10 * 256 / 100)
+#define NIX_CQ_FIRST_DROP_THRESH_LEVEL (5 * 256 / 100)
+
+/* Apply BP/DROP when CQ is 75% full */
 #define NIX_CQ_SEC_BP_THRESH_LEVEL (25 * 256 / 100)
 
 /* Applicable when force_tail_drop is enabled */

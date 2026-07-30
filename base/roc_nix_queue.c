@@ -1198,7 +1198,8 @@ roc_nix_cn20k_cq_init(struct roc_nix *roc_nix, struct roc_nix_cq *cq)
 	struct nix *nix = roc_nix_to_nix_priv(roc_nix);
 	struct mbox *mbox = (&nix->dev)->mbox;
 	volatile struct nix_cn20k_cq_ctx_s *cq_ctx;
-	uint16_t drop_thresh = NIX_CQ_THRESH_LEVEL;
+	uint16_t drop_thresh = NIX_CQ_FIRST_DROP_THRESH_LEVEL;
+	uint16_t bp_thresh = NIX_CQ_BP_THRESH_LEVEL;
 	uint16_t cpt_lbpid = nix->cpt_lbpid;
 	struct nix_cn20k_aq_enq_req *aq;
 	enum nix_q_size qsize;
@@ -1255,6 +1256,7 @@ roc_nix_cn20k_cq_init(struct roc_nix *roc_nix, struct roc_nix_cq *cq)
 			cq_ctx->lbp_frac = NIX_CQ_LBP_THRESH_FRAC;
 		}
 		drop_thresh = NIX_CQ_SEC_BP_THRESH_LEVEL;
+		bp_thresh = NIX_CQ_SEC_BP_THRESH_LEVEL;
 	}
 
 	/* Many to one reduction */
@@ -1262,26 +1264,16 @@ roc_nix_cn20k_cq_init(struct roc_nix *roc_nix, struct roc_nix_cq *cq)
 	/* Map CQ0 [RQ0] to CINT0 and so on till max 64 irqs */
 	cq_ctx->cint_idx = cq->qid;
 
-	if (roc_errata_nix_has_cq_min_size_4k()) {
-		const float rx_cq_skid = NIX_CQ_FULL_ERRATA_SKID;
-		uint16_t min_rx_drop;
-
-		min_rx_drop = ceil(rx_cq_skid / (float)cq->nb_desc);
-		cq_ctx->drop = min_rx_drop;
+	cq->drop_thresh = drop_thresh;
+	/* Drop processing or red drop cannot be enabled due to
+	 * due to packets coming for second pass from CPT.
+	 */
+	if (!roc_nix_inl_inb_is_enabled(roc_nix)) {
+		cq_ctx->drop = cq->drop_thresh;
 		cq_ctx->drop_ena = 1;
-		cq->drop_thresh = min_rx_drop;
-	} else {
-		cq->drop_thresh = drop_thresh;
-		/* Drop processing or red drop cannot be enabled due to
-		 * due to packets coming for second pass from CPT.
-		 */
-		if (!roc_nix_inl_inb_is_enabled(roc_nix)) {
-			cq_ctx->drop = cq->drop_thresh;
-			cq_ctx->drop_ena = 1;
-		}
 	}
-	cq->bp_thresh = cq->drop_thresh;
-	cq_ctx->bp = cq->drop_thresh;
+	cq->bp_thresh = bp_thresh;
+	cq_ctx->bp = bp_thresh;
 
 	if (roc_feature_nix_has_cqe_stash()) {
 		if (cq_ctx->caching) {
@@ -1380,8 +1372,8 @@ roc_nix_cq_init(struct roc_nix *roc_nix, struct roc_nix_cq *cq)
 	cq_ctx->avg_level = 0xff;
 	cq_ctx->cq_err_int_ena = BIT(NIX_CQERRINT_CQE_FAULT);
 	cq_ctx->cq_err_int_ena |= BIT(NIX_CQERRINT_DOOR_ERR);
-	drop_thresh = force_tail_drop ? NIX_CQ_THRESH_LEVEL_REF1 : NIX_CQ_THRESH_LEVEL;
-	bp_thresh = force_tail_drop ? NIX_CQ_BP_THRESH_LEVEL_REF1 : drop_thresh;
+	drop_thresh = force_tail_drop ? NIX_CQ_THRESH_LEVEL_REF1 : NIX_CQ_FIRST_DROP_THRESH_LEVEL;
+	bp_thresh = force_tail_drop ? NIX_CQ_BP_THRESH_LEVEL_REF1 : NIX_CQ_BP_THRESH_LEVEL;
 
 	if (roc_feature_nix_has_late_bp() && roc_nix_inl_inb_is_enabled(roc_nix)) {
 		cq_ctx->cq_err_int_ena |= BIT(NIX_CQERRINT_CPT_DROP);
