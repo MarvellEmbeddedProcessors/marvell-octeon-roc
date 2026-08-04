@@ -663,6 +663,7 @@ nix_inl_dev_profile_config(struct nix_inl_dev *inl_dev, uint32_t sa_size, uint32
 	uint64_t sa_w, sa_pow2_sz, lenm1_max;
 	struct nix_rx_inl_lf_cfg_req *lf_cfg;
 	uint64_t res_addr_offset;
+	size_t inb_sa_tbl_sz;
 	uint64_t cpt_cq_ena;
 	uint64_t def_cptq;
 	size_t inb_sa_sz;
@@ -672,11 +673,18 @@ nix_inl_dev_profile_config(struct nix_inl_dev *inl_dev, uint32_t sa_size, uint32
 
 	inb_sa_sz = sa_size;
 
+	/* Reject SA tables larger than the allocation cap */
+	inb_sa_tbl_sz = inb_sa_sz * max_sa;
+	if (inb_sa_tbl_sz > ROC_NIX_INL_SA_TBL_MAX_SZ) {
+		plt_err("Inbound SA table too large for profile %u", profile_id);
+		rc = -EINVAL;
+		goto exit;
+	}
+
 	/* Update max_sa in inl_dev */
 	inl_dev->inb_sa_max[profile_id] = max_sa;
 	inl_dev->inb_sa_sz[profile_id] = inb_sa_sz;
-	inl_dev->inb_sa_base[profile_id] =
-		plt_zmalloc(inb_sa_sz * max_sa, ROC_NIX_INL_SA_BASE_ALIGN);
+	inl_dev->inb_sa_base[profile_id] = plt_zmalloc(inb_sa_tbl_sz, ROC_NIX_INL_SA_BASE_ALIGN);
 	if (!inl_dev->inb_sa_base[profile_id]) {
 		plt_err("Failed to allocate memory for Inbound SA for profile %u", profile_id);
 		rc = -ENOMEM;
