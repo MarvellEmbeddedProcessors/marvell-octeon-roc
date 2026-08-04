@@ -47,6 +47,9 @@
 /* Alignment of SA Base */
 #define ROC_NIX_INL_SA_BASE_ALIGN BIT_ULL(16)
 
+/* Max inbound SA table size (sa_sz * max_sa) accepted before allocation */
+#define ROC_NIX_INL_SA_TBL_MAX_SZ BIT_ULL(34)
+
 static inline struct roc_ot_ipsec_inb_sa *
 roc_nix_inl_ot_ipsec_inb_sa(uintptr_t base, uint64_t idx)
 {
