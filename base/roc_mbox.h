@@ -831,6 +831,7 @@ enum fec_type {
 	ROC_FEC_NONE,
 	ROC_FEC_BASER,
 	ROC_FEC_RS,
+	ROC_FEC_OFF,
 };
 
 struct phy_s {

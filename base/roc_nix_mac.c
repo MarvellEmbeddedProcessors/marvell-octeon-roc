@@ -220,7 +220,7 @@ roc_nix_mac_link_info_get(struct roc_nix *roc_nix,
 	int rc;
 
 	mbox_alloc_msg_cgx_get_linkinfo(mbox);
-	rc = mbox_process_msg(mbox, (void *)&rsp);
+	rc = mbox_process_msg_tmo(mbox, (void *)&rsp, mbox->rsp_tmo * 5);
 	if (rc)
 		goto exit;
 
@@ -276,7 +276,7 @@ roc_nix_mac_fec_set(struct roc_nix *roc_nix, int fec)
 		goto exit;
 	req->fec = fec;
 
-	rc = mbox_process(mbox);
+	rc = mbox_process_tmo(mbox, mbox->rsp_tmo * 5);
 exit:
 	mbox_put(mbox);
 	return rc;
