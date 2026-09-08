@@ -43,8 +43,13 @@ roc_npa_pool_op_range_set(uint64_t aura_handle, uint64_t start_iova,
 	lim[reg].ptr_end = PLT_MAX(lim[reg].ptr_end, end_iova);
 
 	if (roc_model_is_cn20k()) {
+#if defined(__clang__)
+		roc_atomic128_cas_noreturn(lim[reg].ptr_start, reg, (int64_t *)start);
+		roc_atomic128_cas_noreturn(lim[reg].ptr_end, reg, (int64_t *)end);
+#else
 		roc_atomic128_cas_noreturn(lim[reg].ptr_start, reg, start);
 		roc_atomic128_cas_noreturn(lim[reg].ptr_end, reg, end);
+#endif
 	} else {
 		roc_store_pair(lim[reg].ptr_start, reg, start);
 		roc_store_pair(lim[reg].ptr_end, reg, end);
