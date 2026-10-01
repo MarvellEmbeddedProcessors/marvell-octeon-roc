@@ -8,7 +8,8 @@
 #include "roc_priv.h"
 
 /* Default SQB slack per SQ */
-#define ROC_NIX_SQB_SLACK_DFLT 24
+#define ROC_NIX_LEGACY_SQB_SLACK_DFLT 24
+#define ROC_NIX_SQB_SLACK_DFLT	      4
 
 #define NIX_RQ_BULK_ENA_DIS_LOOP(REQ_TYPE, ALLOC_FN)                                               \
 	do {                                                                                       \
@@ -1573,7 +1574,9 @@ sqb_slack_adjust(struct nix *nix, uint16_t nb_sqb_bufs, bool sq_cnt_ena)
 	if (roc_nix->sqb_slack)
 		nb_sqb_bufs += roc_nix->sqb_slack;
 	else if (!sq_cnt_ena)
-		nb_sqb_bufs += PLT_MAX((int)thr, (int)ROC_NIX_SQB_SLACK_DFLT);
+		nb_sqb_bufs += PLT_MAX((int)thr, (int)ROC_NIX_LEGACY_SQB_SLACK_DFLT);
+	else
+		nb_sqb_bufs += ROC_NIX_SQB_SLACK_DFLT;
 	return nb_sqb_bufs;
 }
 
