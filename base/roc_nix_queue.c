@@ -11,31 +11,48 @@
 #define ROC_NIX_LEGACY_SQB_SLACK_DFLT 24
 #define ROC_NIX_SQB_SLACK_DFLT	      4
 
-#define NIX_RQ_BULK_ENA_DIS_LOOP(REQ_TYPE, ALLOC_FN)                                               \
-	do {                                                                                       \
-		for (i = 0; i < nb_rx_queues; i++) {                                               \
-			REQ_TYPE *aq;                                                              \
-			if (rqs[i].qid == UINT16_MAX)                                              \
-				continue;                                                          \
-			struct roc_nix_rq *rq = &rqs[i];                                           \
-			aq = ALLOC_FN(mbox);                                                       \
-			if (!aq) {                                                                 \
-				rc = mbox_process(mbox);                                           \
-				if (rc)                                                            \
-					goto exit;                                                 \
-				aq = ALLOC_FN(mbox);                                               \
-				if (!aq) {                                                         \
-					rc = -ENOSPC;                                              \
-					goto exit;                                                 \
-				}                                                                  \
-			}                                                                          \
-			aq->qidx = rq->qid;                                                        \
-			aq->ctype = NIX_AQ_CTYPE_RQ;                                               \
-			aq->op = NIX_AQ_INSTOP_WRITE;                                              \
-			aq->rq.ena = enable;                                                       \
-			aq->rq_mask.ena = ~(aq->rq_mask.ena);                                      \
-		}                                                                                  \
-	} while (0)
+typedef void *(*nix_aq_enq_alloc_t)(struct mbox *mbox);
+
+static inline void
+nix_aq_enq_write_rq_ena(void *msg, uint16_t qid, bool enable)
+{
+	struct nix_aq_enq_req *aq = msg;
+
+	aq->qidx = qid;
+	aq->ctype = NIX_AQ_CTYPE_RQ;
+	aq->op = NIX_AQ_INSTOP_WRITE;
+	aq->rq.ena = enable;
+	aq->rq_mask.ena = ~(aq->rq_mask.ena);
+}
+
+static inline int
+nix_rq_bulk_ena_dis_fill(struct mbox *mbox, struct roc_nix_rq *rqs, int nb_rx_queues,
+			 bool enable, nix_aq_enq_alloc_t alloc)
+{
+	int i;
+
+	for (i = 0; i < nb_rx_queues; i++) {
+		void *aq;
+		int rc;
+
+		if (rqs[i].qid == UINT16_MAX)
+			continue;
+
+		aq = alloc(mbox);
+		if (!aq) {
+			rc = mbox_process(mbox);
+			if (rc)
+				return rc;
+			aq = alloc(mbox);
+			if (!aq)
+				return -ENOSPC;
+		}
+
+		nix_aq_enq_write_rq_ena(aq, rqs[i].qid, enable);
+	}
+
+	return 0;
+}
 
 static inline uint32_t
 nix_qsize_to_val(enum nix_q_size qsize)
@@ -78,22 +95,20 @@ static int
 nix_rq_bulk_ena_dis(struct nix *nix, struct roc_nix_rq *rqs, int nb_rx_queues, bool enable)
 {
 	struct mbox *mbox = mbox_get((&nix->dev)->mbox);
-	int rc = 0, i;
+	nix_aq_enq_alloc_t alloc;
+	int rc;
 
 	if (roc_model_is_cn9k())
-		NIX_RQ_BULK_ENA_DIS_LOOP(struct nix_aq_enq_req, mbox_alloc_msg_nix_aq_enq);
-
+		alloc = (nix_aq_enq_alloc_t)mbox_alloc_msg_nix_aq_enq;
 	else if (roc_model_is_cn10k())
-		NIX_RQ_BULK_ENA_DIS_LOOP(struct nix_cn10k_aq_enq_req,
-					 mbox_alloc_msg_nix_cn10k_aq_enq);
-
+		alloc = (nix_aq_enq_alloc_t)mbox_alloc_msg_nix_cn10k_aq_enq;
 	else /* CN20K */
-		NIX_RQ_BULK_ENA_DIS_LOOP(struct nix_cn20k_aq_enq_req,
-					 mbox_alloc_msg_nix_cn20k_aq_enq);
+		alloc = (nix_aq_enq_alloc_t)mbox_alloc_msg_nix_cn20k_aq_enq;
 
-	if (mbox_nonempty_nolock(mbox, 0))
+	rc = nix_rq_bulk_ena_dis_fill(mbox, rqs, nb_rx_queues, enable, alloc);
+	if (!rc && mbox_nonempty_nolock(mbox, 0))
 		rc = mbox_process(mbox);
-exit:
+
 	mbox_put(mbox);
 	return rc;
 }
