@@ -32,6 +32,11 @@ union roc_dpi_lf_ccfg {
 		uint64_t rsvd_57_62 : 6;
 		uint64_t valid : 1;
 	};
+	struct {
+		uint32_t type;
+		uint16_t src_key;
+		uint16_t dst_key;
+	};
 };
 
 struct roc_dpi_lf_que {
@@ -53,10 +58,12 @@ struct roc_dpi_lf {
 	uint16_t chan_tbl_sz;
 	uint16_t slot;
 	uint16_t blk_addr;
+	int group_id;
 };
 
 struct roc_dpi {
 	struct plt_pci_device *pci_dev;
+	const struct plt_memzone *mz;
 	struct roc_dpi_lf *lfs;
 	uint8_t *rbase;
 	uint16_t vfid;
@@ -70,8 +77,9 @@ struct roc_dpi {
 
 int __roc_api roc_dpi_dev_init(struct roc_dpi *roc_dpi, uint8_t offset);
 int __roc_api roc_dpi_dev_fini(struct roc_dpi *roc_dpi);
-void __roc_api roc_dpi_dev_dump(struct roc_dpi *roc_dpi, FILE *file);
 
+int __roc_api roc_dpi_rsrc_init(struct roc_dpi *roc_dpi);
+int __roc_api roc_dpi_rsrc_fini(struct roc_dpi *roc_dpi);
 int __roc_api roc_dpi_configure(struct roc_dpi *dpi, uint32_t chunk_sz, uint64_t aura,
 				uint64_t chunk_base);
 int __roc_api roc_dpi_configure_v2(struct roc_dpi *roc_dpi, uint32_t chunk_sz, uint64_t aura,
@@ -93,4 +101,12 @@ int __roc_api roc_dpi_lf_chan_tbl_update(struct roc_dpi_lf *lf, uint64_t *config
 					 uint16_t entries);
 int __roc_api roc_dpi_lf_dump(struct roc_dpi_lf *lf, FILE *file);
 
+int __roc_api roc_dpi_access_pair_group_create(struct roc_dpi_lf *lf, plt_uuid_t domain_id,
+					       plt_uuid_t token, int16_t *group_id);
+int __roc_api roc_dpi_access_pair_group_destroy(struct roc_dpi_lf *lf, int16_t group_id);
+int __roc_api roc_dpi_access_pair_group_join(struct roc_dpi_lf *lf, plt_uuid_t domain_id,
+					     plt_uuid_t token, int16_t group_id);
+int __roc_api roc_dpi_access_pair_group_leave(struct roc_dpi_lf *lf, int16_t group_id);
+int __roc_api roc_dpi_access_pair_group_handler_get(struct roc_dpi_lf *lf, int16_t group_id,
+						    plt_uuid_t domain_id, uint16_t *handler);
 #endif

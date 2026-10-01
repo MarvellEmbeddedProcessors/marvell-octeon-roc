@@ -18,6 +18,7 @@
 #define DPI_QUEUE_OPEN_V2 0x5
 
 #define DPI_QUEUE_IDLE_TMO_MS 1E3
+#define DPI_LF_RESET_TMO_US   10000
 
 typedef union dpi_mbox_msg_t {
 	uint64_t u[2];
