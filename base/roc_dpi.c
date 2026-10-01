@@ -11,19 +11,6 @@
 #include "roc_api.h"
 #include "roc_priv.h"
 
-__attribute__((__format__(__printf__, 2, 0))) static inline void
-dpi_dump(FILE *file, const char *fmt, ...)
-{
-	va_list args;
-
-	va_start(args, fmt);
-	if (file == NULL)
-		vfprintf(stdout, fmt, args);
-	else
-		vfprintf(file, fmt, args);
-	va_end(args);
-}
-
 #define ROC_DPI_DEV_NAME     "roc_dpi_dev_"
 #define ROC_DPI_DEV_NAME_LEN (sizeof(ROC_DPI_DEV_NAME) + PCI_PRI_STR_SIZE)
 
@@ -126,38 +113,175 @@ dpi_lf_ena_dis(struct roc_dpi_lf *lf, uint8_t enb)
 int
 dpi_lf_reset(struct roc_dpi_lf *lf)
 {
-	plt_write64(DPI_LF_QUEUE_RST, lf->rbase + DPI_LF_RINGX_RST(0));
+	uint64_t start_cycle;
+	uint64_t wait_cycles;
+	uintptr_t reg_addr;
+	int ring_idx;
 
-	/* Fix it on O20 hardware
-	 * while (plt_read64(lf->rbase + DPI_LF_RINGX_RST(0)))
-	 * ; // Add timeout
-	 */
+	wait_cycles = (DPI_LF_RESET_TMO_US * plt_tsc_hz()) / 1000000;
 
-	plt_write64(DPI_LF_QUEUE_RST, lf->rbase + DPI_LF_RINGX_RST(1));
+	for (ring_idx = 0; ring_idx < ROC_DPI_LF_RINGS; ring_idx++) {
+		reg_addr = lf->rbase + DPI_LF_RINGX_RST(ring_idx);
+		plt_write64(DPI_LF_QUEUE_RST, reg_addr);
 
-	/* Fix it on O20 hardware
-	 * while (plt_read64(lf->rbase + DPI_LF_RINGX_RST(1)))
-	 * ; // Add timeout
-	 */
+		start_cycle = plt_tsc_cycles();
+		while (plt_read64(reg_addr) & DPI_LF_QUEUE_RST) {
+			if (plt_tsc_cycles() - start_cycle >= wait_cycles) {
+				plt_err("DPI LF[%u]: ring[%u] reset timed out", lf->slot, ring_idx);
+				return -ETIMEDOUT;
+			}
+		}
+	}
 
 	return 0;
+}
+
+int
+roc_dpi_access_pair_group_create(struct roc_dpi_lf *lf, plt_uuid_t domain_id, plt_uuid_t token,
+				 int16_t *group_id)
+{
+	struct mbox *mbox = mbox_get(lf->dev->mbox);
+	struct dpi_lf_access_group_alloc_req *req;
+	struct dpi_lf_access_group_alloc_rsp *rsp;
+	int rc;
+
+	req = mbox_alloc_msg_dpi_lf_access_group_alloc(mbox);
+	if (req == NULL) {
+		rc = -ENOSPC;
+		goto exit;
+	}
+
+	req->dpi_blkaddr = lf->blk_addr;
+	mbox_memcpy(req->lf_handle, domain_id, sizeof(plt_uuid_t));
+	mbox_memcpy(req->access_key, token, sizeof(plt_uuid_t));
+
+	rc = mbox_process_msg(mbox, (void **)&rsp);
+	if (rc)
+		goto exit;
+
+	*group_id = rsp->group_id;
+	lf->group_id = rsp->group_id;
+exit:
+	mbox_put(mbox);
+	return rc;
+}
+
+int
+roc_dpi_access_pair_group_destroy(struct roc_dpi_lf *lf, int16_t group_id)
+{
+	struct mbox *mbox = mbox_get(lf->dev->mbox);
+	struct dpi_lf_access_group_free_req *req;
+	int rc;
+
+	req = mbox_alloc_msg_dpi_lf_access_group_free(mbox);
+	if (req == NULL) {
+		rc = -ENOSPC;
+		goto exit;
+	}
+
+	req->dpi_blkaddr = lf->blk_addr;
+	req->group_id = group_id;
+	rc = mbox_process(mbox);
+exit:
+	mbox_put(mbox);
+	return rc;
+}
+
+int
+roc_dpi_access_pair_group_join(struct roc_dpi_lf *lf, plt_uuid_t domain_id, plt_uuid_t token,
+			       int16_t group_id)
+{
+	struct mbox *mbox = mbox_get(lf->dev->mbox);
+	struct dpi_lf_access_group_join_req *req;
+	int rc;
+
+	req = mbox_alloc_msg_dpi_lf_access_group_join(mbox);
+	if (req == NULL) {
+		rc = -ENOSPC;
+		goto exit;
+	}
+
+	mbox_memcpy(req->lf_handle, domain_id, sizeof(plt_uuid_t));
+	mbox_memcpy(req->access_key, token, sizeof(plt_uuid_t));
+	req->dpi_blkaddr = lf->blk_addr;
+	req->group_id = group_id;
+
+	rc = mbox_process(mbox);
+	if (rc)
+		goto exit;
+
+	lf->group_id = group_id;
+exit:
+	mbox_put(mbox);
+	return rc;
+}
+
+int
+roc_dpi_access_pair_group_leave(struct roc_dpi_lf *lf, int16_t group_id)
+{
+	struct mbox *mbox = mbox_get(lf->dev->mbox);
+	struct dpi_lf_access_group_leave_req *req;
+	int rc;
+
+	req = mbox_alloc_msg_dpi_lf_access_group_leave(mbox);
+	if (req == NULL) {
+		rc = -ENOSPC;
+		goto exit;
+	}
+
+	req->dpi_blkaddr = lf->blk_addr;
+	req->group_id = group_id;
+
+	rc = mbox_process(mbox);
+exit:
+	mbox_put(mbox);
+	return rc;
+}
+
+int
+roc_dpi_access_pair_group_handler_get(struct roc_dpi_lf *lf, int16_t group_id, plt_uuid_t domain_id,
+				      uint16_t *handler)
+{
+	struct mbox *mbox = mbox_get(lf->dev->mbox);
+	struct dpi_lf_access_group_handle_get_req *req;
+	struct dpi_lf_access_group_handle_get_rsp *rsp;
+	int rc;
+
+	req = mbox_alloc_msg_dpi_lf_access_group_handle_get(mbox);
+	if (req == NULL) {
+		rc = -ENOSPC;
+		goto exit;
+	}
+
+	mbox_memcpy(req->lf_handle, domain_id, sizeof(plt_uuid_t));
+	req->dpi_blkaddr = lf->blk_addr;
+	req->group_id = group_id;
+
+	rc = mbox_process_msg(mbox, (void **)&rsp);
+	if (rc)
+		goto exit;
+
+	*handler = rsp->handle;
+exit:
+	mbox_put(mbox);
+	return rc;
 }
 
 int
 roc_dpi_reset(struct roc_dpi *dpi)
 {
 	uint16_t i;
-	int rc;
+	int rc = 0;
 
 	if (roc_model_is_cn20k()) {
 		for (i = 0; i < dpi->nr_lfs; i++) {
-			rc = dpi_lf_reset(&dpi->lfs[i]);
+			rc |= dpi_lf_reset(&dpi->lfs[i]);
 			if (rc)
 				plt_err("Reset failed for DPI LF - %u", i);
 		}
 	}
 
-	return 0;
+	return rc;
 }
 
 int
@@ -307,8 +431,8 @@ int
 dpi_lf_detach(struct dev *dev)
 {
 	struct mbox *mbox = mbox_get(dev->mbox);
+	uint8_t blk_addr = RVU_BLOCK_ADDR_DPI0;
 	struct dpi_rsrc_detach *req;
-	uint8_t blk_addr = RVU_BLOCK_ADDR_DPI0; /* FIX it */
 	int rc;
 
 	req = mbox_alloc_msg_dpi_detach_resources(mbox);
@@ -455,6 +579,9 @@ int
 roc_dpi_lf_chan_tbl_update(struct roc_dpi_lf *lf, uint64_t *config, uint16_t offset,
 			   uint16_t entries)
 {
+	if (entries > DPI_LF_CHAN_TBL_UPDATE_SIZE)
+		return -EINVAL;
+
 	return dpi_chan_tbl_update(lf->dev, lf->blk_addr, lf->chan_tbl, config, offset, entries);
 }
 
@@ -534,15 +661,15 @@ dpi_lf_queue_configure(struct roc_dpi_lf_que *que, struct roc_dpi_lf_ring_cfg *r
 	char nm[ROC_DPI_DEV_NAME_LEN] = {'\0'};
 	struct roc_dpi_lf *lf = que->lf;
 	const struct plt_memzone *mz;
-	uint64_t reg;
 	size_t mz_len = que->qsize * que->cmd_len;
+	uint64_t reg;
 
 	snprintf(nm, sizeof(nm), "%s_%u_%u_%x", "dpi_lf_q", lf->slot, rcfg->ring_idx,
 		 lf->dev->pf_func);
 	mz = plt_memzone_reserve_aligned(nm, que->qsize * que->cmd_len, 0, 128);
 	if (!mz) {
 		plt_err("Cannot alloc buffer for DPI LF ring command buffer: %s", nm);
-		return -1;
+		return -ENOMEM;
 	}
 
 	que->mz = mz;
@@ -635,7 +762,7 @@ fail:
 int
 dpi_lf_init(struct roc_dpi_lf *lf, struct dev *dev, uint8_t slot)
 {
-	uint8_t blk_addr = RVU_BLOCK_ADDR_DPI0; /* FIX it */
+	uint8_t blk_addr = RVU_BLOCK_ADDR_DPI0;
 
 	lf->dev = dev;
 	lf->slot = slot;
@@ -646,64 +773,50 @@ dpi_lf_init(struct roc_dpi_lf *lf, struct dev *dev, uint8_t slot)
 	return 0;
 }
 
-static int
-dpi_dev_init(struct roc_dpi *roc_dpi, struct plt_pci_device *pci_dev)
+int
+roc_dpi_rsrc_init(struct roc_dpi *roc_dpi)
 {
+	struct plt_pci_device *pci_dev = roc_dpi->pci_dev;
 	struct dpi *dpi = roc_dpi_to_dpi_priv(roc_dpi);
+	uint8_t blk_addr = RVU_BLOCK_ADDR_DPI0;
 	char name[ROC_DPI_DEV_NAME_LEN];
 	const struct plt_memzone *mz;
 	struct dev *dev = &dpi->dev;
-	uint8_t blk_addr = RVU_BLOCK_ADDR_DPI0; /* FIX it */
-	struct roc_dpi_lf *lf;
 	uint16_t slot;
 	int rc;
-
-	rc = dev_init(dev, pci_dev);
-	if (rc) {
-		plt_err("Failed to init dpi roc device");
-		return rc;
-	}
 
 	mz = plt_memzone_reserve_cache_align(plt_pci_dev_name(name, ROC_DPI_DEV_NAME, pci_dev),
 					     roc_dpi->nr_lfs * sizeof(struct roc_dpi_lf));
 	if (!mz)
-		goto dev_fini;
+		return -ENOMEM;
 
+	roc_dpi->mz = mz;
 	roc_dpi->lfs = mz->addr;
 
 	rc = dpi_lf_attach(dev, blk_addr, true, roc_dpi->nr_lfs);
 	if (rc) {
 		plt_err("Could not attach LFs");
-		goto free_mem;
+		plt_memzone_free(mz);
+		roc_dpi->mz = NULL;
+		roc_dpi->lfs = NULL;
+		return rc;
 	}
 
-	for (slot = 0; slot < roc_dpi->nr_lfs; slot++) {
-		lf = &roc_dpi->lfs[slot];
-		rc = dpi_lf_init(lf, dev, slot);
-		if (rc) {
-			plt_err("Failed to init dpi lf %u", slot);
-			goto lf_detach;
-		}
-	}
+	for (slot = 0; slot < roc_dpi->nr_lfs; slot++)
+		dpi_lf_init(&(roc_dpi->lfs[slot]), dev, slot);
 
-	return 0;
-lf_detach:
-	rc |= dpi_lf_detach(dev);
-free_mem:
-	plt_memzone_free(mz);
-dev_fini:
-	rc |= dev_fini(dev, pci_dev);
 	return rc;
 }
 
-static int
-dpi_dev_fini(struct roc_dpi *roc_dpi)
+int
+roc_dpi_rsrc_fini(struct roc_dpi *roc_dpi)
 {
 	struct dpi *dpi = roc_dpi_to_dpi_priv(roc_dpi);
 	struct dev *dev = &dpi->dev;
 	struct roc_dpi_lf_que *que;
 	struct roc_dpi_lf *lf;
 	uint16_t slot, qid;
+	int rc;
 
 	roc_dpi_disable(roc_dpi);
 
@@ -712,27 +825,36 @@ dpi_dev_fini(struct roc_dpi *roc_dpi)
 
 		for (qid = 0; qid < ROC_DPI_LF_RINGS; qid++) {
 			que = &lf->queue[qid];
-			if (que->mz)
+			if (que->mz) {
 				plt_memzone_free(que->mz);
+				que->mz = NULL;
+			}
 		}
 	}
 
-	dpi_lf_detach(dev);
+	rc = dpi_lf_detach(dev);
+	plt_memzone_free(roc_dpi->mz);
+	roc_dpi->mz = NULL;
+	roc_dpi->lfs = NULL;
 
-	return dev_fini(dev, roc_dpi->pci_dev);
+	return rc;
 }
 
 int
 roc_dpi_dev_init(struct roc_dpi *roc_dpi, uint8_t offset)
 {
 	struct plt_pci_device *pci_dev = roc_dpi->pci_dev;
+	struct dpi *dpi = roc_dpi_to_dpi_priv(roc_dpi);
+	struct dev *dev = &dpi->dev;
 	uint16_t vfid;
 	int rc = 0;
 
 	roc_dpi->rbase = pci_dev->mem_resource[0].addr;
 
 	if (roc_model_is_cn20k()) {
-		rc = dpi_dev_init(roc_dpi, pci_dev);
+		rc = dev_init(dev, pci_dev);
+		if (rc)
+			plt_err("Failed to init dpi roc device");
 	} else {
 		vfid = ((pci_dev->addr.devid & 0x1F) << 3) | (pci_dev->addr.function & 0x7);
 		vfid -= 1;
@@ -747,11 +869,13 @@ int
 roc_dpi_dev_fini(struct roc_dpi *roc_dpi)
 {
 	struct plt_pci_device *pci_dev = roc_dpi->pci_dev;
+	struct dpi *dpi = roc_dpi_to_dpi_priv(roc_dpi);
+	struct dev *dev = &dpi->dev;
 	dpi_mbox_msg_t mbox_msg;
 	int rc;
 
 	if (roc_model_is_cn20k()) {
-		rc = dpi_dev_fini(roc_dpi);
+		rc = dev_fini(dev, pci_dev);
 		return rc;
 	}
 
@@ -769,31 +893,4 @@ roc_dpi_dev_fini(struct roc_dpi *roc_dpi)
 		plt_err("Failed to send mbox message %d to DPI PF, err %d", mbox_msg.s.cmd, rc);
 
 	return rc;
-}
-
-void
-roc_dpi_dev_dump(struct roc_dpi *dpi, FILE *file)
-{
-	struct plt_pci_device *pci_dev = dpi->pci_dev;
-	char buff[16384];
-	int rc;
-
-	dpi_dump(file, "VF %d DPI_VDMA_EN     \t0x%" PRIx64 "\n", dpi->vfid,
-		 plt_read64(dpi->rbase + DPI_VDMA_EN));
-	dpi_dump(file, "VF %d DPI_VDMA_DBELL  \t0x%" PRIx64 "\n", dpi->vfid,
-		 plt_read64(dpi->rbase + DPI_VDMA_DBELL));
-	dpi_dump(file, "VF %d DPI_VDMA_SADDR  \t0x%" PRIx64 "\n", dpi->vfid,
-		 plt_read64(dpi->rbase + DPI_VDMA_SADDR));
-	dpi_dump(file, "VF %d DPI_VDMA_COUNTS \t0x%" PRIx64 "\n", dpi->vfid,
-		 plt_read64(dpi->rbase + DPI_VDMA_COUNTS));
-	dpi_dump(file, "VF %d DPI_VDMA_NADDR  \t0x%" PRIx64 "\n", dpi->vfid,
-		 plt_read64(dpi->rbase + DPI_VDMA_NADDR));
-	dpi_dump(file, "VF %d DPI_VDMA_IWBUSY \t0x%" PRIx64 "\n", dpi->vfid,
-		 plt_read64(dpi->rbase + DPI_VDMA_IWBUSY));
-	rc = recv_msg_from_pf(&pci_dev->addr, buff, 16384);
-	if (rc < 0) {
-		plt_err("Failed to receive mbox message from DPI PF, err %d", rc);
-		return;
-	}
-	dpi_dump(file, "%s\n", buff);
 }

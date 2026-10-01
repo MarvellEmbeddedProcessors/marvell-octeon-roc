@@ -18,7 +18,6 @@ set(OCT_ROC_SRCS
   base/roc_cpt_debug.c
   base/roc_dev.c
   base/roc_dpi.c
-  base/roc_dpi_debug.c
   base/roc_emdev.c
   base/roc_emdev_debug.c
   base/roc_emdev_irq.c

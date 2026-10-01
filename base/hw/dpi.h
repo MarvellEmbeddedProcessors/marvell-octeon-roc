@@ -23,7 +23,7 @@
 #define DPI_VF_INT_ENA_W1C (0x110)
 #define DPI_VF_INT_ENA_W1S (0x118)
 
-/* DPI CN20K LF register offsets from VF_BAR0 */
+/* DPI CN20K LF register offsets from VF_BAR2 */
 #define DPI_LF_CTL		    (0ull)
 #define DPI_LF_RINGX_CFG(x)	    ((0x20ull | (uint64_t)(x) << 3))
 #define DPI_LF_RINGX_BASE(x)	    ((0x30ull | (uint64_t)(x) << 3))
@@ -32,15 +32,17 @@
 #define DPI_LF_RINGX_RST(x)	    ((0x70ull | (uint64_t)(x) << 3))
 #define DPI_LF_RINGX_ISTAT(x)	    ((0x80ull | (uint64_t)(x) << 3))
 #define DPI_LF_RINGX_CMPL(x)	    ((0x90ull | (uint64_t)(x) << 3))
-#define DPI_LF_RINGX_INT(x)	    ((0x100ull | (uint64_t)(x) << 3))
-#define DPI_LF_RINGX_INT_W1S(x)	    ((0x108ull | (uint64_t)(x) << 3))
-#define DPI_LF_RINGX_INT_ENA_W1C(x) ((0x110ull | (uint64_t)(x) << 3))
-#define DPI_LF_RINGX_INT_ENA_W1S(x) ((0x118ull | (uint64_t)(x) << 3))
+#define DPI_LF_RINGX_INT	    (0x100ull)
+#define DPI_LF_RINGX_INT_W1S	    (0x108ull)
+#define DPI_LF_RINGX_INT_ENA_W1C    (0x110ull)
+#define DPI_LF_RINGX_INT_ENA_W1S    (0x118ull)
 #define DPI_LF_RINGX_ERR_STAT(x)    ((0x120ull | (uint64_t)(x) << 3))
-#define DPI_LF_RINGX_ERR(x)	    ((0x200ull | (uint64_t)(x) << 3))
-#define DPI_LF_RINGX_ERR_W1S(x)	    ((0x208ull | (uint64_t)(x) << 3))
-#define DPI_LF_RINGX_ERR_ENA_W1C(x) ((0x210ull | (uint64_t)(x) << 3))
-#define DPI_LF_RINGX_ERR_ENA_W1S(x) ((0x218ull | (uint64_t)(x) << 3))
+#define DPI_LF_RINGX_ERR	    (0x200ull)
+#define DPI_LF_RINGX_ERR_W1S	    (0x208ull)
+#define DPI_LF_RINGX_ERR_ENA_W1C    (0x210ull)
+#define DPI_LF_RINGX_ERR_ENA_W1S    (0x218ull)
+#define DPI_LF_RINGX_DMA_CNT(x)	    ((0x220ull | (uint64_t)(x) << 3))
+#define DPI_LF_RINGX_DMA_BCNT(x)    ((0x230ull | (uint64_t)(x) << 3))
 
 /**
  * Enumeration dpi_hdr_xtype_e
