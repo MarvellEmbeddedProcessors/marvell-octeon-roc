@@ -236,7 +236,7 @@ nix_inl_inb_queue_setup(struct nix_inl_dev *inl_dev, uint8_t slot_id)
 	nix_req->enable = 1;
 	if (inl_dev->nix_inb_q_bpid[slot_id] >= 0) {
 		nix_req->bpid = inl_dev->nix_inb_q_bpid[slot_id];
-		nix_req->credit_th = nix_req->cpt_credit - 1;
+		nix_req->credit_th = 1;
 		/* inb_cpt_credit_th is a percentage (1-100) of the credit pool */
 		if (inl_dev->inb_cpt_credit_th) {
 			uint32_t th = (nix_req->cpt_credit * inl_dev->inb_cpt_credit_th) / 100;
