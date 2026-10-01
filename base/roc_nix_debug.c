@@ -1647,6 +1647,31 @@ roc_nix_inl_outb_cpt_lfs_dump(struct roc_nix *roc_nix, FILE *file)
 	}
 }
 
+void
+roc_nix_inl_inb_cpt_lfs_dump(struct roc_nix *roc_nix, FILE *file)
+{
+	struct idev_cfg *idev = idev_get_cfg();
+	struct nix_inl_dev *inl_dev;
+	struct roc_cpt_lf *lf;
+	uint16_t slot_id;
+	int i;
+
+	PLT_SET_USED(roc_nix);
+
+	if (!idev || !idev->nix_inl_dev)
+		return;
+
+	inl_dev = idev->nix_inl_dev;
+	for (i = 0; i < inl_dev->nb_inb_cptlfs; i++) {
+		slot_id = inl_dev->inb_cpt_lf_id + i;
+		lf = &inl_dev->cpt_lf[slot_id];
+
+		nix_dump(file, "NIX inline dev inbound CPT LFs:");
+		roc_cpt_lf_afs_print(lf);
+		cpt_lf_print(lf);
+	}
+}
+
 static void
 nix_tm_sqe_dump(uint64_t *sqe, int head_off, int end_off, int instr_sz, FILE *file, int full,
 		uint16_t *num)
