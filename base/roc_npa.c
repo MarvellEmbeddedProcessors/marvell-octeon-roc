@@ -1389,6 +1389,7 @@ roc_npa_aura_bp_configure(uint64_t aura_handle, uint16_t bpid, uint8_t bp_intf, 
 {
 	uint32_t aura_id = roc_npa_aura_handle_to_aura(aura_handle);
 	struct npa_lf *lf = idev_npa_obj_get();
+	struct npa_cn20k_aq_enq_req *req_cn20k;
 	struct npa_aq_enq_req *req;
 	struct mbox *mbox;
 	int rc = 0;
@@ -1400,7 +1401,13 @@ roc_npa_aura_bp_configure(uint64_t aura_handle, uint16_t bpid, uint8_t bp_intf, 
 		return NPA_ERR_PARAM;
 
 	mbox = mbox_get(lf->mbox);
-	req = mbox_alloc_msg_npa_aq_enq(mbox);
+
+	if (roc_model_is_cn20k()) {
+		req_cn20k = mbox_alloc_msg_npa_cn20k_aq_enq(mbox);
+		req = (struct npa_aq_enq_req *)req_cn20k;
+	} else {
+		req = mbox_alloc_msg_npa_aq_enq(mbox);
+	}
 	if (req == NULL) {
 		rc = -ENOMEM;
 		goto fail;
@@ -1410,32 +1417,52 @@ roc_npa_aura_bp_configure(uint64_t aura_handle, uint16_t bpid, uint8_t bp_intf, 
 	req->ctype = NPA_AQ_CTYPE_AURA;
 	req->op = NPA_AQ_INSTOP_WRITE;
 
-	if (enable) {
-		if (bp_intf & 0x1) {
-			req->aura.nix0_bpid = bpid;
-			req->aura_mask.nix0_bpid = ~(req->aura_mask.nix0_bpid);
+	if (roc_model_is_cn20k()) {
+		if (enable) {
+			req_cn20k->aura.bpid = bpid;
+			req_cn20k->aura_mask.bpid = ~(req_cn20k->aura_mask.bpid);
+			req_cn20k->aura.bp = bp_thresh;
+			req_cn20k->aura_mask.bp = ~(req_cn20k->aura_mask.bp);
 		} else {
-			req->aura.nix1_bpid = bpid;
-			req->aura_mask.nix1_bpid = ~(req->aura_mask.nix1_bpid);
+			req_cn20k->aura.bp = 0;
+			req_cn20k->aura_mask.bp = ~(req_cn20k->aura_mask.bp);
 		}
-		req->aura.bp = bp_thresh;
-		req->aura_mask.bp = ~(req->aura_mask.bp);
-	} else {
-		req->aura.bp = 0;
-		req->aura_mask.bp = ~(req->aura_mask.bp);
-	}
 
-	req->aura.bp_ena = bp_intf;
-	req->aura_mask.bp_ena = ~(req->aura_mask.bp_ena);
+		req_cn20k->aura.bp_ena = enable;
+		req_cn20k->aura_mask.bp_ena = ~(req_cn20k->aura_mask.bp_ena);
+	} else {
+		if (enable) {
+			if (bp_intf & 0x1) {
+				req->aura.nix0_bpid = bpid;
+				req->aura_mask.nix0_bpid = ~(req->aura_mask.nix0_bpid);
+			} else {
+				req->aura.nix1_bpid = bpid;
+				req->aura_mask.nix1_bpid = ~(req->aura_mask.nix1_bpid);
+			}
+			req->aura.bp = bp_thresh;
+			req->aura_mask.bp = ~(req->aura_mask.bp);
+		} else {
+			req->aura.bp = 0;
+			req->aura_mask.bp = ~(req->aura_mask.bp);
+		}
+
+		req->aura.bp_ena = bp_intf;
+		req->aura_mask.bp_ena = ~(req->aura_mask.bp_ena);
+	}
 
 	rc = mbox_process(mbox);
 	if (rc)
 		goto fail;
 
-	lf->aura_attr[aura_id].nix0_bpid = req->aura.nix0_bpid;
-	lf->aura_attr[aura_id].nix1_bpid = req->aura.nix1_bpid;
-	lf->aura_attr[aura_id].bp_ena = req->aura.bp_ena;
-	lf->aura_attr[aura_id].bp = req->aura.bp;
+	lf->aura_attr[aura_id].bp = enable ? bp_thresh : 0;
+	if (roc_model_is_cn20k()) {
+		lf->aura_attr[aura_id].nix0_bpid = enable ? bpid : 0;
+		lf->aura_attr[aura_id].bp_ena = enable;
+	} else {
+		lf->aura_attr[aura_id].nix0_bpid = req->aura.nix0_bpid;
+		lf->aura_attr[aura_id].nix1_bpid = req->aura.nix1_bpid;
+		lf->aura_attr[aura_id].bp_ena = req->aura.bp_ena;
+	}
 fail:
 	mbox_put(mbox);
 	return rc;
