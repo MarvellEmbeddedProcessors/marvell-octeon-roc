@@ -214,11 +214,9 @@ roc_cpt_cq_dump(FILE *file, const struct cpt_cq_s *cq)
 }
 
 static int
-cpt_af_reg_read(struct roc_cpt *roc_cpt, uint64_t reg, uint64_t *val)
+cpt_af_reg_read(struct dev *dev, uint64_t reg, uint64_t *val)
 {
-	struct cpt *cpt = roc_cpt_to_cpt_priv(roc_cpt);
 	struct cpt_rd_wr_reg_msg *msg;
-	struct dev *dev = &cpt->dev;
 	struct mbox *mbox = mbox_get(dev->mbox);
 	int ret;
 
@@ -331,21 +329,42 @@ exit:
 int
 roc_cpt_afs_print(struct roc_cpt *roc_cpt)
 {
+	struct cpt *cpt = roc_cpt_to_cpt_priv(roc_cpt);
 	uint64_t reg_val;
 
 	plt_print("CPT AF registers:");
 
-	if (cpt_af_reg_read(roc_cpt, CPT_AF_LFX_CTL(0), &reg_val))
+	if (cpt_af_reg_read(&cpt->dev, CPT_AF_LFX_CTL(0), &reg_val))
 		return -EIO;
 
 	plt_print("    CPT_AF_LF0_CTL:\t0x%016" PRIx64, reg_val);
 
-	if (cpt_af_reg_read(roc_cpt, CPT_AF_LFX_CTL2(0), &reg_val))
+	if (cpt_af_reg_read(&cpt->dev, CPT_AF_LFX_CTL2(0), &reg_val))
 		return -EIO;
 
 	plt_print("    CPT_AF_LF0_CTL2:\t0x%016" PRIx64, reg_val);
 
 	cpt_sts_print(roc_cpt);
+
+	return 0;
+}
+
+int
+roc_cpt_lf_afs_print(struct roc_cpt_lf *lf)
+{
+	uint64_t reg_val;
+
+	plt_print("CPT AF registers for CPT LF%d:", lf->lf_id);
+
+	if (cpt_af_reg_read(lf->dev, CPT_AF_LFX_CTL(lf->lf_id), &reg_val))
+		return -EIO;
+
+	plt_print("    CPT_AF_LF%d_CTL:\t0x%016" PRIx64, lf->lf_id, reg_val);
+
+	if (cpt_af_reg_read(lf->dev, CPT_AF_LFX_CTL2(lf->lf_id), &reg_val))
+		return -EIO;
+
+	plt_print("    CPT_AF_LF%d_CTL2:\t0x%016" PRIx64, lf->lf_id, reg_val);
 
 	return 0;
 }
