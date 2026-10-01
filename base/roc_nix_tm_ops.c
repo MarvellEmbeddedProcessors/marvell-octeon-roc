@@ -138,8 +138,8 @@ nix_tm_adjust_shaper_pps_rate(struct nix_tm_shaper_profile *profile)
 	profile->peak.rate = profile->peak.rate * 8;
 	min_rate = min_rate * 8;
 
-	if (min_rate && (min_rate < NIX_TM_MIN_SHAPER_RATE)) {
-		int adjust = NIX_TM_MIN_SHAPER_RATE / min_rate;
+	if (min_rate && (min_rate < roc_nix_tm_min_shaper_rate_get())) {
+		int adjust = roc_nix_tm_min_shaper_rate_get() / min_rate;
 
 		if (adjust > NIX_TM_LENGTH_ADJUST_MAX)
 			return NIX_ERR_TM_SHAPER_PKT_LEN_ADJUST;

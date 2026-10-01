@@ -6,6 +6,62 @@
 #include "roc_priv.h"
 
 static inline uint64_t
+nix_tm_shaper_rate_const(void)
+{
+	if (roc_model_is_cn9k() || roc_model_is_cn10k())
+		return NIX_TM_LEGACY_SHAPER_RATE_CONST;
+	return NIX_TM_SHAPER_RATE_CONST;
+}
+
+static inline uint64_t
+nix_tm_shaper_rate_base(void)
+{
+	if (roc_model_is_cn9k() || roc_model_is_cn10k())
+		return NIX_TM_LEGACY_SHAPER_RATE_BASE;
+	return NIX_TM_SHAPER_RATE_BASE;
+}
+
+static inline uint64_t
+nix_tm_shaper_rate(uint64_t exponent, uint64_t mantissa, uint64_t div_exp)
+{
+	if (roc_model_is_cn9k() || roc_model_is_cn10k())
+		return NIX_TM_LEGACY_SHAPER_RATE(exponent, mantissa, div_exp);
+	return NIX_TM_SHAPER_RATE(exponent, mantissa, div_exp);
+}
+
+static inline uint64_t
+nix_tm_min_shaper_rate(void)
+{
+	if (roc_model_is_cn9k() || roc_model_is_cn10k())
+		return NIX_TM_LEGACY_MIN_SHAPER_RATE;
+	return NIX_TM_MIN_SHAPER_RATE;
+}
+
+static inline uint64_t
+nix_tm_max_shaper_rate(void)
+{
+	if (roc_model_is_cn9k() || roc_model_is_cn10k())
+		return NIX_TM_LEGACY_MAX_SHAPER_RATE;
+	return NIX_TM_MAX_SHAPER_RATE;
+}
+
+static inline uint64_t
+nix_tm_max_rate_exponent(void)
+{
+	if (roc_model_is_cn9k() || roc_model_is_cn10k())
+		return NIX_TM_LEGACY_MAX_RATE_EXPONENT;
+	return NIX_TM_MAX_RATE_EXPONENT;
+}
+
+static inline uint64_t
+nix_tm_max_rate_mantissa(void)
+{
+	if (roc_model_is_cn9k() || roc_model_is_cn10k())
+		return NIX_TM_LEGACY_MAX_RATE_MANTISSA;
+	return NIX_TM_MAX_RATE_MANTISSA;
+}
+
+static inline uint64_t
 nix_tm_shaper2regval(struct nix_tm_shaper_data *shaper)
 {
 	uint64_t regval;
@@ -21,9 +77,14 @@ nix_tm_shaper2regval(struct nix_tm_shaper_data *shaper)
 
 	regval = (shaper->burst_exponent << 44);
 	regval |= (shaper->burst_mantissa << 29);
-	regval |= (shaper->div_exp << 13);
-	regval |= (shaper->exponent << 9);
 	regval |= (shaper->mantissa << 1);
+	if (roc_model_is_cn20k()) {
+		regval |= (shaper->div_exp << 15);
+		regval |= (shaper->exponent << 10);
+	} else {
+		regval |= (shaper->div_exp << 13);
+		regval |= (shaper->exponent << 9);
+	}
 	return regval;
 }
 
@@ -132,49 +193,49 @@ nix_tm_shaper_rate_conv_floor(uint64_t value, uint64_t *exponent_p,
 	uint64_t div_exp, exponent, mantissa;
 
 	/* Boundary checks */
-	if (value < NIX_TM_MIN_SHAPER_RATE || value > NIX_TM_MAX_SHAPER_RATE)
+	if (value < nix_tm_min_shaper_rate() || value > nix_tm_max_shaper_rate())
 		return 0;
 
-	if (value <= NIX_TM_SHAPER_RATE(0, 0, 0)) {
+	if (value <= nix_tm_shaper_rate(0, 0, 0)) {
 		/* Calculate rate div_exp and mantissa using
 		 * the following formula:
 		 *
-		 * value = (2E6 * (256 + mantissa)
+		 * value = (RATE_CONST * (256 + mantissa)
 		 *              / ((1 << div_exp) * 256))
 		 */
 		div_exp = 0;
 		exponent = 0;
-		mantissa = NIX_TM_MAX_RATE_MANTISSA;
+		mantissa = nix_tm_max_rate_mantissa();
 
-		while (value <= (NIX_TM_SHAPER_RATE_CONST / (1 << div_exp)))
+		while (value <= (nix_tm_shaper_rate_const() / (1 << div_exp)))
 			div_exp += 1;
 
-		while (value <= ((NIX_TM_SHAPER_RATE_CONST * (256 + mantissa)) /
-				 ((1 << div_exp) * 256)))
+		while (value <=
+		       ((nix_tm_shaper_rate_const() * (nix_tm_shaper_rate_base() + mantissa)) /
+			((1 << div_exp) * nix_tm_shaper_rate_base())))
 			mantissa -= 1;
 	} else {
 		/* Calculate rate exponent and mantissa using
 		 * the following formula:
 		 *
-		 * value = (2E6 * ((256 + mantissa) << exponent)) / 256
+		 * value = (RATE_CONST * ((BASE + mantissa) << exponent)) / BASE
 		 *
 		 */
 		div_exp = 0;
-		exponent = NIX_TM_MAX_RATE_EXPONENT;
-		mantissa = NIX_TM_MAX_RATE_MANTISSA;
+		exponent = nix_tm_max_rate_exponent();
+		mantissa = nix_tm_max_rate_mantissa();
 
-		while (value <= (NIX_TM_SHAPER_RATE_CONST * (1 << exponent)))
+		while (value <= (nix_tm_shaper_rate_const() * (1 << exponent)))
 			exponent -= 1;
 
-		while (value <= ((NIX_TM_SHAPER_RATE_CONST *
-				  ((256 + mantissa) << exponent)) /
-				 256))
+		while (value <= ((nix_tm_shaper_rate_const() *
+				  ((nix_tm_shaper_rate_base() + mantissa) << exponent)) /
+				 nix_tm_shaper_rate_base()))
 			mantissa -= 1;
 	}
 
-	if (div_exp > NIX_TM_MAX_RATE_DIV_EXP ||
-	    exponent > NIX_TM_MAX_RATE_EXPONENT ||
-	    mantissa > NIX_TM_MAX_RATE_MANTISSA)
+	if (div_exp > NIX_TM_MAX_RATE_DIV_EXP || exponent > nix_tm_max_rate_exponent() ||
+	    mantissa > nix_tm_max_rate_mantissa())
 		return 0;
 
 	if (div_exp_p)
@@ -185,59 +246,59 @@ nix_tm_shaper_rate_conv_floor(uint64_t value, uint64_t *exponent_p,
 		*mantissa_p = mantissa;
 
 	/* Calculate real rate value */
-	return NIX_TM_SHAPER_RATE(exponent, mantissa, div_exp);
+	return nix_tm_shaper_rate(exponent, mantissa, div_exp);
 }
 
 static uint64_t
-nix_tm_shaper_rate_conv_exact(uint64_t value, uint64_t *exponent_p,
-			      uint64_t *mantissa_p, uint64_t *div_exp_p)
+nix_tm_shaper_rate_conv_exact(uint64_t value, uint64_t *exponent_p, uint64_t *mantissa_p,
+			      uint64_t *div_exp_p)
 {
 	uint64_t div_exp, exponent, mantissa;
 
 	/* Boundary checks */
-	if (value < NIX_TM_MIN_SHAPER_RATE || value > NIX_TM_MAX_SHAPER_RATE)
+	if (value < nix_tm_min_shaper_rate() || value > nix_tm_max_shaper_rate())
 		return 0;
 
-	if (value <= NIX_TM_SHAPER_RATE(0, 0, 0)) {
+	if (value <= nix_tm_shaper_rate(0, 0, 0)) {
 		/* Calculate rate div_exp and mantissa using
 		 * the following formula:
 		 *
-		 * value = (2E6 * (256 + mantissa)
+		 * value = (RATE_CONST * (256 + mantissa)
 		 *              / ((1 << div_exp) * 256))
 		 */
 		div_exp = 0;
 		exponent = 0;
-		mantissa = NIX_TM_MAX_RATE_MANTISSA;
+		mantissa = nix_tm_max_rate_mantissa();
 
-		while (value < (NIX_TM_SHAPER_RATE_CONST / (1 << div_exp)))
+		while (value < (nix_tm_shaper_rate_const() / (1 << div_exp)))
 			div_exp += 1;
 
-		while (value < ((NIX_TM_SHAPER_RATE_CONST * (256 + mantissa)) /
-				((1 << div_exp) * 256)))
+		while (value <
+		       ((nix_tm_shaper_rate_const() * (nix_tm_shaper_rate_base() + mantissa)) /
+			((1 << div_exp) * nix_tm_shaper_rate_base())))
 			mantissa -= 1;
 	} else {
 		/* Calculate rate exponent and mantissa using
 		 * the following formula:
 		 *
-		 * value = (2E6 * ((256 + mantissa) << exponent)) / 256
+		 * value = (RATE_CONST * ((BASE + mantissa) << exponent)) / BASE
 		 *
 		 */
 		div_exp = 0;
-		exponent = NIX_TM_MAX_RATE_EXPONENT;
-		mantissa = NIX_TM_MAX_RATE_MANTISSA;
+		exponent = nix_tm_max_rate_exponent();
+		mantissa = nix_tm_max_rate_mantissa();
 
-		while (value < (NIX_TM_SHAPER_RATE_CONST * (1 << exponent)))
+		while (value < (nix_tm_shaper_rate_const() * (1 << exponent)))
 			exponent -= 1;
 
-		while (value < ((NIX_TM_SHAPER_RATE_CONST *
-				 ((256 + mantissa) << exponent)) /
-				256))
+		while (value < ((nix_tm_shaper_rate_const() *
+				 ((nix_tm_shaper_rate_base() + mantissa) << exponent)) /
+				nix_tm_shaper_rate_base()))
 			mantissa -= 1;
 	}
 
-	if (div_exp > NIX_TM_MAX_RATE_DIV_EXP ||
-	    exponent > NIX_TM_MAX_RATE_EXPONENT ||
-	    mantissa > NIX_TM_MAX_RATE_MANTISSA)
+	if (div_exp > NIX_TM_MAX_RATE_DIV_EXP || exponent > nix_tm_max_rate_exponent() ||
+	    mantissa > nix_tm_max_rate_mantissa())
 		return 0;
 
 	if (div_exp_p)
@@ -248,7 +309,7 @@ nix_tm_shaper_rate_conv_exact(uint64_t value, uint64_t *exponent_p,
 		*mantissa_p = mantissa;
 
 	/* Calculate real rate value */
-	return NIX_TM_SHAPER_RATE(exponent, mantissa, div_exp);
+	return nix_tm_shaper_rate(exponent, mantissa, div_exp);
 }
 
 /* With zero accuracy we will tune parameters as defined by HW,
@@ -282,12 +343,12 @@ nix_tm_shaper_burst_conv(uint64_t value, uint64_t *exponent_p,
 	if (value < min_burst || value > max_burst)
 		return 0;
 
-	max_mantissa = (roc_model_is_cn9k() ? NIX_CN9K_TM_MAX_BURST_MANTISSA :
-					      NIX_TM_MAX_BURST_MANTISSA);
+	max_mantissa =
+		(roc_model_is_cn9k() ? NIX_CN9K_TM_MAX_BURST_MANTISSA : NIX_TM_MAX_BURST_MANTISSA);
 	/* Calculate burst exponent and mantissa using
-	 * the following formula:
+	 * the following formula (CN20K MDQ..TL2 uses 256 base):
 	 *
-	 * value = (((256 + mantissa) << (exponent + 1) / 256)
+	 * value = (((256 + mantissa) << (exponent + 1)) / 256)
 	 *
 	 */
 	exponent = NIX_TM_MAX_BURST_EXPONENT;
