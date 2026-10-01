@@ -2604,13 +2604,19 @@ typedef union nix_lso_alt_flg_format {
 	NIX_BPF_BURST(NIX_BPF_MAX_BURST_EXPONENT, NIX_BPF_MAX_BURST_MANTISSA)
 
 /* NIX rate limits */
-#define NIX_TM_MAX_RATE_DIV_EXP	 12
-#define NIX_TM_MAX_RATE_EXPONENT 0xf
-#define NIX_TM_MAX_RATE_MANTISSA 0xff
+#define NIX_TM_MAX_RATE_DIV_EXP		12
+#define NIX_TM_LEGACY_MAX_RATE_EXPONENT 0xf
+#define NIX_TM_LEGACY_MAX_RATE_MANTISSA 0xff
+#define NIX_TM_MAX_RATE_EXPONENT	0x1f
+#define NIX_TM_MAX_RATE_MANTISSA	0x1ff
 
-#define NIX_TM_SHAPER_RATE_CONST ((uint64_t)2E6)
+#define NIX_TM_LEGACY_SHAPER_RATE_CONST ((uint64_t)2E6)
+#define NIX_TM_LEGACY_SHAPER_RATE_BASE	256
 
-/* NIX rate calculation in Bits/Sec
+#define NIX_TM_SHAPER_RATE_CONST ((uint64_t)8E5) /* 0.8 Mbps */
+#define NIX_TM_SHAPER_RATE_BASE	 512
+
+/* NIX rate calculation in Bits/Sec [CN9K, CN10K]
  *	PIR_ADD = ((256 + NIX_*_PIR[RATE_MANTISSA])
  *		<< NIX_*_PIR[RATE_EXPONENT]) / 256
  *	PIR = (2E6 * PIR_ADD / (1 << NIX_*_PIR[RATE_DIVIDER_EXPONENT]))
@@ -2618,17 +2624,31 @@ typedef union nix_lso_alt_flg_format {
  *	CIR_ADD = ((256 + NIX_*_CIR[RATE_MANTISSA])
  *		<< NIX_*_CIR[RATE_EXPONENT]) / 256
  *	CIR = (2E6 * CIR_ADD / (CCLK_TICKS << NIX_*_CIR[RATE_DIVIDER_EXPONENT]))
+ *
+ *	data_rate = 2 Mbps * (1.[RATE_MANTISSA] << [RATE_EXPONENT]) /
+ *		    (1 << rate_div_exp);
  */
-#define NIX_TM_SHAPER_RATE(exponent, mantissa, div_exp)                        \
-	((NIX_TM_SHAPER_RATE_CONST * ((256 + (mantissa)) << (exponent))) /     \
-	 (((1ull << (div_exp)) * 256)))
+#define NIX_TM_LEGACY_SHAPER_RATE(exponent, mantissa, div_exp)                                     \
+	((NIX_TM_LEGACY_SHAPER_RATE_CONST *                                                        \
+	  ((NIX_TM_LEGACY_SHAPER_RATE_BASE + (mantissa)) << (exponent))) /                         \
+	 (((1ull << (div_exp)) * NIX_TM_LEGACY_SHAPER_RATE_BASE)))
 
 /* Rate limit in Bits/Sec */
+#define NIX_TM_LEGACY_MIN_SHAPER_RATE NIX_TM_LEGACY_SHAPER_RATE(0, 0, NIX_TM_MAX_RATE_DIV_EXP)
+
+#define NIX_TM_LEGACY_MAX_SHAPER_RATE                                                              \
+	NIX_TM_LEGACY_SHAPER_RATE(NIX_TM_LEGACY_MAX_RATE_EXPONENT,                                 \
+				  NIX_TM_LEGACY_MAX_RATE_MANTISSA, 0)
+
+#define NIX_TM_SHAPER_RATE(exponent, mantissa, div_exp)                                            \
+	((NIX_TM_SHAPER_RATE_CONST *                                                               \
+	  (((uint64_t)(NIX_TM_SHAPER_RATE_BASE + (mantissa))) << (exponent))) /                    \
+	 (((1ull << (div_exp)) * NIX_TM_SHAPER_RATE_BASE)))
+
 #define NIX_TM_MIN_SHAPER_RATE NIX_TM_SHAPER_RATE(0, 0, NIX_TM_MAX_RATE_DIV_EXP)
 
-#define NIX_TM_MAX_SHAPER_RATE                                                 \
-	NIX_TM_SHAPER_RATE(NIX_TM_MAX_RATE_EXPONENT, NIX_TM_MAX_RATE_MANTISSA, \
-			   0)
+#define NIX_TM_MAX_SHAPER_RATE                                                                     \
+	NIX_TM_SHAPER_RATE(NIX_TM_MAX_RATE_EXPONENT, NIX_TM_MAX_RATE_MANTISSA, 0)
 
 #define NIX_TM_MIN_SHAPER_PPS_RATE 25
 #define NIX_TM_MAX_SHAPER_PPS_RATE (100ul << 20)

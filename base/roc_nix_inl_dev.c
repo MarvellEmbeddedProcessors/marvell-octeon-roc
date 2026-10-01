@@ -496,7 +496,7 @@ nix_inl_cpt_setup(struct nix_inl_dev *inl_dev, bool inl_dev_sso)
 	return 0;
 lf_fini:
 	for (i = 0; i < inl_dev->nb_cptlf; i++) {
-		struct roc_cpt_lf *lf = &inl_dev->cpt_lf[i];
+		lf = &inl_dev->cpt_lf[i];
 		cpt_lf_fini(lf, false);
 	}
 lf_free:

@@ -656,6 +656,38 @@ roc_nix_tm_max_shaper_burst_get(void)
 		return NIX_TM_MAX_SHAPER_BURST;
 }
 
+static inline uint64_t
+roc_nix_tm_min_shaper_rate_get(void)
+{
+	if (roc_model_is_cn9k() || roc_model_is_cn10k())
+		return NIX_TM_LEGACY_MIN_SHAPER_RATE;
+	return NIX_TM_MIN_SHAPER_RATE;
+}
+
+static inline uint64_t
+roc_nix_tm_max_shaper_rate_get(void)
+{
+	if (roc_model_is_cn9k() || roc_model_is_cn10k())
+		return NIX_TM_LEGACY_MAX_SHAPER_RATE;
+	return NIX_TM_MAX_SHAPER_RATE;
+}
+
+static inline uint64_t
+roc_nix_tm_max_rate_exponent_get(void)
+{
+	if (roc_model_is_cn9k() || roc_model_is_cn10k())
+		return NIX_TM_LEGACY_MAX_RATE_EXPONENT;
+	return NIX_TM_MAX_RATE_EXPONENT;
+}
+
+static inline uint64_t
+roc_nix_tm_max_rate_mantissa_get(void)
+{
+	if (roc_model_is_cn9k() || roc_model_is_cn10k())
+		return NIX_TM_LEGACY_MAX_RATE_MANTISSA;
+	return NIX_TM_MAX_RATE_MANTISSA;
+}
+
 /* Dev */
 int __roc_api roc_nix_dev_init(struct roc_nix *roc_nix);
 int __roc_api roc_nix_dev_fini(struct roc_nix *roc_nix);
