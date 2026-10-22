@@ -45,13 +45,10 @@
 #define NPC_RSS_ACT_GRP_MASK   (0xFFFFF)
 #define NPC_RSS_ACT_ALG_MASK   (0x1F)
 
-#define NPC_MCAM_KEX_FIELD_MAX	  23
-#define NPC_MCAM_MAX_PROTO_FIELDS (NPC_MCAM_KEX_FIELD_MAX + 1)
-#if defined(ROC_PLATFORM_CN20K)
-#define NPC_MCAM_KEY_X4_WORDS 8 /* Number of 64-bit words */
-#else
-#define NPC_MCAM_KEY_X4_WORDS 7 /* Number of 64-bit words */
-#endif
+#define NPC_MCAM_KEX_FIELD_MAX	    23
+#define NPC_MCAM_MAX_PROTO_FIELDS   (NPC_MCAM_KEX_FIELD_MAX + 1)
+#define NPC_MCAM_KEY_X4_WORDS	    7 /* Number of 64-bit words */
+#define NPC_MCAM_KEY_X4_WORDS_CN20K 8 /* Number of 64-bit words */
 
 #define NPC_RVUPF_MAX_9XXX 0x10 /* HRM: RVU_PRIV_CONST */
 #define NPC_RVUPF_MAX_98XX 0x18 /* HRM: RVU_PRIV_CONST */
@@ -487,6 +484,13 @@ roc_npc_action_is_rx_inline(uint64_t npc_action)
 	uint64_t op = npc_action & 0xFULL;
 
 	return (op == NIX_RX_ACTIONOP_UCAST_IPSEC || op == NIX_RX_ACTIONOP_UCAST_CPT);
+}
+
+static inline uint8_t
+npc_mcam_width_dwords(void)
+{
+	return roc_model_is_cn20k() ? ROC_NPC_MAX_MCAM_WIDTH_DWORDS_CN20K :
+				      ROC_NPC_MAX_MCAM_WIDTH_DWORDS;
 }
 
 int npc_mcam_get_stats(struct mbox *mbox, struct roc_npc_flow *flow, uint64_t *count);
