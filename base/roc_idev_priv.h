@@ -49,6 +49,7 @@ struct idev_cfg {
 	struct emdev *emdev;
 	plt_spinlock_t nix_inl_dev_lock;
 	plt_spinlock_t npa_dev_lock;
+	plt_spinlock_t mcs_lock;
 	uint8_t dma_cs_offset;
 };
 
