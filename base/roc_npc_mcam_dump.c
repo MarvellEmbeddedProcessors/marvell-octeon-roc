@@ -242,7 +242,7 @@ npc_flow_print_parse_nibbles_cn20k(FILE *file, struct roc_npc_flow *flow, uint64
 	if (rx_parse.s.laflags) {
 		data = npc_get_nibbles(flow, 1, offset);
 		fprintf(file, "\tNPC_PARSE_NIBBLE_LA_FLAGS:%#02X\n", data);
-		offset += 8;
+		offset += 4;
 	}
 
 	if (rx_parse.s.latype) {
@@ -254,7 +254,7 @@ npc_flow_print_parse_nibbles_cn20k(FILE *file, struct roc_npc_flow *flow, uint64
 	if (rx_parse.s.lbflags) {
 		data = npc_get_nibbles(flow, 1, offset);
 		fprintf(file, "\tNPC_PARSE_NIBBLE_LB_FLAGS:%#02X\n", data);
-		offset += 8;
+		offset += 4;
 	}
 
 	if (rx_parse.s.lbtype) {
@@ -266,7 +266,7 @@ npc_flow_print_parse_nibbles_cn20k(FILE *file, struct roc_npc_flow *flow, uint64
 	if (rx_parse.s.lcflags) {
 		data = npc_get_nibbles(flow, 1, offset);
 		fprintf(file, "\tNPC_PARSE_NIBBLE_LC_FLAGS:%#02X\n", data);
-		offset += 8;
+		offset += 4;
 	}
 
 	if (rx_parse.s.lctype) {
@@ -278,7 +278,7 @@ npc_flow_print_parse_nibbles_cn20k(FILE *file, struct roc_npc_flow *flow, uint64
 	if (rx_parse.s.ldflags) {
 		data = npc_get_nibbles(flow, 1, offset);
 		fprintf(file, "\tNPC_PARSE_NIBBLE_LD_FLAGS:%#02X\n", data);
-		offset += 8;
+		offset += 4;
 	}
 
 	if (rx_parse.s.ldtype) {
@@ -290,7 +290,7 @@ npc_flow_print_parse_nibbles_cn20k(FILE *file, struct roc_npc_flow *flow, uint64
 	if (rx_parse.s.leflags) {
 		data = npc_get_nibbles(flow, 1, offset);
 		fprintf(file, "\tNPC_PARSE_NIBBLE_LE_FLAGS:%#02X\n", data);
-		offset += 8;
+		offset += 4;
 	}
 
 	if (rx_parse.s.letype) {
@@ -302,7 +302,7 @@ npc_flow_print_parse_nibbles_cn20k(FILE *file, struct roc_npc_flow *flow, uint64
 	if (rx_parse.s.lfflags) {
 		data = npc_get_nibbles(flow, 1, offset);
 		fprintf(file, "\tNPC_PARSE_NIBBLE_LF_FLAGS:%#02X\n", data);
-		offset += 8;
+		offset += 4;
 	}
 
 	if (rx_parse.s.lftype) {
@@ -314,7 +314,7 @@ npc_flow_print_parse_nibbles_cn20k(FILE *file, struct roc_npc_flow *flow, uint64
 	if (rx_parse.s.lgflags) {
 		data = npc_get_nibbles(flow, 1, offset);
 		fprintf(file, "\tNPC_PARSE_NIBBLE_LG_FLAGS:%#02X\n", data);
-		offset += 8;
+		offset += 4;
 	}
 
 	if (rx_parse.s.lgtype) {
@@ -326,6 +326,7 @@ npc_flow_print_parse_nibbles_cn20k(FILE *file, struct roc_npc_flow *flow, uint64
 	if (rx_parse.s.lhflags) {
 		data = npc_get_nibbles(flow, 1, offset);
 		fprintf(file, "\tNPC_PARSE_NIBBLE_LH_FLAGS:%#02X\n", data);
+		offset += 4;
 	}
 
 	if (rx_parse.s.lhtype) {

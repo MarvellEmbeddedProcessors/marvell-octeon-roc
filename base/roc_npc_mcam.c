@@ -1024,8 +1024,15 @@ npc_mcam_alloc_and_write(struct npc *npc, struct roc_npc_flow *flow, struct npc_
 		 * For all other rules, set LA LTYPE to match both 1st pass and 2nd pass ltypes.
 		 */
 		if (pst->is_second_pass_rule || (!pst->is_second_pass_rule && pst->has_eth_type)) {
+			uint8_t la_ltype_offset;
+
+			if (roc_model_is_cn20k())
+				la_ltype_offset = NPC_CN20K_LTYPE_LA_OFFSET;
+			else
+				la_ltype_offset = NPC_LTYPE_LA_OFFSET;
+
 			la_offset = plt_popcount32(npc->keyx_supp_nmask[flow->nix_intf] &
-						   ((1ULL << 9 /* LA offset */) - 1));
+						   ((1ULL << la_ltype_offset) - 1));
 			la_offset *= 4;
 
 			mask = ~((0xfULL << la_offset));
