@@ -813,8 +813,8 @@ npc_flow_dump_vtag_action(FILE *file, uint64_t vtag_action, bool is_rx)
 static void
 npc_flow_hw_mcam_entry_dump(FILE *file, struct npc *npc, struct roc_npc_flow *flow)
 {
-	uint64_t mcam_data[ROC_NPC_MAX_MCAM_WIDTH_DWORDS];
-	uint64_t mcam_mask[ROC_NPC_MAX_MCAM_WIDTH_DWORDS];
+	uint64_t mcam_data[ROC_NPC_MAX_MCAM_WIDTH_DWORDS_CN20K];
+	uint64_t mcam_mask[ROC_NPC_MAX_MCAM_WIDTH_DWORDS_CN20K];
 	struct npc_mcam_read_entry_req *mcam_read_req;
 	struct nix_inl_dev *inl_dev = NULL;
 	struct idev_cfg *idev;
@@ -854,8 +854,10 @@ npc_flow_hw_mcam_entry_dump(FILE *file, struct npc *npc, struct roc_npc_flow *fl
 			return;
 		}
 
-		mbox_memcpy(mcam_data, mcam_read_rsp->entry_data.kw, sizeof(mcam_data));
-		mbox_memcpy(mcam_mask, mcam_read_rsp->entry_data.kw_mask, sizeof(mcam_data));
+		mbox_memcpy(mcam_data, mcam_read_rsp->entry_data.kw,
+			    sizeof(mcam_read_rsp->entry_data.kw));
+		mbox_memcpy(mcam_mask, mcam_read_rsp->entry_data.kw_mask,
+			    sizeof(mcam_read_rsp->entry_data.kw_mask));
 		enabled = mcam_read_rsp->enable;
 	} else {
 		struct npc_mcam_read_entry_rsp *mcam_read_rsp;
@@ -867,13 +869,15 @@ npc_flow_hw_mcam_entry_dump(FILE *file, struct npc *npc, struct roc_npc_flow *fl
 			return;
 		}
 
-		mbox_memcpy(mcam_data, mcam_read_rsp->entry_data.kw, sizeof(mcam_data));
-		mbox_memcpy(mcam_mask, mcam_read_rsp->entry_data.kw_mask, sizeof(mcam_data));
+		mbox_memcpy(mcam_data, mcam_read_rsp->entry_data.kw,
+			    sizeof(mcam_read_rsp->entry_data.kw));
+		mbox_memcpy(mcam_mask, mcam_read_rsp->entry_data.kw_mask,
+			    sizeof(mcam_read_rsp->entry_data.kw_mask));
 		enabled = mcam_read_rsp->enable;
 	}
 	fprintf(file, "HW MCAM Data :\n");
 
-	for (i = 0; i < ROC_NPC_MAX_MCAM_WIDTH_DWORDS; i++) {
+	for (i = 0; i < npc_mcam_width_dwords(); i++) {
 		fprintf(file, "\tDW%d     :%016lX\n", i, mcam_data[i]);
 		fprintf(file, "\tDW%d_Mask:%016lX\n", i, mcam_mask[i]);
 	}
@@ -920,7 +924,7 @@ roc_npc_flow_mcam_dump(FILE *file, struct roc_npc *roc_npc, struct roc_npc_flow 
 
 	fprintf(file, "MCAM Raw Data :\n");
 
-	for (i = 0; i < ROC_NPC_MAX_MCAM_WIDTH_DWORDS; i++) {
+	for (i = 0; i < npc_mcam_width_dwords(); i++) {
 		fprintf(file, "\tDW%d     :%016lX\n", i, flow->mcam_data[i]);
 		fprintf(file, "\tDW%d_Mask:%016lX\n", i, flow->mcam_mask[i]);
 	}

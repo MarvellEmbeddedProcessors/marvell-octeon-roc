@@ -19,7 +19,7 @@ npc_get_key_type(struct npc *npc, struct roc_npc_flow *flow)
 
 	/* KEX is configured for both X2 and X4 */
 	/* Check mask for upper 256 bits. if mask is set, then it is X4 entry */
-	for (i = 4; i < ROC_NPC_MAX_MCAM_WIDTH_DWORDS; i++) {
+	for (i = 4; i < ROC_NPC_MAX_MCAM_WIDTH_DWORDS_CN20K; i++) {
 		if (flow->mcam_mask[i] != 0)
 			return NPC_CN20K_MCAM_KEY_X4;
 	}
@@ -259,8 +259,7 @@ npc_update_extraction_data(struct npc_parse_state *pst,
 	if (hdr_off + len > info->len)
 		len = info->len - hdr_off;
 
-	len = npc_check_copysz((ROC_NPC_MAX_MCAM_WIDTH_DWORDS * 8) - x->key_off,
-			       len);
+	len = npc_check_copysz((npc_mcam_width_dwords() * 8) - x->key_off, len);
 	if (len < 0)
 		return NPC_ERR_INVALID_SIZE;
 
@@ -669,7 +668,7 @@ npc_mcam_init(struct npc *npc, struct roc_npc_flow *flow, int mcam_id)
 		req->entry_data.action = flow->npc_action;
 		req->entry_data.vtag_action = flow->vtag_action;
 
-		for (idx = 0; idx < ROC_NPC_MAX_MCAM_WIDTH_DWORDS; idx++) {
+		for (idx = 0; idx < ROC_NPC_MAX_MCAM_WIDTH_DWORDS_CN20K; idx++) {
 			req->entry_data.kw[idx] = 0x0;
 			req->entry_data.kw_mask[idx] = 0x0;
 		}

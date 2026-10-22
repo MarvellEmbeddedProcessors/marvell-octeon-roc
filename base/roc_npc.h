@@ -340,16 +340,13 @@ struct roc_npc_flow {
 	int32_t ctr_id;
 	uint32_t priority;
 	uint32_t mtr_id;
-#if defined(ROC_PLATFORM_CN20K)
-#define ROC_NPC_MAX_MCAM_WIDTH_DWORDS 8
-#define ROC_NPC_MAX_MCAM_PRIORITY     123
-#else
-#define ROC_NPC_MAX_MCAM_WIDTH_DWORDS 7
-#define ROC_NPC_MAX_MCAM_PRIORITY     32
-#endif
+#define ROC_NPC_MAX_MCAM_WIDTH_DWORDS	    7
+#define ROC_NPC_MAX_MCAM_PRIORITY	    32
+#define ROC_NPC_MAX_MCAM_WIDTH_DWORDS_CN20K 8
+#define ROC_NPC_MAX_MCAM_PRIORITY_CN20K	    123
 	/* Contiguous match string */
-	uint64_t mcam_data[ROC_NPC_MAX_MCAM_WIDTH_DWORDS];
-	uint64_t mcam_mask[ROC_NPC_MAX_MCAM_WIDTH_DWORDS];
+	uint64_t mcam_data[ROC_NPC_MAX_MCAM_WIDTH_DWORDS_CN20K];
+	uint64_t mcam_mask[ROC_NPC_MAX_MCAM_WIDTH_DWORDS_CN20K];
 	uint64_t npc_action;
 	uint64_t npc_action2;
 	uint64_t vtag_action;

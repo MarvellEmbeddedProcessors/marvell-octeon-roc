@@ -2077,7 +2077,7 @@ roc_npc_mcam_merge_base_steering_rule(struct roc_npc *roc_npc, struct roc_npc_fl
 			goto exit;
 		}
 		base_entry = &base_rule_rsp->entry;
-		for (idx = 0; idx < ROC_NPC_MAX_MCAM_WIDTH_DWORDS; idx++) {
+		for (idx = 0; idx < ROC_NPC_MAX_MCAM_WIDTH_DWORDS_CN20K; idx++) {
 			flow->mcam_data[idx] |= base_entry->kw[idx];
 			flow->mcam_mask[idx] |= base_entry->kw_mask[idx];
 		}

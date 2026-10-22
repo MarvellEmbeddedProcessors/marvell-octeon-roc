@@ -525,7 +525,7 @@ npc_mcam_write_entry(struct mbox *mbox, struct roc_npc_flow *mcam)
 			if (mcam->use_ctr)
 				npc_mcam_free_counter(mbox, ctr);
 
-			return rc;
+			return -ENOSPC;
 		}
 		cn20k_req->entry = mcam->mcam_id;
 		cn20k_req->intf = mcam->nix_intf;
@@ -537,7 +537,7 @@ npc_mcam_write_entry(struct mbox *mbox, struct roc_npc_flow *mcam)
 		if (mcam->use_ctr)
 			cn20k_req->cntr = mcam->ctr_id;
 
-		for (i = 0; i < NPC_MCAM_KEY_X4_WORDS; i++) {
+		for (i = 0; i < NPC_MCAM_KEY_X4_WORDS_CN20K; i++) {
 			cn20k_req->entry_data.kw[i] = mcam->mcam_data[i];
 			cn20k_req->entry_data.kw_mask[i] = mcam->mcam_mask[i];
 		}
@@ -548,7 +548,7 @@ npc_mcam_write_entry(struct mbox *mbox, struct roc_npc_flow *mcam)
 			if (mcam->use_ctr)
 				npc_mcam_free_counter(mbox, ctr);
 
-			return rc;
+			return -ENOSPC;
 		}
 		req->entry = mcam->mcam_id;
 		req->intf = mcam->nix_intf;
@@ -987,7 +987,7 @@ npc_mcam_alloc_and_write(struct npc *npc, struct roc_npc_flow *flow, struct npc_
 	 */
 	req.entry_data.vtag_action = flow->vtag_action;
 
-	for (idx = 0; idx < ROC_NPC_MAX_MCAM_WIDTH_DWORDS; idx++) {
+	for (idx = 0; idx < ROC_NPC_MAX_MCAM_WIDTH_DWORDS_CN20K; idx++) {
 		req.entry_data.kw[idx] = flow->mcam_data[idx];
 		req.entry_data.kw_mask[idx] = flow->mcam_mask[idx];
 	}
@@ -1062,7 +1062,7 @@ npc_mcam_alloc_and_write(struct npc *npc, struct roc_npc_flow *flow, struct npc_
 			if (flow->use_ctr)
 				npc_mcam_free_counter(mbox, ctr);
 
-			return rc;
+			return -ENOSPC;
 		}
 		cn20k_req->entry = req.entry;
 		cn20k_req->intf = req.intf;
@@ -1332,13 +1332,12 @@ npc_program_mcam(struct npc *npc, struct npc_parse_state *pst, bool mcam_alloc)
 				plt_err("Failed to fetch VF's base MCAM entry");
 				return rc;
 			}
-			mbox_put(mbox);
 			base_entry = &base_rule_rsp->entry;
-			for (idx = 0; idx < ROC_NPC_MAX_MCAM_WIDTH_DWORDS; idx++) {
+			for (idx = 0; idx < ROC_NPC_MAX_MCAM_WIDTH_DWORDS_CN20K; idx++) {
 				pst->flow->mcam_data[idx] |= base_entry->kw[idx];
 				pst->flow->mcam_mask[idx] |= base_entry->kw_mask[idx];
 			}
-
+			mbox_put(mbox);
 		} else {
 			struct npc_mcam_read_base_rule_rsp *base_rule_rsp;
 			struct mcam_entry *base_entry;
@@ -1350,12 +1349,12 @@ npc_program_mcam(struct npc *npc, struct npc_parse_state *pst, bool mcam_alloc)
 				plt_err("Failed to fetch VF's base MCAM entry");
 				return rc;
 			}
-			mbox_put(mbox);
 			base_entry = &base_rule_rsp->entry_data;
 			for (idx = 0; idx < ROC_NPC_MAX_MCAM_WIDTH_DWORDS; idx++) {
 				pst->flow->mcam_data[idx] |= base_entry->kw[idx];
 				pst->flow->mcam_mask[idx] |= base_entry->kw_mask[idx];
 			}
+			mbox_put(mbox);
 		}
 	}
 
