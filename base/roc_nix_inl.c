@@ -2919,3 +2919,35 @@ roc_nix_inl_is_cq_ena(struct roc_nix *roc_nix)
 		return 0;
 	}
 }
+
+int
+roc_nix_inl_inb_default_cptq_get(uint16_t *cptq)
+{
+	struct idev_cfg *idev = idev_get_cfg();
+	struct nix_inl_dev *inl_dev;
+
+	if (!cptq) {
+		plt_err("Invalid cptq argument");
+		return -EINVAL;
+	}
+
+	if (!idev || !idev->nix_inl_dev) {
+		plt_err("Inline device not probed");
+		return -ENODEV;
+	}
+
+	inl_dev = idev->nix_inl_dev;
+	if (!inl_dev->nb_inb_cptlfs) {
+		*cptq = 0;
+		return 0;
+	}
+
+	*cptq = inl_dev->nix_inb_qids[inl_dev->inb_cpt_lf_id];
+	if (*cptq >= ROC_CPT_MAX_RXC_QUEUES) {
+		plt_err("Default inbound CPT queue %u exceeds max %u", *cptq,
+			ROC_CPT_MAX_RXC_QUEUES);
+		return -EINVAL;
+	}
+
+	return 0;
+}

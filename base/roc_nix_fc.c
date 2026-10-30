@@ -82,16 +82,24 @@ nix_fc_rxchan_bpid_set(struct roc_nix *roc_nix, bool enable)
 		if (req == NULL)
 			goto exit;
 		req->chan_base = 0;
-		if (roc_nix_is_lbk(roc_nix) || roc_nix_is_sdp(roc_nix))
+
+		if (roc_feature_nix_has_inl_multi_queue()) {
+			req->chan_cnt = ROC_CPT_MAX_RXC_QUEUES;
+			req->bpid_per_chan = 1;
+		} else if (roc_nix_is_lbk(roc_nix) || roc_nix_is_sdp(roc_nix)) {
 			req->chan_cnt = NIX_LBK_MAX_CHAN;
-		else
+			req->bpid_per_chan = 0;
+		} else {
 			req->chan_cnt = NIX_CGX_MAX_CHAN;
-		req->bpid_per_chan = 0;
+			req->bpid_per_chan = 0;
+		}
 
 		rc = mbox_process_msg(mbox, (void *)&rsp);
 		if (rc)
 			goto exit;
-		nix->cpt_lbpid = rsp->chan_bpid[0] & 0x7FF;
+
+		for (i = 0; i < rsp->chan_cnt; i++)
+			nix->cpt_lbpid[i] = rsp->chan_bpid[i] & 0x7FF;
 	}
 
 	/* CPT to NIX BP on all channels; skip for multiple CPT queues */

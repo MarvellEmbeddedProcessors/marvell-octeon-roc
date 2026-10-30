@@ -1216,8 +1216,8 @@ roc_nix_cn20k_cq_init(struct roc_nix *roc_nix, struct roc_nix_cq *cq)
 	volatile struct nix_cn20k_cq_ctx_s *cq_ctx;
 	uint16_t drop_thresh = NIX_CQ_FIRST_DROP_THRESH_LEVEL;
 	uint16_t bp_thresh = NIX_CQ_BP_THRESH_LEVEL;
-	uint16_t cpt_lbpid = nix->cpt_lbpid;
 	struct nix_cn20k_aq_enq_req *aq;
+	uint16_t cpt_lbpid = 0;
 	enum nix_q_size qsize;
 	size_t desc_sz;
 	int rc;
@@ -1260,6 +1260,11 @@ roc_nix_cn20k_cq_init(struct roc_nix *roc_nix, struct roc_nix_cq *cq)
 	cq_ctx->cq_err_int_ena = BIT(NIX_CQERRINT_CQE_FAULT);
 	cq_ctx->cq_err_int_ena |= BIT(NIX_CQERRINT_DOOR_ERR);
 	if (roc_feature_nix_has_late_bp() && roc_nix_inl_inb_is_enabled(roc_nix)) {
+		uint16_t cptq = 0;
+
+		if (!roc_nix_inl_inb_default_cptq_get(&cptq))
+			cpt_lbpid = nix->cpt_lbpid[cptq];
+
 		cq_ctx->cq_err_int_ena |= BIT(NIX_CQERRINT_CPT_DROP);
 		cq_ctx->cpt_drop_err_en = 0;
 		/* Enable Late BP only when non zero CPT BPID */
@@ -1321,7 +1326,7 @@ roc_nix_cq_init(struct roc_nix *roc_nix, struct roc_nix_cq *cq)
 	struct nix *nix = roc_nix_to_nix_priv(roc_nix);
 	struct mbox *mbox = (&nix->dev)->mbox;
 	volatile struct nix_cq_ctx_s *cq_ctx = NULL;
-	uint16_t cpt_lbpid = nix->cpt_lbpid;
+	uint16_t cpt_lbpid = nix->cpt_lbpid[0];
 	enum nix_q_size qsize;
 	bool force_tail_drop;
 	uint16_t drop_thresh;

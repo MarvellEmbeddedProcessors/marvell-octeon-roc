@@ -232,7 +232,7 @@ struct nix {
 	uint16_t nb_cpt_lf;
 	uint16_t outb_se_ring_cnt;
 	uint16_t outb_se_ring_base;
-	uint16_t cpt_lbpid;
+	uint16_t cpt_lbpid[ROC_CPT_MAX_RXC_QUEUES];
 	/* Per inbound CPT queue BPID cache; index 0 is the non-PFC default */
 	uint16_t cpt_nixbpid[NIX_RX_INL_IPSEC_PCP_QSEL_CNT];
 	/* Cached PCP->CPTQ mapping, used by PFC path to map CPTQ BPIDs to chans */
