@@ -2162,6 +2162,7 @@ roc_nix_inl_dev_rq_get(struct roc_nix_rq *rq, bool enable)
 	/* Take RQ pool attributes from the first ethdev RQ */
 	inl_rq->qid = inl_rq_id;
 	inl_rq->aura_handle = rq->aura_handle;
+	inl_rq->lpb_mp = rq->lpb_mp;
 	inl_rq->first_skip = rq->first_skip;
 	inl_rq->later_skip = rq->later_skip;
 	inl_rq->lpb_size = rq->lpb_size;
