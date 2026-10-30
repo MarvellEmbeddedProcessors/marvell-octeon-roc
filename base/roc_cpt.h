@@ -26,6 +26,7 @@
 
 #define ROC_CPT_MAX_LFS 64
 #define ROC_CPT_MAX_BLKS 2
+#define ROC_CPT_MAX_RXC_QUEUES 16
 #define ROC_CN10K_CPT_INST_DW_M1                                               \
 	((uint64_t)(((sizeof(struct cpt_inst_s) / 16) - 1) & 0x7))
 #define ROC_CN10K_TWO_CPT_INST_DW_M1                                           \
