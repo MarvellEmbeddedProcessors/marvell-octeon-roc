@@ -202,6 +202,22 @@ nix_lf_sq_irq_get_and_clear(struct nix *nix, uint16_t sq)
 	return nix_lf_q_irq_get_and_clear(nix, sq, NIX_LF_SQ_OP_INT, ~0x1ff00);
 }
 
+static inline void
+nix_lf_cint_cnt_clear(struct nix *nix, uint16_t q)
+{
+	uint64_t reg, wdata;
+	int32_t ecount;
+	int16_t qcount;
+
+	reg = plt_read64(nix->base + NIX_LF_CINTX_CNT(q));
+	ecount = (int32_t)(reg & 0xffffffffULL);
+	qcount = (int16_t)((reg >> 32) & 0xffffULL);
+	/* Each field is updated by its own signed delta on write */
+	wdata = ((uint64_t)(-(int64_t)ecount) & 0xffffffffULL) |
+		(((uint64_t)(-(int64_t)qcount) & 0xffffULL) << 32);
+	plt_write64(wdata, nix->base + NIX_LF_CINTX_CNT(q));
+}
+
 static inline bool
 nix_lf_is_sqb_null(struct dev *dev, int q)
 {
@@ -443,7 +459,7 @@ roc_nix_register_cq_irqs(struct roc_nix *roc_nix)
 		vec = nix->msixoff + NIX_LF_INT_VEC_CINT_START + q;
 
 		/* Clear CINT CNT */
-		plt_write64(0, nix->base + NIX_LF_CINTX_CNT(q));
+		nix_lf_cint_cnt_clear(nix, q);
 
 		/* Clear interrupt */
 		plt_write64(BIT_ULL(0), nix->base + NIX_LF_CINTX_ENA_W1C(q));
@@ -504,7 +520,7 @@ roc_nix_unregister_cq_irqs(struct roc_nix *roc_nix)
 		vec = nix->msixoff + NIX_LF_INT_VEC_CINT_START + q;
 
 		/* Clear CINT CNT */
-		plt_write64(0, nix->base + NIX_LF_CINTX_CNT(q));
+		nix_lf_cint_cnt_clear(nix, q);
 
 		/* Clear interrupt */
 		plt_write64(BIT_ULL(0), nix->base + NIX_LF_CINTX_ENA_W1C(q));
