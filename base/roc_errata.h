@@ -79,7 +79,7 @@ roc_errata_nix_has_perf_issue_on_stats_update(void)
 static inline bool
 roc_errata_cpt_hang_on_x2p_bp(void)
 {
-	return roc_model_is_cn10ka_a0() || roc_model_is_cn10ka_a1();
+	return roc_model_is_cn20ka_a0() || roc_model_is_cn10ka_a0() || roc_model_is_cn10ka_a1();
 }
 
 /* Errata IPBUCPT-38756 */
