@@ -467,6 +467,8 @@ struct roc_nix_rq {
 	uint64_t meta_aura_handle;
 	uint16_t inl_dev_refs;
 	uint8_t tc;
+	/* LPB mempool of first eth RQ bound to inline dev */
+	uintptr_t lpb_mp;
 };
 
 struct roc_nix_cq {
