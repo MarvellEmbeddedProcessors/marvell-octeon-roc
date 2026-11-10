@@ -48,28 +48,38 @@
 #define MLAB_PNB_CMD_TYPE	 0x113a0
 
 /* MLW register offsets / CN20KA */
-#define ML_AF_CFG	      0x10000
-#define ML_AF_MLR_BASE	      0x10008
-#define ML_AF_JOB_MGR_CTRL    0x10060
-#define ML_AF_LFX_MLR_BASE(a) (0x10e00 + 8 * ((a)&0x3f))
-#define ML_AF_LFX_MLR_SIZE(a) (0x11600 + 8 * ((a)&0x3f))
-#define ML_AF_MLR_SIZE	      0x10268
-#define ML_LF_JCMDQ_INX(a)    (0x0 + 8 * (uint64_t)(a))
-#define ML_LF_JCMDQ_STATUS    (0x10)
+#define ML_AF_CFG		    0x10000
+#define ML_AF_MLR_BASE		    0x10008
+#define ML_AF_AXI_BRIDGE_CTRLX(a)   (0x10020 | (uint64_t)(a) << 3)
+#define ML_AF_JOB_MGR_CTRL	    0x10060
+#define ML_AF_LFX_JOB_IN_JMGR(a)    (0x10400 + 8 * ((a) & 0x3f))
+#define ML_AF_LFX_MLR_BASE(a)	    (0x10e00 + 8 * ((a) & 0x3f))
+#define ML_AF_LFX_MLR_SIZE(a)	    (0x11600 + 8 * ((a) & 0x3f))
+#define ML_AF_LFX_ACC_CONTROL(a)    (0x11800 + 8 * ((a) & 0x3f))
+#define ML_AF_MLR_SIZE		    0x10268
+#define ML_AF_ANBX_BACKP_DISABLE(a) (0x18000 | (uint64_t)(a) << 12)
+#define ML_AF_ANBX_NCBI_P_OVR(a)    (0x18010 | (uint64_t)(a) << 12)
+#define ML_AF_ANBX_NCBI_NP_OVR(a)   (0x18020 | (uint64_t)(a) << 12)
+#define ML_LF_JCMDQ_INX(a)	    (0x0 + 8 * (uint64_t)(a))
+#define ML_LF_JCMDQ_STATUS	    (0x10)
+#define ML_LF_ERR_INT		    (0x018)
+#define ML_LF_ERR_INT_W1S	    (0x020)
+#define ML_LF_ERR_INT_ENA_W1C	    (0x028)
+#define ML_LF_ERR_INT_ENA_W1S	    (0x030)
+
+#define ML_LF_INT_VEC_ERR_INT (0x0ull)
 
 /* MLW register offsets / CNF20KA */
-#define MLAB_AF_CFG	     0x18000
-#define MLAB_AF_MLR_BASE     0x1b200
-#define MLAB_AF_MLR_SIZE     0x1b240
-#define MLAB_AF_JOB_MGR_CTRL 0x18060
+#define MLAB_AF_CFG		       0x18000
+#define MLAB_AF_MLR_BASE	       0x1b200
+#define MLAB_AF_MLR_SIZE	       0x1b240
+#define MLAB_AF_JOB_MGR_CTRL	       0x18060
+#define MLAB_AF_LFX_MLR_BASE(a)	       (0x1a200 + 8 * ((a) & 0x7f))
+#define MLAB_AF_LFX_MLR_SIZE(a)	       (0x1a240 + 8 * ((a) & 0x7f))
+#define MLAB_AF_LFX_MLR_ACC_CONTROL(a) (0x1a2c0 + 8 * ((a) & 0x7f))
 
 /* ML Scratch register / All SoCs */
 #define ML_SCRATCHX(a) (0x14000 | (uint64_t)(a) << 3)
-
-/* MLIP configuration register offsets / ML_PF_BAR0 */
-#define ML_SW_RST_CTRL		      0x12084000
-#define ML_A35_0_RST_VECTOR_BASE_W(a) (0x12084014 + (a) * (0x04))
-#define ML_A35_1_RST_VECTOR_BASE_W(a) (0x1208401c + (a) * (0x04))
 
 /* MLW scratch register offsets */
 #define ML_SCRATCH_WORK_PTR	      (ML_SCRATCHX(0))
@@ -81,6 +91,21 @@
 #define ML_SCRATCH_EXCEPTION_SP_C0    (ML_SCRATCHX(6))
 #define ML_SCRATCH_EXCEPTION_SP_C1    (ML_SCRATCHX(7))
 #define ML_SCRATCH_CHIP_MODEL	      (ML_SCRATCHX(9))
+
+/* MLIP Registers - CN10KA / CNF20KB */
+#define ML_SW_RST_CTRL		      0x12084000
+#define ML_A35_0_RST_VECTOR_BASE_W(a) (0x12084014 + (a) * (0x04))
+#define ML_A35_1_RST_VECTOR_BASE_W(a) (0x1208401c + (a) * (0x04))
+
+/* MLIP Registers - CN20KA */
+#define ML_CN20KA_SW_RST_CTRL		     0xA084000
+#define ML_CN20KA_A35_0_RST_VECTOR_BASE_W(a) (0xA084014 + (a) * (0x04))
+#define ML_CN20KA_A35_1_RST_VECTOR_BASE_W(a) (0xA08401c + (a) * (0x04))
+
+/* MLIP Registers - CNF20KA */
+#define ML_CNF20KA_ML_SW_RST_CTRL		 0xa044000
+#define ML_CNF20KA_ML_A35_0_RST_VECTOR_BASE_W(a) (0xa044014 + (a) * (0x04))
+#define ML_CNF20KA_ML_A35_1_RST_VECTOR_BASE_W(a) (0xa04401c + (a) * (0x04))
 
 /* ENGINES */
 #define ML_NUM_ENGINES_MAX     2

@@ -267,6 +267,59 @@ process_rvu_lf_msgs(struct dev *dev, uint16_t vf, struct mbox_msghdr *msg, size_
 	return 0;
 }
 
+static int
+vf_pf_msg_handler(struct dev *dev, uint16_t vf, struct mbox_msghdr *msg, size_t size)
+{
+	uint16_t max_bits = sizeof(dev->active_vfs[0]) * 8;
+	uint8_t req[MBOX_MSG_REQ_SIZE_MAX];
+	struct msg_rsp *rsp;
+	uint16_t rsp_len;
+	int ret = 0;
+	void *resp;
+	int rc = 0;
+
+	/* Handle mailbox message in PF. Release spinlock to permit to handle
+	 * the message locally and trigger new mbox messages to AF if required.
+	 */
+	mbox_put(dev->mbox);
+	dev->active_vfs[vf / max_bits] |= BIT_ULL(vf % max_bits);
+
+	if ((size - sizeof(struct mbox_msghdr)) > MBOX_MSG_REQ_SIZE_MAX) {
+		plt_err("MBOX request size greater than %d", MBOX_MSG_REQ_SIZE_MAX);
+		ret = -1;
+		goto done;
+	}
+	mbox_memcpy(req, (uint8_t *)msg + sizeof(struct mbox_msghdr),
+		    size - sizeof(struct mbox_msghdr));
+
+	rc = dev->ops->msg_process_cb(dev_get_vf(msg->pcifunc), msg->id, req,
+				      size - sizeof(struct mbox_msghdr), &resp, &rsp_len);
+	if (rc < 0) {
+		plt_err("Failed to process VF%d  message", vf);
+		ret = -1;
+		goto done;
+	}
+
+	rsp = (struct msg_rsp *)mbox_alloc_msg(&dev->mbox_vfpf, vf,
+					       rsp_len + sizeof(struct mbox_msghdr));
+	if (!rsp) {
+		plt_err("Failed to alloc VF%d response message", vf);
+		ret = -1;
+		goto done;
+	}
+
+	mbox_rsp_init(msg->id, rsp);
+
+	mbox_memcpy((uint8_t *)rsp + sizeof(struct mbox_msghdr), resp, rsp_len);
+	/* PF/VF function ID */
+	rsp->hdr.pcifunc = msg->pcifunc;
+	rsp->hdr.rc = 0;
+
+done:
+	mbox_get(dev->mbox);
+	return ret;
+}
+
 /* PF receives mbox DOWN messages from VF and forwards to AF */
 static int
 vf_pf_process_msgs(struct dev *dev, uint16_t vf)
@@ -317,6 +370,9 @@ vf_pf_process_msgs(struct dev *dev, uint16_t vf)
 			rsp->hdr.rc = 0;
 		} else if (roc_rvu_lf_msg_id_range_check(dev->roc_rvu_lf, msg->id)) {
 			if (process_rvu_lf_msgs(dev, vf, msg, size) < 0)
+				continue;
+		} else if (roc_ml_msg_id_range_check(dev->roc_ml, msg->id)) {
+			if (vf_pf_msg_handler(dev, vf, msg, size) < 0)
 				continue;
 		} else {
 			struct mbox_msghdr *af_req;

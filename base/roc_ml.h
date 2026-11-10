@@ -14,13 +14,17 @@ struct roc_ml;
 #define ROC_ML_MEM_SZ	  (6 * 1024)
 #define ROC_ML_TIMEOUT_MS 10000
 
-/* ML_CFG */
+/* ML_CFG - mask */
 #define ROC_ML_CFG_JD_SIZE	  GENMASK_ULL(1, 0)
 #define ROC_ML_CFG_MLIP_ENA	  BIT_ULL(2)
 #define ROC_ML_CFG_BUSY		  BIT_ULL(3)
 #define ROC_ML_CFG_WRAP_CLK_FORCE BIT_ULL(4)
 #define ROC_ML_CFG_MLIP_CLK_FORCE BIT_ULL(5)
 #define ROC_ML_CFG_ENA		  BIT_ULL(6)
+#define ROC_ML_CFG_AF_GMID	  GENMASK_ULL(10, 8)
+
+/* ML_CFG - defaults */
+#define ROC_ML_CFG_MLIP_BUSY_WAIT_DEFAULT 0x80
 
 /* ML_MLR_BASE */
 #define ROC_ML_MLR_BASE_BASE GENMASK_ULL(51, 0)
@@ -70,6 +74,7 @@ struct roc_ml;
 /* ML_ANBX_BACKP_DISABLE */
 #define ROC_ML_ANBX_BACKP_DISABLE_ANB_EXTMSTR_B_BACKP_DISABLE BIT_ULL(0)
 #define ROC_ML_ANBX_BACKP_DISABLE_ANB_EXTMSTR_R_BACKP_DISABLE BIT_ULL(1)
+#define ROC_ML_ANBX_BACKP_DISABLE_ANB_CHICKEN_W_WAIT_FOR_AW   BIT_ULL(2)
 
 /* ML_ANBX_NCBI_P_OVR */
 #define ML_ANBX_NCBI_P_OVR_ANB_NCBI_P_MSH_DST_OVR_VLD	 BIT_ULL(0)
@@ -106,11 +111,16 @@ struct roc_ml;
 /* ML_LF_JCMDQ_STATUS */
 #define ROC_ML_LF_JCMDQ_STATUS_AVAIL_COUNT GENMASK_ULL(2, 0)
 
+/* MLAB_AF_LFX_MLR_ACC_CONTROL */
+#define ROC_MLAB_AF_LFX_MLR_ACC_CONTROL_WR_ENA BIT_ULL(0)
+#define ROC_MLAB_AF_LFX_MLR_ACC_CONTROL_RD_ENA BIT_ULL(1)
+
 /* ML_SW_RST_CTRL */
 #define ROC_ML_SW_RST_CTRL_ACC_RST  BIT_ULL(0)
 #define ROC_ML_SW_RST_CTRL_CMPC_RST BIT_ULL(1)
 
 struct roc_ml_lf {
+	struct plt_intr_handle *intr_handle;
 	/* Input parameters */
 	uint16_t slot;
 	uint16_t lf_id;
@@ -137,6 +147,8 @@ struct roc_ml {
 	/* Device specific register read / write */
 	uint64_t (*reg_read64)(struct roc_ml *roc_ml, uint64_t offset);
 	void (*reg_write64)(struct roc_ml *roc_ml, uint64_t val, uint64_t offset);
+	uint32_t (*reg_read32)(struct roc_ml *roc_ml, uint64_t offset);
+	void (*reg_write32)(struct roc_ml *roc_ml, uint32_t val, uint64_t offset);
 
 	/* Architecture specific MLW register offsets */
 	uint64_t cfg;
@@ -205,5 +217,9 @@ uint16_t __roc_api roc_ml_sso_pf_func_get(void);
 /* LF functions */
 bool __roc_api roc_ml_lf_jcmdq_enqueue_nolock(struct roc_ml_lf *lf, struct ml_job_cmd_s *job_cmd);
 bool __roc_api roc_ml_lf_jcmdq_enqueue_splock(struct roc_ml_lf *lf, struct ml_job_cmd_s *job_cmd);
+
+/* IRQ */
+int ml_register_irqs(struct roc_ml_lf *lf);
+void ml_unregister_irqs(struct roc_ml_lf *lf);
 
 #endif /*_ROC_ML_H_*/

@@ -115,6 +115,7 @@
 
 /* ML */
 #include "roc_ml.h"
+#include "roc_ml_mbox.h"
 
 /* MACsec */
 #include "roc_mcs.h"

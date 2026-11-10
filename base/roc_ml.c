@@ -192,20 +192,118 @@ roc_ml_reg_wait_to_clear(struct roc_ml *roc_ml, uint64_t offset, uint64_t mask)
 	return -ETIME;
 }
 
-uint32_t
-roc_ml_reg_read32(struct roc_ml *roc_ml, uint64_t offset)
+static int
+roc_ml_af_reg_read32(struct roc_ml *roc_ml, uint64_t reg, uint32_t *val)
+{
+	struct ml *ml = roc_ml_to_ml_priv(roc_ml);
+	struct ml_rd_wr_reg_msg *msg;
+	struct dev *dev = &ml->dev;
+	struct mbox *mbox = mbox_get(dev->mbox);
+	int rc;
+
+	msg = mbox_alloc_msg_ml_rd_wr_register(mbox);
+	if (msg == NULL) {
+		rc = -EIO;
+		goto exit;
+	}
+
+	msg->hdr.pcifunc = dev->pf_func;
+
+	msg->is_write = 0;
+	msg->reg_offset = reg;
+	msg->ret_val = (uint64_t *)val;
+
+	rc = mbox_process_msg(dev->mbox, (void *)&msg);
+	if (rc) {
+		rc = -EIO;
+		goto exit;
+	}
+
+	*val = (msg->val & 0xFFFFFFFF);
+
+	rc = 0;
+exit:
+	mbox_put(mbox);
+
+	return rc;
+}
+
+static int
+roc_ml_af_reg_write32(struct roc_ml *roc_ml, uint64_t reg, uint32_t val)
+{
+	struct ml *ml = roc_ml_to_ml_priv(roc_ml);
+	struct ml_rd_wr_reg_msg *msg;
+	struct dev *dev = &ml->dev;
+	struct mbox *mbox = mbox_get(dev->mbox);
+	int rc;
+
+	msg = mbox_alloc_msg_ml_rd_wr_register(mbox);
+	if (msg == NULL) {
+		rc = -EIO;
+		goto exit;
+	}
+
+	msg->hdr.pcifunc = dev->pf_func;
+
+	msg->is_write = 1;
+	msg->reg_offset = reg;
+	msg->val = val;
+
+	rc = mbox_process_msg(dev->mbox, (void *)&msg);
+	if (rc) {
+		rc = -EIO;
+		goto exit;
+	}
+
+	rc = 0;
+exit:
+	mbox_put(mbox);
+
+	return rc;
+}
+
+static uint32_t
+roc_ml_reg_read32_cnxk(struct roc_ml *roc_ml, uint64_t offset)
 {
 	struct ml *ml = roc_ml_to_ml_priv(roc_ml);
 
 	return plt_read32(PLT_PTR_ADD(ml->ml_reg_addr, offset));
 }
 
-void
-roc_ml_reg_write32(struct roc_ml *roc_ml, uint32_t val, uint64_t offset)
+static void
+roc_ml_reg_write32_cnxk(struct roc_ml *roc_ml, uint32_t val, uint64_t offset)
 {
 	struct ml *ml = roc_ml_to_ml_priv(roc_ml);
 
 	plt_write32(val, PLT_PTR_ADD(ml->ml_reg_addr, offset));
+}
+
+static uint32_t
+roc_ml_reg_read32_cn20ka(struct roc_ml *roc_ml, uint64_t offset)
+{
+	uint32_t val = 0;
+
+	roc_ml_af_reg_read32(roc_ml, offset, &val);
+
+	return (val & 0xFFFFFFFF);
+}
+
+static void
+roc_ml_reg_write32_cn20ka(struct roc_ml *roc_ml, uint32_t val, uint64_t offset)
+{
+	roc_ml_af_reg_write32(roc_ml, offset, val);
+}
+
+uint32_t
+roc_ml_reg_read32(struct roc_ml *roc_ml, uint64_t offset)
+{
+	return roc_ml->reg_read32(roc_ml, offset);
+}
+
+void
+roc_ml_reg_write32(struct roc_ml *roc_ml, uint32_t val, uint64_t offset)
+{
+	roc_ml->reg_write32(roc_ml, val, offset);
 }
 
 void
@@ -473,6 +571,82 @@ roc_ml_mlip_is_enabled(struct roc_ml *roc_ml)
 	return false;
 }
 
+static int
+roc_ml_mlip_reset_cn20ka(struct roc_ml *roc_ml)
+{
+	uint64_t reg_val;
+	int ret = 0;
+
+	/* Wait for all active jobs to finish.
+	 * ML_CFG[ENA] : When set, MLW will accept job commands. This
+	 * bit can be cleared at any time. If [BUSY] is set, software
+	 * must wait until [BUSY] == 0 before setting this bit.
+	 */
+	roc_ml_reg_wait_to_clear(roc_ml, ML_CFG, ROC_ML_CFG_BUSY);
+
+	/* (1) Set ML_AF_AXI_BRIDGE_CTRL(0..1)[FENCE] = 1 to instruct
+	 * the AXI bridge not to accept any new transactions from MLIP.
+	 */
+	reg_val = roc_ml_reg_read64(roc_ml, ML_AF_AXI_BRIDGE_CTRLX(0));
+	reg_val |= ROC_ML_AXI_BRIDGE_CTRL_FENCE;
+	roc_ml_reg_write64(roc_ml, reg_val, ML_AF_AXI_BRIDGE_CTRLX(0));
+	plt_ml_dbg("ML_AF_AXI_BRIDGE_CTRLX(0) = 0x%" PRIx64,
+		   PLT_U64_CAST(roc_ml_reg_read64(roc_ml, ML_AF_AXI_BRIDGE_CTRLX(0))));
+
+	reg_val = roc_ml_reg_read64(roc_ml, ML_AF_AXI_BRIDGE_CTRLX(1));
+	reg_val |= ROC_ML_AXI_BRIDGE_CTRL_FENCE;
+	roc_ml_reg_write64(roc_ml, reg_val, ML_AF_AXI_BRIDGE_CTRLX(1));
+	plt_ml_dbg("ML_AF_AXI_BRIDGE_CTRLX(1) = 0x%" PRIx64,
+		   PLT_U64_CAST(roc_ml_reg_read64(roc_ml, ML_AF_AXI_BRIDGE_CTRLX(1))));
+
+	/* (2) Wait until ML_AF_AXI_BRIDGE_CTRL(0..1)[BUSY] = 0 which indicates
+	 * that there is no outstanding transactions on AXI-NCB paths.
+	 */
+	ret = roc_ml_reg_wait_to_clear(roc_ml, ML_AF_AXI_BRIDGE_CTRLX(0),
+				       ROC_ML_AXI_BRIDGE_CTRL_BUSY);
+	if (ret)
+		plt_err("ML_AF_AXI_BRIDGE_CTRL(0)[BUSY] did not clear in time");
+
+	ret = roc_ml_reg_wait_to_clear(roc_ml, ML_AF_AXI_BRIDGE_CTRLX(1),
+				       ROC_ML_AXI_BRIDGE_CTRL_BUSY);
+	if (ret)
+		plt_err("ML_AF_AXI_BRIDGE_CTRL(1)[BUSY] did not clear in time");
+
+	/* (3) Wait until ML_AF_JOB_MGR_CTRL[BUSY] = 0 which indicates that
+	 * there are no pending AXI transactions in the MLW’s job manager.
+	 */
+	ret = roc_ml_reg_wait_to_clear(roc_ml, ML_AF_JOB_MGR_CTRL, ROC_ML_JOB_MGR_CTRL_BUSY);
+	if (ret)
+		plt_err("ML_AF_JOB_MGR_CTRL[BUSY] did not clear in time");
+
+	/* (4) Set ML_AF_CFG[ENA] = 0. */
+	reg_val = roc_ml_reg_read64(roc_ml, ML_AF_CFG);
+	reg_val &= ~ROC_ML_CFG_ENA;
+	roc_ml_reg_write64(roc_ml, reg_val, ML_AF_CFG);
+	plt_ml_dbg("ML_AF_CFG = 0x%" PRIx64, PLT_U64_CAST(roc_ml_reg_read64(roc_ml, ML_AF_CFG)));
+
+	/* (5) Set ML_AF_CFG[MLIP_ENA] = 0. */
+	reg_val = roc_ml_reg_read64(roc_ml, ML_AF_CFG);
+	reg_val &= ~ROC_ML_CFG_MLIP_ENA;
+	roc_ml_reg_write64(roc_ml, reg_val, ML_AF_CFG);
+	plt_ml_dbg("ML_AF_CFG = 0x%" PRIx64, PLT_U64_CAST(roc_ml_reg_read64(roc_ml, ML_AF_CFG)));
+
+	/* (6) Set ML_AF_AXI_BRIDGE_CTRL(0..1)[FENCE]. */
+	reg_val = roc_ml_reg_read64(roc_ml, ML_AF_AXI_BRIDGE_CTRLX(0));
+	reg_val &= ~ROC_ML_AXI_BRIDGE_CTRL_FENCE;
+	roc_ml_reg_write64(roc_ml, reg_val, ML_AF_AXI_BRIDGE_CTRLX(0));
+	plt_ml_dbg("ML_AF_AXI_BRIDGE_CTRLX(0) = 0x%" PRIx64,
+		   PLT_U64_CAST(roc_ml_reg_read64(roc_ml, ML_AF_AXI_BRIDGE_CTRLX(0))));
+
+	reg_val = roc_ml_reg_read64(roc_ml, ML_AF_AXI_BRIDGE_CTRLX(1));
+	reg_val &= ~ROC_ML_AXI_BRIDGE_CTRL_FENCE;
+	roc_ml_reg_write64(roc_ml, reg_val, ML_AF_AXI_BRIDGE_CTRLX(1));
+	plt_ml_dbg("ML_AF_AXI_BRIDGE_CTRLX(1) = 0x%" PRIx64,
+		   PLT_U64_CAST(roc_ml_reg_read64(roc_ml, ML_AF_AXI_BRIDGE_CTRLX(1))));
+
+	return ret;
+}
+
 int
 roc_ml_mlip_reset(struct roc_ml *roc_ml, bool force)
 {
@@ -677,6 +851,9 @@ cnf10kb_mlip_reset_stage_4b:
 		roc_ml_reg_write64(roc_ml, reg_val, MLAB_AXI_BRIDGE_CTRLX(1));
 	}
 
+	if (roc_model_is_cn20ka())
+		return roc_ml_mlip_reset_cn20ka(roc_ml);
+
 	return 0;
 }
 
@@ -721,6 +898,8 @@ roc_ml_dev_init_cn10k(struct roc_ml *roc_ml)
 
 	roc_ml->reg_read64 = roc_ml_reg_read64_cnxk;
 	roc_ml->reg_write64 = roc_ml_reg_write64_cnxk;
+	roc_ml->reg_read32 = roc_ml_reg_read32_cnxk;
+	roc_ml->reg_write32 = roc_ml_reg_write32_cnxk;
 
 	roc_ml->cfg = ML_CFG;
 	roc_ml->mlr_base = ML_MLR_BASE;
@@ -937,11 +1116,13 @@ roc_ml_dev_init_cn20k(struct roc_ml *roc_ml)
 	struct ml_msix_offset_rsp *rsp;
 	uint16_t nb_lf_avail = 0;
 	struct dev *dev;
+	uint16_t lfs_init = 0;
 	uint16_t lf_bit;
 	uint16_t lf_id;
 	uint16_t slot;
 	struct ml *ml;
 	uint8_t i;
+	int free_rc;
 	int rc;
 
 	ml = roc_ml_to_ml_priv(roc_ml);
@@ -989,6 +1170,13 @@ roc_ml_dev_init_cn20k(struct roc_ml *roc_ml)
 		goto err_exit;
 	}
 
+	rc = ml_get_msix_offset(&ml->dev, &rsp);
+	if (rc)
+		goto lfs_detach;
+
+	for (slot = 0; slot < roc_ml->nb_lf; slot++)
+		ml->lf_msix_off[slot] = rsp->mllf_msixoff[slot];
+
 	memcpy(roc_ml->lf_map, lf_map, sizeof(lf_map));
 	for (slot = 0; slot < roc_ml->nb_lf; slot++) {
 		lf_id = 0;
@@ -1002,16 +1190,13 @@ roc_ml_dev_init_cn20k(struct roc_ml *roc_ml)
 			break;
 		}
 
-		roc_ml_lf_init(roc_ml, &roc_ml->lf[slot], slot, lf_id);
+		rc = roc_ml_lf_init(roc_ml, &roc_ml->lf[slot], slot, lf_id);
+		if (rc)
+			goto lfs_fini;
+
+		lfs_init++;
 		lf_map[i] &= ~(1 << lf_bit);
 	}
-
-	rc = ml_get_msix_offset(&ml->dev, &rsp);
-	if (rc)
-		goto lfs_detach;
-
-	for (slot = 0; slot < roc_ml->nb_lf; slot++)
-		ml->lf_msix_off[slot] = rsp->mllf_msixoff[slot];
 
 	/* Set idev if not already present */
 	if (!roc_idev_ml_get())
@@ -1019,16 +1204,18 @@ roc_ml_dev_init_cn20k(struct roc_ml *roc_ml)
 
 	rc = ml_lfs_alloc(&ml->dev, RVU_BLOCK_ADDR_ML);
 	if (rc)
-		goto lfs_detach;
+		goto lfs_fini;
 
 	rc = ml_hardware_caps_get(dev, roc_ml);
 	if (rc) {
 		plt_err("Failed to get hardware capabilities");
-		goto lfs_detach;
+		goto lfs_free;
 	}
 
 	roc_ml->reg_read64 = roc_ml_reg_read64_cn20ka;
 	roc_ml->reg_write64 = roc_ml_reg_write64_cn20ka;
+	roc_ml->reg_read32 = roc_ml_reg_read32_cn20ka;
+	roc_ml->reg_write32 = roc_ml_reg_write32_cn20ka;
 
 	roc_ml->cfg = ML_AF_CFG;
 	roc_ml->mlr_base = ML_AF_MLR_BASE;
@@ -1037,10 +1224,16 @@ roc_ml_dev_init_cn20k(struct roc_ml *roc_ml)
 
 	return rc;
 
-lfs_detach:
-	for (slot = 0; slot < roc_ml->nb_lf; slot++)
+lfs_free:
+	free_rc = ml_lfs_free(&ml->dev);
+	if (free_rc)
+		plt_err("Could not free LFs");
+
+lfs_fini:
+	for (slot = 0; slot < lfs_init; slot++)
 		roc_ml_lf_fini(&roc_ml->lf[slot]);
 
+lfs_detach:
 	ml_lfs_detach(&ml->dev);
 
 err_exit:
@@ -1102,8 +1295,6 @@ roc_ml_dev_fini_cn20k(struct roc_ml *roc_ml)
 	struct plt_pci_device *pci_dev;
 	uint16_t i;
 
-	ml_lfs_free(&ml->dev);
-
 	/* Remove idev references */
 	if (roc_idev_ml_get() == roc_ml)
 		roc_idev_ml_set(NULL);
@@ -1112,6 +1303,8 @@ roc_ml_dev_fini_cn20k(struct roc_ml *roc_ml)
 		ml->lf_msix_off[i] = 0;
 		roc_ml_lf_fini(&roc_ml->lf[i]);
 	}
+
+	ml_lfs_free(&ml->dev);
 
 	ml_lfs_detach(&ml->dev);
 
@@ -1182,8 +1375,8 @@ roc_ml_blk_init(struct roc_ml *roc_ml, int id)
 		roc_ml->job_mgr_ctrl = MLAB_AF_JOB_MGR_CTRL;
 	}
 
-	plt_ml_dbg("MLAB: Physical Address : 0x%" PRIx64, PLT_U64_CAST(mlab_pa));
-	plt_ml_dbg("MLAB: Virtual Address : 0x%" PRIx64, PLT_U64_CAST(mlab_va));
+	plt_ml_dbg("MLAB: Physical Address : 0x%016lx", (uint64_t)mlab_pa);
+	plt_ml_dbg("MLAB: Virtual Address : 0x%016lx", (uint64_t)mlab_va);
 
 	ml->ml_reg_addr = mlab_va;
 	ml->ml_mlr_base = 0;
@@ -1191,6 +1384,8 @@ roc_ml_blk_init(struct roc_ml *roc_ml, int id)
 
 	roc_ml->reg_read64 = roc_ml_reg_read64_cnxk;
 	roc_ml->reg_write64 = roc_ml_reg_write64_cnxk;
+	roc_ml->reg_read32 = roc_ml_reg_read32_cnxk;
+	roc_ml->reg_write32 = roc_ml_reg_write32_cnxk;
 
 	plt_spinlock_init(&roc_ml->sp_spinlock);
 	plt_spinlock_init(&roc_ml->fp_spinlock);
@@ -1226,9 +1421,11 @@ int
 roc_ml_lf_init(struct roc_ml *roc_ml, struct roc_ml_lf *lf, uint16_t slot, uint16_t lf_id)
 {
 	struct ml *ml = roc_ml_to_ml_priv(roc_ml);
+	int rc;
 
 	lf->slot = slot;
 	lf->lf_id = lf_id;
+	lf->intr_handle = ml->pci_dev->intr_handle;
 	lf->pci_dev = ml->pci_dev;
 	lf->dev = &ml->dev;
 	lf->roc_ml = roc_ml;
@@ -1238,7 +1435,20 @@ roc_ml_lf_init(struct roc_ml *roc_ml, struct roc_ml_lf *lf, uint16_t slot, uint1
 	lf->pf_func = lf->dev->pf_func;
 	lf->blk_addr = RVU_BLOCK_ADDR_ML;
 
+	rc = ml_register_irqs(lf);
+	if (rc) {
+		plt_err("Failed to register IRQs for LF %d", lf->lf_id);
+		goto ml_fini;
+	}
+	plt_ml_dbg("ml=%p, pf_func=%d, slot=%d, lf_id=%d, rbase=0x%" PRIx64 ", msixoff=%d",
+		   (void *)roc_ml, lf->pf_func, lf->slot, lf->lf_id, PLT_U64_CAST(lf->rbase),
+		   lf->msixoff);
+
 	return 0;
+
+ml_fini:
+	roc_ml_lf_fini(lf);
+	return rc;
 }
 
 void
@@ -1246,6 +1456,11 @@ roc_ml_lf_fini(struct roc_ml_lf *lf)
 {
 	if (lf == NULL)
 		return;
+
+	if (lf->msixoff == MSIX_VECTOR_INVALID)
+		return;
+
+	ml_unregister_irqs(lf);
 }
 
 uint16_t
