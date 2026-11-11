@@ -31,7 +31,10 @@
 /* Apply LBP at 75% of actual BP */
 #define NIX_CQ_LBP_THRESH_FRAC	(75 * 16 / 100.0)
 #define NIX_CQ_FULL_ERRATA_SKID (1024ull * 256)
-#define NIX_RQ_AURA_BP_THRESH(percent, limit, shift) ((((limit) * (percent)) / 100) >> (shift))
+/* cn20k has a 7b BP threshold and HW appends a 0 LSB, so program half the value */
+#define NIX_RQ_AURA_BP_EXTRA_SHIFT() (roc_model_is_cn20k() ? 1 : 0)
+#define NIX_RQ_AURA_BP_THRESH(percent, limit, shift)                                               \
+	((((limit) * (percent)) / 100) >> ((shift) + NIX_RQ_AURA_BP_EXTRA_SHIFT()))
 
 /* IRQ triggered when NIX_LF_CINTX_CNT[QCOUNT] crosses this value */
 #define CQ_CQE_THRESH_DEFAULT	0x1ULL

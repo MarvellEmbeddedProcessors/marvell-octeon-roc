@@ -605,7 +605,11 @@ nix_fc_npa_multi_bp_cfg(struct roc_nix *roc_nix, uint64_t pool_handle, uint8_t e
 
 	aura_attr = &lf->aura_attr[pool_id];
 
-	bp_thresh = NIX_RQ_AURA_BP_THRESH(drop_percent, aura_attr->limit, aura_attr->shift);
+	/* The pool's COUNT tracks free buffers (opposite of aura), and BP asserts when
+	 * it falls below the threshold. The caller passes the "used" percentage, so
+	 * program the complement (e.g. 30% used -> 70% free).
+	 */
+	bp_thresh = NIX_RQ_AURA_BP_THRESH(100 - drop_percent, aura_attr->limit, aura_attr->shift);
 	bpid = aura_attr->nix0_bpid;
 	bp_ena = aura_attr->bp_ena;
 
