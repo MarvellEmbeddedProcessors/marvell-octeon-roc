@@ -1214,8 +1214,9 @@ roc_nix_cn20k_cq_init(struct roc_nix *roc_nix, struct roc_nix_cq *cq)
 	struct nix *nix = roc_nix_to_nix_priv(roc_nix);
 	struct mbox *mbox = (&nix->dev)->mbox;
 	volatile struct nix_cn20k_cq_ctx_s *cq_ctx;
-	uint16_t drop_thresh = NIX_CQ_FIRST_DROP_THRESH_LEVEL;
-	uint16_t bp_thresh = NIX_CQ_BP_THRESH_LEVEL;
+	bool force_tail_drop = roc_nix->force_tail_drop;
+	uint16_t drop_thresh;
+	uint16_t bp_thresh;
 	struct nix_cn20k_aq_enq_req *aq;
 	uint16_t cpt_lbpid = 0;
 	enum nix_q_size qsize;
@@ -1259,6 +1260,8 @@ roc_nix_cn20k_cq_init(struct roc_nix *roc_nix, struct roc_nix_cq *cq)
 	cq_ctx->avg_level = 0xff;
 	cq_ctx->cq_err_int_ena = BIT(NIX_CQERRINT_CQE_FAULT);
 	cq_ctx->cq_err_int_ena |= BIT(NIX_CQERRINT_DOOR_ERR);
+	drop_thresh = force_tail_drop ? NIX_CQ_THRESH_LEVEL_REF1 : NIX_CQ_FIRST_DROP_THRESH_LEVEL;
+	bp_thresh = force_tail_drop ? NIX_CQ_BP_THRESH_LEVEL_REF1 : NIX_CQ_BP_THRESH_LEVEL;
 	if (roc_feature_nix_has_late_bp() && roc_nix_inl_inb_is_enabled(roc_nix)) {
 		uint16_t cptq = 0;
 
@@ -1274,10 +1277,15 @@ roc_nix_cn20k_cq_init(struct roc_nix *roc_nix, struct roc_nix_cq *cq)
 			cq_ctx->lbpid_med = (cpt_lbpid >> 3) & 0x7;
 			cq_ctx->lbpid_high = (cpt_lbpid >> 6) & 0x7;
 			cq_ctx->lbpid_ext = (cpt_lbpid >> 9) & 0x3;
-			cq_ctx->lbp_frac = NIX_CQ_LBP_THRESH_FRAC;
+			cq_ctx->lbp_frac = force_tail_drop ? NIX_CQ_LBP_THRESH_FRAC_REF1 :
+							     NIX_CQ_LBP_THRESH_FRAC;
 		}
-		drop_thresh = NIX_CQ_SEC_BP_THRESH_LEVEL;
-		bp_thresh = NIX_CQ_SEC_BP_THRESH_LEVEL;
+		/* CQ drop is disabled by default when inline device in use and
+		 * force_tail_drop disabled, so will not configure drop threshold.
+		 */
+		drop_thresh = force_tail_drop ? NIX_CQ_SEC_THRESH_LEVEL_REF1 : 0;
+		bp_thresh = force_tail_drop ? NIX_CQ_SEC_BP_THRESH_LEVEL_REF1 :
+					      NIX_CQ_SEC_BP_THRESH_LEVEL;
 	}
 
 	/* Many to one reduction */
@@ -1289,7 +1297,7 @@ roc_nix_cn20k_cq_init(struct roc_nix *roc_nix, struct roc_nix_cq *cq)
 	/* Drop processing or red drop cannot be enabled due to
 	 * due to packets coming for second pass from CPT.
 	 */
-	if (!roc_nix_inl_inb_is_enabled(roc_nix)) {
+	if (!roc_nix_inl_inb_is_enabled(roc_nix) || force_tail_drop) {
 		cq_ctx->drop = cq->drop_thresh;
 		cq_ctx->drop_ena = 1;
 	}
